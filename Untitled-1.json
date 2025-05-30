@@ -1,0 +1,1117 @@
+{
+      "ownerUserId": 1000365239,
+      "createdTime": 1748498248027,
+      "modifiedTime": 1748498248027,
+      "lastModifiedUserId": 1000365239,
+      "deleted": false,
+      "folderMetadata": null,
+      "canEdit": false,
+      "assetPermission": null,
+      "clientId": 1000004509,
+      "shareConfigs": null,
+      "grants": [
+        "USER/1000365239/OWNERSHIP",
+        "CLIENT/1000004509/OWNERSHIP"
+      ],
+      "versionId": 0,
+      "id": "6837f747ace369431e594a59",
+      "name": "Key Topics discussed in the purchase stage",
+      "dashboardId": "6837f747ace369431e594a71",
+      "moduleType": "LISTENING",
+      "category": null,
+      "serializedRequests": null,
+      "requests": [
+        {
+          "key": "d06de0d9-fca0-4ccd-92d5-c838d57bcc73",
+          "timeFilter": {
+            "field": null,
+            "sinceTime": 1709231400000,
+            "untilTime": 1711909799999,
+            "includeLower": true,
+            "includeUpper": true,
+            "additional": null
+          },
+          "previousTimeFilter": {
+            "field": null,
+            "sinceTime": 1706553000000,
+            "untilTime": 1709231399999,
+            "includeLower": true,
+            "includeUpper": true,
+            "additional": null
+          },
+          "eventBasedTimeRange": null,
+          "reportingEngine": "LISTENING",
+          "query": null,
+          "queries": null,
+          "filters": [],
+          "filter": null,
+          "hierarchicalFilter": null,
+          "knnSearchFilter": null,
+          "postFilters": null,
+          "projectionFilters": [],
+          "pinnedFilters": null,
+          "streamRequestInfo": null,
+          "dynamicBenchmarkInfos": [],
+          "projections": [
+            {
+              "measurement": "SPECIFIC_THEME_TAG_[Apparel & Fashion - During Purchase]",
+              "missing": null,
+              "aggregateFunction": "CARDINALITY",
+              "details": {},
+              "filters": null,
+              "group": null,
+              "key": "totalCount_SPECIFIC_THEME_TAG_Apparel_Fashion_During_Purchase__0"
+            }
+          ],
+          "report": "SPRINKSIGHTS",
+          "permission": null,
+          "permissions": null,
+          "tzOffset": -19800000,
+          "timezone": "Asia/Kolkata",
+          "sorts": [
+            {
+              "type": null,
+              "key": "M_SPRINKSIGHTS_MENTIONS_COUNT_0",
+              "order": "DESC",
+              "additional": null
+            }
+          ],
+          "page": {
+            "page": 0,
+            "size": 100,
+            "skip": 0,
+            "cursor": null
+          },
+          "pageForDocuments": null,
+          "sortsForDocuments": null,
+          "functionScore": null,
+          "merge": null,
+          "additional": {
+            "Timezone": "Asia/Kolkata",
+            "MARGIN": "false",
+            "showForecast": "false",
+            "translateResponse": "false",
+            "dashboardId": "66a7f0f01ceb336c2e703696",
+            "engine": "LISTENING",
+            "widgetId": "66a7f0f01ceb336c2e703776",
+            "showTotal": "false",
+            "chartType": "TABLE",
+            "TABULAR": "true",
+            "browserSessionId": "d2ccd315-2b95-4ebb-a2ea-64595941f2ae"
+          },
+          "cacheDisabled": false,
+          "projectionDecorations": [],
+          "includeFields": null,
+          "excludeFields": null,
+          "sortValues": null,
+          "reportDateField": null,
+          "filterControl": null,
+          "groupBys": [
+            {
+              "key": "SPECIFIC_THEME_TAG_Apparel_Fashion_During_Purchase__0",
+              "field": "SPECIFIC_THEME_TAG_[Apparel & Fashion - During Purchase]",
+              "groupType": "FIELD",
+              "details": {},
+              "sort": {
+                "type": null,
+                "key": "M_SPRINKSIGHTS_MENTIONS_COUNT_0",
+                "order": "DESC",
+                "additional": null
+              },
+              "page": null,
+              "projections": [
+                {
+                  "measurement": "MENTIONS_COUNT",
+                  "missing": null,
+                  "aggregateFunction": "SUM",
+                  "details": {},
+                  "filters": null,
+                  "group": null,
+                  "key": "M_SPRINKSIGHTS_MENTIONS_COUNT_0"
+                }
+              ],
+              "filters": null,
+              "namedFilters": null,
+              "childrenGroupBys": null
+            }
+          ]
+        }
+      ],
+      "configuration": null,
+      "additional": {
+        "version": "3",
+        "viewType": "CUSTOM",
+        "hidePercentageFromLabel": "false",
+        "ignoreAllDashboardFilters": "false",
+        "overrideDashboardFilters": "false",
+        "overrideAllDashboardFilters": "false",
+        "axes": "[{\"label\":\"During Purchase\",\"dimension\":{\"langVsTranslatedFieldValues\":null,\"name\":\"SPECIFIC_THEME_TAG_[Apparel & Fashion - During Purchase]\",\"lcName\":null,\"plural\":null,\"filters\":null,\"hidden\":false,\"enabledForAiConcierge\":false,\"dataType\":null,\"ordering\":null,\"uniqueKey\":\"D_SPECIFIC_THEME_TAG_[APPAREL & FASHION - DURING PURCHASE]\",\"i18nLabelPrefix\":null,\"i18nLabel\":null,\"aliases\":null,\"controllingFilters\":null,\"mandatory\":null,\"onlyIncl\":null,\"deprecated\":false,\"channelTypes\":null,\"code\":\"label.field.Theme.Tag.-.[Apparel.&.Fashion.-.During.Purchase]\",\"type\":\"DIMENSION\",\"sortable\":false,\"translatable\":false,\"lookupSupported\":true,\"lookupDimensions\":null,\"hoverable\":false,\"editable\":false,\"hoverRenderer\":null,\"multiValue\":false,\"multiValuedBackend\":false,\"filterDimension\":false,\"sortFieldName\":null,\"groupByNotAllowed\":null,\"dimensionGroup\":\"Theme Tags\",\"dashboardGroups\":null,\"missing\":null,\"filterTypeVsInputType\":null,\"icon\":null,\"lookupExtraParams\":null,\"groupDetailsParams\":null,\"lookupKey\":\"LST_THEME_DISPLAY_NAME\",\"controllablePermissionKeys\":null,\"projections\":null,\"shouldCacheEsFilter\":false,\"userDimension\":false,\"groupByAllowed\":true,\"addMissingKeys\":false,\"nestedFiltersInSortSupported\":false,\"allowedAsDrilldown\":true,\"displayName\":\"Theme Tag - [Apparel & Fashion - During Purchase]\",\"description\":\"Tags associated with different theme queries. You can visualize tags to measure the performance of different usecases on the widget.\",\"additional\":{\"dF\":true,\"DRILLDOWN_NAME\":\"[Apparel & Fashion - During Purchase]\",\"OLD_DIM_NAME\":\"THEME_TAGS\",\"HAS_ALERT\":false,\"FILTER_MAPPING_FIELD\":\"LST_THEME\",\"EXIST_FILTER\":false,\"HAS_TOOLTIP_DATA\":true},\"rank\":21,\"srcType\":\"CALCULATED\",\"id\":\"D_SPECIFIC_THEME_TAG_[APPAREL & FASHION - DURING PURCHASE]\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"isFieldVisible\":true,\"text\":\"Theme Tag - [Apparel & Fashion - During Purchase]\",\"snIcon\":\"icon-undefined\"}},{\"measurementFn\":\"SUM\",\"chartType\":\"column\",\"label\":\"Mentions\",\"measurement\":{\"langVsTranslatedFieldValues\":null,\"name\":\"MENTIONS_COUNT\",\"lcName\":null,\"plural\":null,\"filters\":null,\"hidden\":false,\"enabledForAiConcierge\":false,\"dataType\":null,\"ordering\":null,\"additional\":{\"HAS_ALERT\":false,\"supportedMediaCSV\":\"ALL_SOURCES\",\"HAS_TOOLTIP_DATA\":true},\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"i18nLabelPrefix\":null,\"i18nLabel\":null,\"aliases\":null,\"controllingFilters\":null,\"mandatory\":null,\"onlyIncl\":null,\"deprecated\":false,\"channelTypes\":null,\"code\":\"label.field.Mentions\",\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"groupNames\":null,\"isShared\":false,\"sharedKey\":null,\"color\":null,\"shortName\":null,\"defaultAggregationFunction\":null,\"colorConfig\":null,\"primaryField\":null,\"cumulativeAverageDenominator\":null,\"filterMeasurement\":true,\"field\":null,\"script\":\"1\",\"lang\":null,\"internalParams\":null,\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"Count of messages matching your criteria. One mention corresponds to one message.\",\"rank\":1,\"srcType\":\"SCRIPT\",\"id\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"isFieldVisible\":true,\"text\":\"Mentions\",\"snIcon\":\"icon-undefined\"}},false]",
+        "origModuleType": "LISTENING",
+        "standardWidget": "false",
+        "dashboardCurrency": "USD",
+        "type": "STATS_TABLE_WIDGET",
+        "columnFormats": "{\"M_SPRINKSIGHTS_MENTIONS_COUNT_0\":{\"scaleFormats\":{\"maxPoint\":{\"color\":\"#ff9b00\",\"type\":\"maxValue\"},\"minPoint\":{\"color\":\"#ffffff\",\"value\":50,\"type\":\"percentile\"}}},\"M_SPRINKSIGHTS_MENTIONS_COUNT_0_PERCENTAGE\":{\"scaleFormats\":{\"maxPoint\":{\"color\":\"#ff9b00\",\"type\":\"maxValue\"},\"minPoint\":{\"color\":\"#ffffff\",\"value\":50,\"type\":\"percentile\"}}}}",
+        "useCaseWidget": "true"
+      },
+      "chartParams": "[{\"type\":\"TABLE\",\"quadrantLabels\":null,\"columnsDetail\":{},\"actionableChartParams\":{\"isActionable\":false},\"isFooterEnabled\":true,\"decimalDigits\":null,\"dataLabels\":true,\"legend\":false}]",
+      "chartLayout": null,
+      "locked": false,
+      "pivotDimensionKeys": null,
+      "tutorialLink": null,
+      "targets": null,
+      "targetMetrics": [],
+      "defaultTargetMetrics": [],
+      "displayAnnotations": null,
+      "selectedAnnotationIds": null,
+      "primaryViewId": null,
+      "tabs": null,
+      "childWidgets": [
+        {
+          "ownerUserId": 0,
+          "createdTime": 1712212394029,
+          "modifiedTime": 1712212394029,
+          "lastModifiedUserId": null,
+          "deleted": false,
+          "folderMetadata": null,
+          "canEdit": false,
+          "assetPermission": null,
+          "clientId": 0,
+          "shareConfigs": null,
+          "grants": null,
+          "versionId": 0,
+          "id": "660e49aa4fa85173c6f377dc",
+          "name": "Volume Distribution",
+          "dashboardId": "660e499c4fa85173c6f367d3",
+          "moduleType": "LISTENING",
+          "category": null,
+          "serializedRequests": null,
+          "requests": [
+            {
+              "key": "VOLUME_DISTRIBUTION_REQUEST",
+              "timeFilter": {
+                "field": null,
+                "sinceTime": 1709231400000,
+                "untilTime": 1711909799999,
+                "includeLower": true,
+                "includeUpper": true,
+                "additional": null
+              },
+              "previousTimeFilter": {
+                "field": null,
+                "sinceTime": 1706553000000,
+                "untilTime": 1709231399999,
+                "includeLower": true,
+                "includeUpper": true,
+                "additional": null
+              },
+              "eventBasedTimeRange": null,
+              "reportingEngine": "LISTENING",
+              "query": null,
+              "queries": null,
+              "filters": [
+                {
+                  "filterType": "IN",
+                  "field": "TOPIC_IDS",
+                  "values": [
+                    "65fae0730278de21c65fd05c"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": true,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "DRILLDOWN": false,
+                    "dF": true,
+                    "OLD_DIM_NAME": "TOPIC",
+                    "nameQueryLookupSupported": "true",
+                    "EXIST_FILTER": false,
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "uniqueId": "D_TOPIC_IDS",
+                    "HAS_ALERT": false,
+                    "HAS_TOOLTIP_DATA": true,
+                    "displayNameForWarning": "Topic"
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "IN",
+                  "field": "LST_SUPP_LNG",
+                  "values": [
+                    "en"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": true,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "supportedMediaCSV": "ALL_SOURCES",
+                    "OLD_DIM_NAME": "LANGUAGE",
+                    "nameQueryLookupSupported": "true",
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "uniqueId": "D_LST_SUPP_LNG",
+                    "HAS_ALERT": false,
+                    "HAS_TOOLTIP_DATA": true,
+                    "displayNameForWarning": "Language"
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "NIN",
+                  "field": "LST_THEME_TAG",
+                  "values": [
+                    "Standard Exclusions"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": false,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "OLD_DIM_NAME": "THEME_TAGS",
+                    "HAS_ALERT": false,
+                    "nameQueryLookupSupported": "true",
+                    "displayNameForWarning": "Theme Tag",
+                    "EXIST_FILTER": false,
+                    "HAS_TOOLTIP_DATA": true
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "IN",
+                  "field": "POST_TYPE",
+                  "values": [
+                    "F"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": false,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "dF": true,
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "OLD_DIM_NAME": "POST_TYPE",
+                    "HAS_ALERT": false,
+                    "supportedMediaCSV": "ALL_SOURCES",
+                    "displayNameForWarning": "Earned/Owned Mentions",
+                    "EXIST_FILTER": false,
+                    "HAS_TOOLTIP_DATA": true
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                }
+              ],
+              "filter": null,
+              "hierarchicalFilter": null,
+              "knnSearchFilter": null,
+              "postFilters": null,
+              "projectionFilters": [],
+              "pinnedFilters": null,
+              "streamRequestInfo": null,
+              "dynamicBenchmarkInfos": [],
+              "projections": [
+                {
+                  "measurement": "MENTIONS_COUNT",
+                  "missing": null,
+                  "aggregateFunction": "SUM",
+                  "details": {},
+                  "filters": null,
+                  "group": null,
+                  "key": "M_SPRINKSIGHTS_MENTIONS_COUNT_0"
+                },
+                {
+                  "measurement": "DISTINCT_USER_COUNT",
+                  "missing": null,
+                  "aggregateFunction": "CARDINALITY",
+                  "details": {},
+                  "filters": null,
+                  "group": null,
+                  "key": "M_SPRINKSIGHTS_DISTINCT_USER_COUNT_0"
+                },
+                {
+                  "measurement": "POS_SEN",
+                  "missing": null,
+                  "aggregateFunction": "SUM",
+                  "details": {},
+                  "filters": null,
+                  "group": null,
+                  "key": "M_SPRINKSIGHTS_POS_SEN_1"
+                },
+                {
+                  "measurement": "NEG_SEN",
+                  "missing": null,
+                  "aggregateFunction": "SUM",
+                  "details": {},
+                  "filters": null,
+                  "group": null,
+                  "key": "M_SPRINKSIGHTS_NEG_SEN_2"
+                },
+                {
+                  "measurement": "NEU_SEN",
+                  "missing": null,
+                  "aggregateFunction": "SUM",
+                  "details": {},
+                  "filters": null,
+                  "group": null,
+                  "key": "M_SPRINKSIGHTS_NEU_SEN_3"
+                }
+              ],
+              "report": "SPRINKSIGHTS",
+              "permission": null,
+              "permissions": null,
+              "tzOffset": -19800000,
+              "timezone": "Asia/Kolkata",
+              "sorts": [],
+              "page": {
+                "page": 0,
+                "size": 20,
+                "skip": 0,
+                "cursor": null
+              },
+              "pageForDocuments": null,
+              "sortsForDocuments": null,
+              "functionScore": null,
+              "merge": null,
+              "additional": {
+                "Timezone": "Asia/Kolkata",
+                "MARGIN": "false",
+                "showForecast": "false",
+                "translateResponse": "false",
+                "engine": "LISTENING",
+                "dashboardId": "660e499c4fa85173c6f367d3",
+                "widgetId": "660e49aa4fa85173c6f377dc",
+                "chartType": "SUMMARY_TABLE",
+                "renderConfig": "{\"M_SPRINKSIGHTS_MENTIONS_COUNT_0\":{\"measurementFn\":\"SUM\",\"decorations\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"]},\"M_SPRINKSIGHTS_DISTINCT_USER_COUNT_0\":{\"measurementFn\":\"CARDINALITY\",\"decorations\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"]},\"M_SPRINKSIGHTS_POS_SEN_1\":{\"measurementFn\":\"SUM\",\"decorations\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"]},\"M_SPRINKSIGHTS_NEG_SEN_2\":{\"measurementFn\":\"SUM\",\"decorations\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"]},\"M_SPRINKSIGHTS_NEU_SEN_3\":{\"measurementFn\":\"SUM\",\"decorations\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"]}}",
+                "projectionDecorations": "{\"M_SPRINKSIGHTS_MENTIONS_COUNT_0\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"],\"M_SPRINKSIGHTS_DISTINCT_USER_COUNT_0\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"],\"M_SPRINKSIGHTS_POS_SEN_1\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"],\"M_SPRINKSIGHTS_NEG_SEN_2\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"],\"M_SPRINKSIGHTS_NEU_SEN_3\":[\"CHANGE\",\"PERCENTAGE_CHANGE\"]}",
+                "browserSessionId": "d2ccd315-2b95-4ebb-a2ea-64595941f2ae"
+              },
+              "cacheDisabled": false,
+              "projectionDecorations": [
+                "PERCENTAGE_CHANGE",
+                "CHANGE"
+              ],
+              "includeFields": null,
+              "excludeFields": null,
+              "sortValues": null,
+              "reportDateField": null,
+              "filterControl": null,
+              "groupBys": []
+            }
+          ],
+          "configuration": null,
+          "additional": {
+            "type": "SUMMARY_TABLE",
+            "axes": "[{\"measurementFn\":\"SUM\",\"measurement\":{\"name\":\"MENTIONS_COUNT\",\"fieldName\":\"MENTIONS_COUNT\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"The base unit within Listening Insights. One mention corresponds to one message from one data source that matches the selected filters\",\"rank\":1,\"id\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"text\":\"Mentions\",\"srcType\":\"SCRIPT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"MENTIONS_COUNT\",\"fieldName\":\"MENTIONS_COUNT\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"type\":\"SCRIPT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"The base unit within Listening Insights. One mention corresponds to one message from one data source that matches the selected filters\",\"rank\":1}},\"favorite\":false,\"disabled\":false}},{\"measurementFn\":\"CARDINALITY\",\"measurement\":{\"additional\":{\"supportedMediaCSV\":\"ALL_SOURCES\"},\"aliases\":null,\"channelTypes\":[],\"dataType\":null,\"description\":\"A count of deduplicated author's display name posting the messages\",\"displayName\":\"Distinct Users\",\"hidden\":false,\"i18nLabelPrefix\":null,\"name\":\"DISTINCT_USER_COUNT\",\"plural\":null,\"rank\":24,\"uniqueKey\":\"M_SPRINKSIGHTS_DISTINCT_USER_COUNT\",\"filters\":[{\"values\":[\"false\"],\"accessibleValues\":null,\"favourite\":false,\"mandatory\":false,\"allValuesAllowed\":true,\"lockedWithValues\":false,\"field\":\"add.auMiss\",\"details\":{},\"userFilter\":false,\"locked\":false,\"filterType\":\"EXISTS\",\"hidden\":false,\"filters\":null,\"advancedFilters\":null,\"__typename\":\"GraphqlShifuFilter\"}],\"additionalDetailsForRecordTable\":{},\"colorConfig\":null,\"cumulativeAverageDenominator\":null,\"defaultAggregationFunction\":null,\"groupNames\":[\"Users\"],\"measurementGroups\":[\"COMMON\"],\"primaryField\":null,\"rawDisplayName\":\"Distinct Users\",\"recordTableColumnType\":\"DEFAULT\",\"shared\":false,\"sharedKey\":null,\"shortName\":\"Distinct Users\",\"translationMap\":{},\"type\":\"MEASUREMENT\",\"__typename\":\"Measurement\",\"id\":\"M_SPRINKSIGHTS_DISTINCT_USER_COUNT\",\"text\":\"Distinct Users\",\"srcType\":\"CARDINALITY\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"langVsTranslatedFieldValues\":null,\"name\":\"DISTINCT_USER_COUNT\",\"fieldName\":\"DISTINCT_USER_COUNT\",\"plural\":null,\"filters\":[{\"filterType\":\"EXISTS\",\"field\":\"add.auMiss\",\"values\":[\"false\"],\"accessibleValues\":null,\"userFilter\":false,\"allValuesAllowed\":true,\"lockedWithValues\":false,\"hidden\":false,\"favourite\":false,\"mandatory\":false,\"locked\":false,\"ignoreAddingToDimensionFilter\":false,\"disabled\":null,\"details\":{},\"filters\":null,\"advancedFilters\":null}],\"hidden\":false,\"dataType\":null,\"additional\":{\"supportedMediaCSV\":\"ALL_SOURCES\"},\"uniqueKey\":\"M_SPRINKSIGHTS_DISTINCT_USER_COUNT\",\"i18nLabelPrefix\":null,\"aliases\":null,\"channelTypes\":[],\"type\":\"CARDINALITY\",\"measurementGroups\":[\"COMMON\"],\"groupNames\":null,\"sharedKey\":null,\"color\":null,\"shortName\":\"Distinct Users\",\"defaultAggregationFunction\":null,\"colorConfig\":null,\"primaryField\":null,\"cumulativeAverageDenominator\":null,\"cardinalityDimension\":\"FROM_SN_USER\",\"precisionThreshold\":1000,\"shared\":false,\"translationMap\":{},\"recordTableColumnType\":\"DEFAULT\",\"additionalDetailsForRecordTable\":{},\"rawDisplayName\":\"Distinct Users\",\"displayName\":\"Distinct Users\",\"description\":\"A count of deduplicated author's display name posting the messages\",\"rank\":24}},\"favorite\":false,\"disabled\":false,\"disabledReason\":null,\"isFieldVisible\":true,\"fieldType\":\"MEASUREMENT\",\"userFavourite\":false}},{\"measurementFn\":\"SUM\",\"measurement\":{\"name\":\"POS_SEN\",\"fieldName\":\"POS_SEN\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_POS_SEN\",\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Positive Mentions\",\"description\":\"Positive Sentiment Mentions\",\"rank\":17,\"id\":\"M_SPRINKSIGHTS_POS_SEN\",\"text\":\"Positive Mentions\",\"srcType\":\"SCRIPT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"POS_SEN\",\"fieldName\":\"POS_SEN\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_POS_SEN\",\"type\":\"SCRIPT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Positive Mentions\",\"description\":\"Positive Sentiment Mentions\",\"rank\":17}},\"favorite\":false,\"disabled\":false}},{\"measurementFn\":\"SUM\",\"measurement\":{\"name\":\"NEG_SEN\",\"fieldName\":\"NEG_SEN\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_NEG_SEN\",\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Negative Mentions\",\"description\":\"Negative Sentiment Mentions\",\"rank\":16,\"id\":\"M_SPRINKSIGHTS_NEG_SEN\",\"text\":\"Negative Mentions\",\"srcType\":\"SCRIPT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"NEG_SEN\",\"fieldName\":\"NEG_SEN\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_NEG_SEN\",\"type\":\"SCRIPT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Negative Mentions\",\"description\":\"Negative Sentiment Mentions\",\"rank\":16}},\"favorite\":false,\"disabled\":false}},{\"measurementFn\":\"SUM\",\"measurement\":{\"name\":\"NEU_SEN\",\"fieldName\":\"NEU_SEN\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_NEU_SEN\",\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Neutral Mentions\",\"description\":\"Neutral Sentiment Mentions\",\"rank\":31,\"id\":\"M_SPRINKSIGHTS_NEU_SEN\",\"text\":\"Neutral Mentions\",\"srcType\":\"SCRIPT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"NEU_SEN\",\"fieldName\":\"NEU_SEN\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_NEU_SEN\",\"type\":\"SCRIPT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Neutral Mentions\",\"description\":\"Neutral Sentiment Mentions\",\"rank\":31}},\"favorite\":false,\"disabled\":false}},false]",
+            "size": "{\"height\":13,\"width\":12}",
+            "standardWidget": "true",
+            "ignoreAllDashboardFilters": "false",
+            "overrideDashboardFilters": "false",
+            "overrideAllDashboardFilters": "false"
+          },
+          "chartParams": "[{\"type\":\"SUMMARY_TABLE\",\"isFooterEnabled\":true}]",
+          "chartLayout": null,
+          "locked": false,
+          "pivotDimensionKeys": null,
+          "tutorialLink": null,
+          "targets": null,
+          "targetMetrics": null,
+          "defaultTargetMetrics": null,
+          "displayAnnotations": null,
+          "selectedAnnotationIds": null,
+          "primaryViewId": null,
+          "tabs": null,
+          "childWidgets": null,
+          "lensConfig": null,
+          "requestLens": null,
+          "widgetColumnConfigId": null,
+          "widgetColumnConfig": null,
+          "notComparable": false,
+          "searchableData": {
+            "uniqueFieldKeys": [
+              "M_SPRINKSIGHTS_NEG_SEN",
+              "M_SPRINKSIGHTS_MENTIONS_COUNT",
+              "M_SPRINKSIGHTS_POS_SEN",
+              "M_SPRINKSIGHTS_DISTINCT_USER_COUNT",
+              "M_SPRINKSIGHTS_NEU_SEN"
+            ]
+          },
+          "dbFilterControl": null,
+          "customPivotDimensionKeys": null,
+          "customPivotSort": null,
+          "drillDownParams": null,
+          "widgetAxes": null,
+          "dynamicBenchmarkEnabled": false,
+          "scopedFieldViewList": null,
+          "targetLangCode": null,
+          "rootLocale": null,
+          "noDataMessage": null,
+          "hasPinnedSummary": null,
+          "kbConfig": null,
+          "description": null
+        },
+        {
+          "ownerUserId": 0,
+          "createdTime": 1712212394035,
+          "modifiedTime": 1712212394035,
+          "lastModifiedUserId": null,
+          "deleted": false,
+          "folderMetadata": null,
+          "canEdit": false,
+          "assetPermission": null,
+          "clientId": 0,
+          "shareConfigs": null,
+          "grants": null,
+          "versionId": 0,
+          "id": "660e49aa4fa85173c6f377df",
+          "name": "Overall Mentions Trend",
+          "dashboardId": "660e499c4fa85173c6f367d3",
+          "moduleType": "LISTENING",
+          "category": null,
+          "serializedRequests": null,
+          "requests": [
+            {
+              "key": "OVERALL_MENTIONS_TREND_REQUEST",
+              "timeFilter": {
+                "field": null,
+                "sinceTime": 1709231400000,
+                "untilTime": 1711909799999,
+                "includeLower": true,
+                "includeUpper": true,
+                "additional": null
+              },
+              "previousTimeFilter": {
+                "field": null,
+                "sinceTime": 1706553000000,
+                "untilTime": 1709231399999,
+                "includeLower": true,
+                "includeUpper": true,
+                "additional": null
+              },
+              "eventBasedTimeRange": null,
+              "reportingEngine": "LISTENING",
+              "query": null,
+              "queries": null,
+              "filters": [
+                {
+                  "filterType": "IN",
+                  "field": "TOPIC_IDS",
+                  "values": [
+                    "65fae0730278de21c65fd05c"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": true,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "DRILLDOWN": false,
+                    "dF": true,
+                    "OLD_DIM_NAME": "TOPIC",
+                    "nameQueryLookupSupported": "true",
+                    "EXIST_FILTER": false,
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "uniqueId": "D_TOPIC_IDS",
+                    "HAS_ALERT": false,
+                    "HAS_TOOLTIP_DATA": true,
+                    "displayNameForWarning": "Topic"
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "IN",
+                  "field": "LST_SUPP_LNG",
+                  "values": [
+                    "en"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": true,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "supportedMediaCSV": "ALL_SOURCES",
+                    "OLD_DIM_NAME": "LANGUAGE",
+                    "nameQueryLookupSupported": "true",
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "uniqueId": "D_LST_SUPP_LNG",
+                    "HAS_ALERT": false,
+                    "HAS_TOOLTIP_DATA": true,
+                    "displayNameForWarning": "Language"
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "NIN",
+                  "field": "LST_THEME_TAG",
+                  "values": [
+                    "Standard Exclusions"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": false,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "OLD_DIM_NAME": "THEME_TAGS",
+                    "HAS_ALERT": false,
+                    "nameQueryLookupSupported": "true",
+                    "displayNameForWarning": "Theme Tag",
+                    "EXIST_FILTER": false,
+                    "HAS_TOOLTIP_DATA": true
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "IN",
+                  "field": "POST_TYPE",
+                  "values": [
+                    "F"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": false,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "dF": true,
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "OLD_DIM_NAME": "POST_TYPE",
+                    "HAS_ALERT": false,
+                    "supportedMediaCSV": "ALL_SOURCES",
+                    "displayNameForWarning": "Earned/Owned Mentions",
+                    "EXIST_FILTER": false,
+                    "HAS_TOOLTIP_DATA": true
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                }
+              ],
+              "filter": null,
+              "hierarchicalFilter": null,
+              "knnSearchFilter": null,
+              "postFilters": null,
+              "projectionFilters": [],
+              "pinnedFilters": null,
+              "streamRequestInfo": null,
+              "dynamicBenchmarkInfos": [],
+              "projections": [],
+              "report": "SPRINKSIGHTS",
+              "permission": null,
+              "permissions": null,
+              "tzOffset": -19800000,
+              "timezone": "Asia/Kolkata",
+              "sorts": [],
+              "page": null,
+              "pageForDocuments": null,
+              "sortsForDocuments": null,
+              "functionScore": null,
+              "merge": null,
+              "additional": {
+                "Timezone": "Asia/Kolkata",
+                "MARGIN": "false",
+                "showForecast": "false",
+                "translateResponse": "false",
+                "engine": "LISTENING",
+                "dashboardId": "660e499c4fa85173c6f367d3",
+                "widgetId": "660e49aa4fa85173c6f377df",
+                "chartType": "AREA_SPLINE",
+                "browserSessionId": "d2ccd315-2b95-4ebb-a2ea-64595941f2ae"
+              },
+              "cacheDisabled": false,
+              "projectionDecorations": [],
+              "includeFields": null,
+              "excludeFields": null,
+              "sortValues": null,
+              "reportDateField": null,
+              "filterControl": null,
+              "groupBys": [
+                {
+                  "key": "SN_CREATED_TIME_0",
+                  "field": "SN_CREATED_TIME",
+                  "groupType": "DATE_HISTOGRAM",
+                  "details": {
+                    "interval": "1d"
+                  },
+                  "sort": null,
+                  "page": null,
+                  "projections": [
+                    {
+                      "measurement": "MENTIONS_COUNT",
+                      "missing": null,
+                      "aggregateFunction": "SUM",
+                      "details": {},
+                      "filters": null,
+                      "group": null,
+                      "key": "M_SPRINKSIGHTS_MENTIONS_COUNT_0"
+                    }
+                  ],
+                  "filters": null,
+                  "namedFilters": null,
+                  "childrenGroupBys": null
+                }
+              ]
+            }
+          ],
+          "configuration": null,
+          "additional": {
+            "axes": "[{\"dimension\":{\"name\":\"SN_CREATED_TIME\",\"fieldName\":\"snCTm\",\"hidden\":false,\"dataType\":\"DATE_HISTOGRAM\",\"uniqueKey\":\"D_SN_CREATED_TIME\",\"type\":\"DIMENSION\",\"sortable\":true,\"multiValue\":false,\"multiValuedBackend\":false,\"filterDimension\":false,\"groupByAllowed\":true,\"allowedAsDrilldown\":true,\"displayName\":\"Created Time\",\"description\":\"The time and date at which the message was created, as provided to Sprinklr via its data providers.\",\"additional\":{\"DRILLDOWN_ALWAYS\":true,\"DRILLDOWN_NAME\":\"Show Trend\",\"drilldownInSurvey\":true},\"rank\":3,\"id\":\"D_SN_CREATED_TIME\",\"text\":\"Created Time\",\"srcType\":\"NORMAL\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"SN_CREATED_TIME\",\"fieldName\":\"snCTm\",\"hidden\":false,\"dataType\":\"DATE_HISTOGRAM\",\"uniqueKey\":\"D_SN_CREATED_TIME\",\"type\":\"NORMAL\",\"sortable\":true,\"multiValue\":false,\"multiValuedBackend\":false,\"filterDimension\":false,\"groupByAllowed\":true,\"allowedAsDrilldown\":true,\"displayName\":\"Created Time\",\"description\":\"The time and date at which the message was created, as provided to Sprinklr via its data providers.\",\"additional\":{\"DRILLDOWN_ALWAYS\":true,\"DRILLDOWN_NAME\":\"Show Trend\",\"drilldownInSurvey\":true},\"rank\":3}},\"favorite\":false,\"disabled\":false}},{\"measurementFn\":\"SUM\",\"measurement\":{\"name\":\"MENTIONS_COUNT\",\"fieldName\":\"MENTIONS_COUNT\",\"plural\":null,\"hidden\":false,\"dataType\":null,\"ordering\":null,\"additional\":{},\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"i18nLabelPrefix\":null,\"i18nLabel\":null,\"channelTypes\":null,\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"groupNames\":null,\"isShared\":false,\"sharedKey\":null,\"color\":null,\"shortName\":null,\"defaultAggregationFunction\":null,\"colorConfig\":null,\"primaryField\":null,\"field\":null,\"script\":\"1\",\"lang\":null,\"internalParams\":null,\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"The base unit within Listening Insights. One mention corresponds to one message from one data source that matches the selected filters\",\"rank\":1,\"srcType\":\"SCRIPT\",\"id\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"text\":\"Mentions\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"MENTIONS_COUNT\",\"fieldName\":\"MENTIONS_COUNT\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"type\":\"SCRIPT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"The base unit within Listening Insights. One mention corresponds to one message from one data source that matches the selected filters\",\"rank\":1}},\"favorite\":false,\"disabled\":false}},false]",
+            "widgetColors": "{\"colorCount\":1,\"chartColors\":[\"rgba(64,163,245,0.9)\"]}",
+            "standardWidget": "true",
+            "size": "{\"height\":18,\"width\":12}",
+            "ignoreAllDashboardFilters": "false",
+            "overrideDashboardFilters": "false",
+            "overrideAllDashboardFilters": "false"
+          },
+          "chartParams": "[{\"type\":\"AREA_SPLINE\"}]",
+          "chartLayout": null,
+          "locked": false,
+          "pivotDimensionKeys": null,
+          "tutorialLink": null,
+          "targets": null,
+          "targetMetrics": null,
+          "defaultTargetMetrics": null,
+          "displayAnnotations": null,
+          "selectedAnnotationIds": null,
+          "primaryViewId": null,
+          "tabs": null,
+          "childWidgets": null,
+          "lensConfig": null,
+          "requestLens": null,
+          "widgetColumnConfigId": null,
+          "widgetColumnConfig": null,
+          "notComparable": false,
+          "searchableData": {
+            "uniqueFieldKeys": [
+              "M_SPRINKSIGHTS_MENTIONS_COUNT",
+              "D_SN_CREATED_TIME"
+            ]
+          },
+          "dbFilterControl": null,
+          "customPivotDimensionKeys": null,
+          "customPivotSort": null,
+          "drillDownParams": null,
+          "widgetAxes": null,
+          "dynamicBenchmarkEnabled": false,
+          "scopedFieldViewList": null,
+          "targetLangCode": null,
+          "rootLocale": null,
+          "noDataMessage": null,
+          "hasPinnedSummary": null,
+          "kbConfig": null,
+          "description": null
+        },
+        {
+          "ownerUserId": 0,
+          "createdTime": 1712212394040,
+          "modifiedTime": 1712212394040,
+          "lastModifiedUserId": null,
+          "deleted": false,
+          "folderMetadata": null,
+          "canEdit": false,
+          "assetPermission": null,
+          "clientId": 0,
+          "shareConfigs": null,
+          "grants": null,
+          "versionId": 0,
+          "id": "660e49aa4fa85173c6f377e2",
+          "name": "Conversation Stream",
+          "dashboardId": "660e499c4fa85173c6f367d3",
+          "moduleType": "LISTENING",
+          "category": null,
+          "serializedRequests": null,
+          "requests": [
+            {
+              "key": "CONVERSATION_STREAM_REQUEST",
+              "timeFilter": {
+                "field": null,
+                "sinceTime": 1709231400000,
+                "untilTime": 1711909799999,
+                "includeLower": true,
+                "includeUpper": true,
+                "additional": null
+              },
+              "previousTimeFilter": {
+                "field": null,
+                "sinceTime": 1706553000000,
+                "untilTime": 1709231399999,
+                "includeLower": true,
+                "includeUpper": true,
+                "additional": null
+              },
+              "eventBasedTimeRange": null,
+              "reportingEngine": "LISTENING",
+              "query": null,
+              "queries": null,
+              "filters": [
+                {
+                  "filterType": "IN",
+                  "field": "POST_TYPE",
+                  "values": [
+                    "F"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": false,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "dF": true,
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "OLD_DIM_NAME": "POST_TYPE",
+                    "HAS_ALERT": false,
+                    "supportedMediaCSV": "ALL_SOURCES",
+                    "displayNameForWarning": "Earned/Owned Mentions",
+                    "EXIST_FILTER": false,
+                    "HAS_TOOLTIP_DATA": true
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "NIN",
+                  "field": "LST_THEME_TAG",
+                  "values": [
+                    "Standard Exclusions"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": false,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "OLD_DIM_NAME": "THEME_TAGS",
+                    "HAS_ALERT": false,
+                    "nameQueryLookupSupported": "true",
+                    "displayNameForWarning": "Theme Tag",
+                    "EXIST_FILTER": false,
+                    "HAS_TOOLTIP_DATA": true
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "IN",
+                  "field": "LST_SUPP_LNG",
+                  "values": [
+                    "en"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": true,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "supportedMediaCSV": "ALL_SOURCES",
+                    "OLD_DIM_NAME": "LANGUAGE",
+                    "nameQueryLookupSupported": "true",
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "uniqueId": "D_LST_SUPP_LNG",
+                    "HAS_ALERT": false,
+                    "HAS_TOOLTIP_DATA": true,
+                    "displayNameForWarning": "Language"
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                },
+                {
+                  "filterType": "IN",
+                  "field": "TOPIC_IDS",
+                  "values": [
+                    "65fae0730278de21c65fd05c"
+                  ],
+                  "accessibleValues": null,
+                  "userFilter": false,
+                  "allValuesAllowed": true,
+                  "lockedWithValues": false,
+                  "hidden": false,
+                  "favourite": true,
+                  "mandatory": false,
+                  "locked": false,
+                  "ignoreAddingToDimensionFilter": false,
+                  "disabled": null,
+                  "details": {
+                    "contentType": "DB_FILTER",
+                    "DRILLDOWN": false,
+                    "dF": true,
+                    "OLD_DIM_NAME": "TOPIC",
+                    "nameQueryLookupSupported": "true",
+                    "EXIST_FILTER": false,
+                    "DB_FILTER_REPORT_NAME": "SPRINKSIGHTS",
+                    "uniqueId": "D_TOPIC_IDS",
+                    "HAS_ALERT": false,
+                    "HAS_TOOLTIP_DATA": true,
+                    "displayNameForWarning": "Topic"
+                  },
+                  "filters": null,
+                  "advancedFilters": null
+                }
+              ],
+              "filter": null,
+              "hierarchicalFilter": null,
+              "knnSearchFilter": null,
+              "postFilters": null,
+              "projectionFilters": [],
+              "pinnedFilters": null,
+              "streamRequestInfo": null,
+              "dynamicBenchmarkInfos": null,
+              "projections": [
+                {
+                  "measurement": "ES_MESSAGE_ID",
+                  "missing": null,
+                  "aggregateFunction": "CARDINALITY",
+                  "details": null,
+                  "filters": null,
+                  "group": null,
+                  "key": "totalCount_ES_MESSAGE_ID_0"
+                }
+              ],
+              "report": "SPRINKSIGHTS",
+              "permission": null,
+              "permissions": null,
+              "tzOffset": 0,
+              "timezone": "Asia/Kolkata",
+              "sorts": [
+                {
+                  "type": null,
+                  "key": "SN_CREATED_TIME",
+                  "order": "DESC",
+                  "additional": null
+                }
+              ],
+              "page": {
+                "page": 0,
+                "size": 20,
+                "skip": 0,
+                "cursor": null
+              },
+              "pageForDocuments": null,
+              "sortsForDocuments": null,
+              "functionScore": null,
+              "merge": null,
+              "additional": {
+                "exportInfo": "true",
+                "dashboardWidget": "true",
+                "moduleType": "LISTENING",
+                "dashboardId": "660e499c4fa85173c6f367d3",
+                "engine": "LISTENING",
+                "widgetId": "660e49aa4fa85173c6f377e2",
+                "HIGHLIGHT_ENTITY": "SMART_CLUSTER",
+                "STREAM": "true",
+                "browserSessionId": "b4c0ba3e-5f46-4a6c-a275-09d32bf561ca",
+                "option": "CUSTOM"
+              },
+              "cacheDisabled": false,
+              "projectionDecorations": [],
+              "includeFields": null,
+              "excludeFields": null,
+              "sortValues": null,
+              "reportDateField": null,
+              "filterControl": null,
+              "groupBys": [
+                {
+                  "key": "ES_MESSAGE_ID_0",
+                  "field": "ES_MESSAGE_ID",
+                  "groupType": "FIELD",
+                  "details": {},
+                  "sort": {
+                    "type": null,
+                    "key": "SN_CREATED_TIME",
+                    "order": "DESC",
+                    "additional": null
+                  },
+                  "page": null,
+                  "projections": [
+                    {
+                      "measurement": "MENTIONS_COUNT",
+                      "missing": null,
+                      "aggregateFunction": "SUM",
+                      "details": null,
+                      "filters": null,
+                      "group": null,
+                      "key": "M_SPRINKSIGHTS_MENTIONS_COUNT_0"
+                    }
+                  ],
+                  "filters": null,
+                  "namedFilters": null,
+                  "childrenGroupBys": null
+                }
+              ]
+            }
+          ],
+          "configuration": null,
+          "additional": {
+            "type": "STREAM",
+            "axes": "[{\"dimension\":{\"name\":\"ES_MESSAGE_ID\",\"fieldName\":\"uMId\",\"hidden\":false,\"uniqueKey\":\"D_ES_MESSAGE_ID\",\"type\":\"DIMENSION\",\"sortable\":false,\"multiValue\":false,\"multiValuedBackend\":false,\"filterDimension\":false,\"dimensionGroup\":\"What\",\"script\":\"doc['uMId'].values\",\"lang\":\"mvel\",\"collectMode\":\"BREADTH_FIRST\",\"onlyForAgg\":true,\"groupByAllowed\":true,\"allowedAsDrilldown\":true,\"displayName\":\"Conversation Stream\",\"additional\":{\"sortableMeasurements\":\"REACH_COUNT,INFLUENCER_SCORE,TWITTER_RETWEETS,TWITTER_FAVORITES,LIKES_COUNT,COMMENTS_COUNT,SHARES_COUNT,HAHA_COUNT,WOW_COUNT,LOVE_COUNT\",\"DRILLDOWN_NAME\":\"Show Conversation Stream\",\"sortableDimensions\":\"SN_CREATED_TIME\",\"CHART_TYPE\":\"STREAM\",\"drilldownInSurvey\":true,\"STREAM\":true},\"rank\":7,\"id\":\"D_ES_MESSAGE_ID\",\"text\":\"Conversation Stream\",\"srcType\":\"SCRIPT\",\"description\":\"\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"ES_MESSAGE_ID\",\"fieldName\":\"uMId\",\"hidden\":false,\"uniqueKey\":\"D_ES_MESSAGE_ID\",\"type\":\"SCRIPT\",\"sortable\":false,\"multiValue\":false,\"multiValuedBackend\":false,\"filterDimension\":false,\"dimensionGroup\":\"What\",\"script\":\"doc['uMId'].values\",\"lang\":\"mvel\",\"collectMode\":\"BREADTH_FIRST\",\"onlyForAgg\":true,\"groupByAllowed\":true,\"allowedAsDrilldown\":true,\"displayName\":\"Conversation Stream\",\"additional\":{\"sortableMeasurements\":\"REACH_COUNT,INFLUENCER_SCORE,TWITTER_RETWEETS,TWITTER_FAVORITES,LIKES_COUNT,COMMENTS_COUNT,SHARES_COUNT,HAHA_COUNT,WOW_COUNT,LOVE_COUNT\",\"DRILLDOWN_NAME\":\"Show Conversation Stream\",\"sortableDimensions\":\"SN_CREATED_TIME\",\"CHART_TYPE\":\"STREAM\",\"drilldownInSurvey\":true,\"STREAM\":true},\"rank\":7}},\"favorite\":false,\"disabled\":false}},{\"measurementFn\":\"SUM\",\"measurement\":{\"name\":\"MENTIONS_COUNT\",\"fieldName\":\"MENTIONS_COUNT\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"type\":\"MEASUREMENT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"The base unit within Listening Insights. One mention corresponds to one message from one data source that matches the selected filters\",\"rank\":1,\"id\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"text\":\"Mentions\",\"srcType\":\"SCRIPT\",\"reports\":[\"SPRINKSIGHTS\"],\"report\":\"SPRINKSIGHTS\",\"snIcon\":\"icon-undefined\",\"fieldDetails\":{\"SPRINKSIGHTS\":{\"name\":\"MENTIONS_COUNT\",\"fieldName\":\"MENTIONS_COUNT\",\"hidden\":false,\"uniqueKey\":\"M_SPRINKSIGHTS_MENTIONS_COUNT\",\"type\":\"SCRIPT\",\"measurementGroups\":[],\"isShared\":false,\"script\":\"1\",\"requiresParams\":false,\"shared\":false,\"displayName\":\"Mentions\",\"description\":\"The base unit within Listening Insights. One mention corresponds to one message from one data source that matches the selected filters\",\"rank\":1}},\"favorite\":false,\"disabled\":false}}]",
+            "size": "{\"height\":33,\"width\":12}",
+            "standardWidget": "true",
+            "ignoreAllDashboardFilters": "false",
+            "overrideDashboardFilters": "false",
+            "overrideAllDashboardFilters": "false"
+          },
+          "chartParams": "[{\"type\":\"STREAM\",\"hideActions\":true}]",
+          "chartLayout": null,
+          "locked": false,
+          "pivotDimensionKeys": null,
+          "tutorialLink": null,
+          "targets": null,
+          "targetMetrics": null,
+          "defaultTargetMetrics": null,
+          "displayAnnotations": null,
+          "selectedAnnotationIds": null,
+          "primaryViewId": null,
+          "tabs": null,
+          "childWidgets": null,
+          "lensConfig": null,
+          "requestLens": null,
+          "widgetColumnConfigId": null,
+          "widgetColumnConfig": null,
+          "notComparable": false,
+          "searchableData": {
+            "uniqueFieldKeys": [
+              "M_SPRINKSIGHTS_MENTIONS_COUNT",
+              "D_ES_MESSAGE_ID"
+            ]
+          },
+          "dbFilterControl": null,
+          "customPivotDimensionKeys": null,
+          "customPivotSort": null,
+          "drillDownParams": null,
+          "widgetAxes": null,
+          "dynamicBenchmarkEnabled": false,
+          "scopedFieldViewList": null,
+          "targetLangCode": null,
+          "rootLocale": null,
+          "noDataMessage": null,
+          "hasPinnedSummary": null,
+          "kbConfig": null,
+          "description": null
+        }
+      ],
+      "lensConfig": null,
+      "requestLens": null,
+      "widgetColumnConfigId": null,
+      "widgetColumnConfig": null,
+      "notComparable": false,
+      "searchableData": {
+        "uniqueFieldKeys": [
+          "M_SPRINKSIGHTS_NEG_SEN",
+          "M_SPRINKSIGHTS_MENTIONS_COUNT",
+          "D_SN_CREATED_TIME",
+          "M_SPRINKSIGHTS_POS_SEN",
+          "D_ES_MESSAGE_ID",
+          "M_SPRINKSIGHTS_DISTINCT_USER_COUNT",
+          "M_SPRINKSIGHTS_NEU_SEN",
+          "D_SPECIFIC_THEME_TAG_[APPAREL & FASHION - DURING PURCHASE]"
+        ]
+      },
+      "dbFilterControl": null,
+      "customPivotDimensionKeys": null,
+      "customPivotSort": null,
+      "drillDownParams": null,
+      "widgetAxes": [
+        {
+          "id": "D_SPECIFIC_THEME_TAG_[APPAREL & FASHION - DURING PURCHASE]",
+          "type": "DIMENSION",
+          "subAxes": null,
+          "additional": {},
+          "label": "During Purchase"
+        },
+        {
+          "id": "M_SPRINKSIGHTS_MENTIONS_COUNT",
+          "type": "MEASUREMENT",
+          "subAxes": null,
+          "additional": {
+            "decorationFn": "SUM",
+            "chartType": "column"
+          },
+          "label": "Mentions"
+        },
+        null
+      ],
+      "dynamicBenchmarkEnabled": false,
+      "scopedFieldViewList": null,
+      "targetLangCode": null,
+      "rootLocale": "en_GB",
+      "noDataMessage": null,
+      "hasPinnedSummary": null,
+      "kbConfig": null,
+      "description": null
+    }
+  

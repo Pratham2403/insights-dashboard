@@ -1,0 +1,85 @@
+# Core LangChain Ecosystem
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-community>=0.0.16
+langgraph>=0.0.20
+
+# LLM Providers
+langchain-openai>=0.0.5
+openai>=1.13.0
+
+# Web Framework
+fastapi>=0.110.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+httpx>=0.25.2
+
+# Data Validation
+pydantic>=2.5.0
+typing-extensions>=4.8.0
+
+# Text Processing & NLP
+regex>=2023.0.0 # Improved regex capabilities
+unidecode>=1.3.0 # For ASCII transliteration of text
+
+# Elasticsearch Integration
+langchain-elasticsearch>=0.0.1
+elasticsearch>=8.10.0
+
+# Utilities
+python-dotenv>=1.0.0
+aiohttp>=3.9.1
+
+# Testing
+pytest>=7.4.0
+
+# Vector Stores & Embeddings
+chromadb
+faiss-cpu
+# sentence-transformers
+tiktoken
+
+# Web Framework & API
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# HTTP Client & Async
+httpx # Preferred async client, can also do sync
+
+# Data Processing & Analysis
+numpy
+pandas
+
+# Date & Time Handling
+arrow # Comprehensive date/time library
+
+# Environment & Configuration
+python-dotenv # For loading .env files, often with pydantic-settings
+
+# Database & Caching (MongoDB or filesystem)
+pymongo           # Official MongoDB driver
+motor             # Async MongoDB driver (for FastAPI)
+# For simple local filesystem storage, no extra package is needed
+
+# Security & Authentication
+cryptography
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart # For FastAPI file uploads
+
+# File Handling & Utilities
+PyYAML
+toml
+chardet # Character encoding detection
+python-magic # File type detection from content
+
+# Async & Concurrency
+aiofiles # For async file operations
+aiocache # Async caching
+
+# CLI & Progress Bars (Useful for utility scripts/dev tasks)
+click
+tqdm
+rich

@@ -1,0 +1,3 @@
+"""
+Sprinklr Insights Dashboard application.
+"""
