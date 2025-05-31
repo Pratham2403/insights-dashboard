@@ -10,11 +10,11 @@ Build the backend of agentic system that collects user requirements through conv
 
 - **LangGraph**: Multi-agent workflow orchestration
 - **FastAPI**: Backend API framework
-- **Elasticsearch**: Data source (queries Data from some API, whose payload is the Boolean keyword query)
-- **MemorySaver**: State persistence and memory management
+- **MemorySaver**: State persistence and memory management (Langraph provides this)
 - **TypedDict**: Type annotations for state management
 - **Pydantic**: Data validation and state management
 - **OpenAI**: LLM integration using the LLM Router.
+- **GeminiAI**: For Development use the Gemini LLM Only.
 
   ```py
   LLM_ROUTER_BASE_URL: HttpUrl = Field(default=HttpUrl('http://qa6-intuitionx-llm-router-v2.sprinklr.com/chat-completion'))
@@ -40,79 +40,9 @@ Build the backend of agentic system that collects user requirements through conv
 
 Create a comprehensive state management system that tracks:
 
-```py
-class ProjectState(TypedDict):
-    # User Requirements
-    ## Can be different for different users, so we can use Optional for some fields and there can be more fields as well because there may be different use-cases, so HITL should handle that
-    user_persona: Optional[str]
-    products: List[str]
-    location: Optional[str]
-    channels: List[str]
-    goals: List[str]
-    time_period: Optional[str]
-    additional_notes: Optional[str]
-
-    # System State
-    conversation_id: str
-    current_stage: str  # "collecting", "validating", "querying", "processing"
-    missing_fields: List[str]
-    is_complete: bool
-    requires_human_input: bool
-
-    # Data Processing
-    retrieved_data: List[Dict[str, Any]]
-    processed_themes: List[Dict[str, Any]]
-
-    # Conversation Flow
-    messages: List[Dict[str, str]]
-```
-
 ## 2. LANGGRAPH MULTI-AGENT SYSTEM
 
-Implement three specialized agents (Or Collection of Agents + Tools):
-
-### A. HITL Verification Agent
-
-- Validates collected user data against required fields
-- Generates contextual prompts for missing information
-- Maintains conversation flow with intelligent follow-up questions
-- Must handle edge cases and ambiguous responses
-
-### B. Query Generation Agent
-
-- Converts user requirements into optimized and targeted Boolean keyword queries
-- Uses LLM Router for query generation
-- Generates multiple targeted queries batches rather than single broad queries
-- Creates product-channel-goal combinations for comprehensive coverage
-- Implements query optimization strategies
-
-### C. Data Processing Agent
-
-- Hit the API with the generated Boolean keyword queries to retrieve data.
-- Processes retrieved data to extract meaningful themes
-- Uses TF-IDF or semantic similarity for theme extraction
-- Implements theme extraction with relevance scoring 
-- Ranks and selects top 5-10 themes using weighted scoring algorithm
-- Themes are basically a collection of keywords queries that are relevant to the user requirements
-- Structures data for dashboard JSON generation
-- Handles data deduplication and quality filtering
-
-    ```json
-    {
-        "themes": [
-            {
-                "theme_name": "Samsung Brand Awareness",
-                "keywords": ["Samsung", "S25 Ultra", "S25 Plus"],
-                "relevance_score": 0.85
-            },
-            {
-                "theme_name": "Customer Satisfaction",
-                "keywords": ["feedback", "sentiment", "reviews"],
-                "relevance_score": 0.90
-            }
-        ]
-    }
-    ```
+Implement specialized agents With Description Provided in the Specifc Files:
 
 ## 3. LANGGRAPH WORKFLOW IMPLEMENTATION
 
@@ -122,7 +52,7 @@ Create a stateful workflow with:
 - Memory persistence using MemorySaver
 - Error handling and recovery mechanisms
 - Conversation context preservation
-- State transitions: START → HITL → Query Generation → Data Processing → END . There should be a loop in the workflow where if the HITL agent finds missing fields, it should go back to the user to collect the missing fields and then continue with the Query Generation and Data Processing agents.
+- State transitions: [Architecture Diagram](Architecture.pdf)
 
 ## 4. FRONTEND CHAT INTERFACE (Already Implemented)
 
@@ -171,16 +101,6 @@ User: "Yes, proceed"
 AI: [Triggers backend processing workflow]
 ```
 
-## DELIVERABLES
-
-Generate complete, executable code for:
-
-1. **agents/** - All agent needed for this phase are implemented
-2. **langgraph_workflow.py** - Complete LangGraph setup (or atleast for this phase)
-3. **api/** - FastAPI backend services
-4. **models/** - Pydantic state models
-5. **config/** - Environment and settings management
-6. **main.py** - Application entry point
 
 ## SUCCESS CRITERIA
 
