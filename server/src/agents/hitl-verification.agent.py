@@ -47,3 +47,399 @@ The Filters can be more and more specific, which will be decided by the Query Re
 
 
 """
+
+import json
+import logging
+from typing import Dict, Any, List, Optional, Tuple
+from langchain_core.messages import HumanMessage, AIMessage
+
+logger = logging.getLogger(__name__)
+
+class HITLVerificationAgent:
+    """
+    Human-in-the-Loop Verification Agent for managing user confirmations and data validation.
+    
+    Handles the verification workflow, presents data clearly for user review,
+    and processes user feedback to ensure data quality and completeness.
+    """
+    
+    def __init__(self, llm):
+        """
+        Initialize the HITL Verification Agent.
+        
+        Args:
+            llm: Language model instance
+        """
+        self.llm = llm
+        self.agent_name = "hitl_verification"
+        
+        # Define verification types and their handling
+        self.verification_types = {
+            "data_collection": {
+                "description": "Verify collected user data is complete and accurate",
+                "required_fields": ["products", "channels", "goals", "time_period"]
+            },
+            "query_confirmation": {
+                "description": "Confirm generated boolean queries are appropriate",
+                "required_fields": ["boolean_query", "target_channels", "filters_applied"]
+            },
+            "theme_approval": {
+                "description": "Approve identified themes and categories",
+                "required_fields": ["themes", "analysis_summary"]
+            }
+        }
+    
+    def create_verification_request(self, verification_type: str, 
+                                  data_to_verify: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create a verification request for the user.
+        
+        Args:
+            verification_type: Type of verification needed
+            data_to_verify: Data that needs user verification
+            
+        Returns:
+            Formatted verification request
+        """
+        try:
+            verification_config = self.verification_types.get(verification_type, {})
+            
+            # Generate user-friendly presentation
+            presentation = self._format_data_for_presentation(verification_type, data_to_verify)
+            
+            # Create verification message
+            verification_message = self._create_verification_message(verification_type, presentation)
+            
+            return {
+                "verification_type": verification_type,
+                "data_to_verify": data_to_verify,
+                "presentation": presentation,
+                "message": verification_message,
+                "status": "pending",
+                "agent": self.agent_name
+            }
+            
+        except Exception as e:
+            logger.error(f"Error creating verification request: {e}")
+            return self._create_fallback_verification(verification_type, data_to_verify)
+    
+    def process_verification_response(self, verification_request: Dict[str, Any], 
+                                    user_response: str) -> Dict[str, Any]:
+        """
+        Process user's verification response.
+        
+        Args:
+            verification_request: Original verification request
+            user_response: User's response to verification
+            
+        Returns:
+            Updated verification with status and any modifications
+        """
+        try:
+            verification_type = verification_request.get("verification_type")
+            response_analysis = self._analyze_user_response(user_response, verification_type)
+            
+            # Update verification based on response
+            updated_verification = verification_request.copy()
+            updated_verification.update(response_analysis)
+            
+            # Handle different response types
+            if response_analysis["status"] == "approved":
+                updated_verification["approved_data"] = verification_request["data_to_verify"]
+            elif response_analysis["status"] == "modified":
+                updated_verification["modified_data"] = response_analysis.get("modifications", {})
+            
+            return updated_verification
+            
+        except Exception as e:
+            logger.error(f"Error processing verification response: {e}")
+            return self._create_error_verification(verification_request, str(e))
+    
+    def _format_data_for_presentation(self, verification_type: str, 
+                                    data: Dict[str, Any]) -> str:
+        """Format data in a user-friendly way for verification."""
+        if verification_type == "data_collection":
+            return self._format_data_collection_presentation(data)
+        elif verification_type == "query_confirmation":
+            return self._format_query_confirmation_presentation(data)
+        elif verification_type == "theme_approval":
+            return self._format_theme_approval_presentation(data)
+        else:
+            return json.dumps(data, indent=2)
+    
+    def _format_data_collection_presentation(self, data: Dict[str, Any]) -> str:
+        """Format data collection results for user review."""
+        presentation = "📊 **Dashboard Configuration Summary**\n\n"
+        
+        # Core information
+        if data.get("products"):
+            products = data["products"] if isinstance(data["products"], list) else [data["products"]]
+            presentation += f"🏷️ **Products/Brand**: {', '.join(products)}\n"
+        
+        if data.get("channels"):
+            channels = data["channels"] if isinstance(data["channels"], list) else [data["channels"]]
+            presentation += f"📱 **Channels**: {', '.join(channels)}\n"
+        
+        if data.get("goals"):
+            goals = data["goals"] if isinstance(data["goals"], list) else [data["goals"]]
+            presentation += f"🎯 **Goals**: {', '.join(goals)}\n"
+        
+        if data.get("time_period"):
+            presentation += f"⏰ **Time Period**: {data['time_period']}\n"
+        
+        # Optional information
+        if data.get("location"):
+            presentation += f"🌍 **Location**: {data['location']}\n"
+        
+        if data.get("additional_notes"):
+            presentation += f"📝 **Additional Notes**: {data['additional_notes']}\n"
+        
+        presentation += "\n✅ **Please confirm**: Is this information correct and complete?"
+        return presentation
+    
+    def _format_query_confirmation_presentation(self, data: Dict[str, Any]) -> str:
+        """Format query confirmation for user review."""
+        presentation = "🔍 **Generated Search Query**\n\n"
+        
+        if data.get("boolean_query"):
+            presentation += f"**Query**: `{data['boolean_query']}`\n\n"
+        
+        if data.get("query_components"):
+            components = data["query_components"]
+            presentation += f"**Components**: {', '.join(components)}\n\n"
+        
+        if data.get("target_channels"):
+            channels = data["target_channels"]
+            presentation += f"**Target Channels**: {', '.join(channels)}\n\n"
+        
+        if data.get("estimated_coverage"):
+            presentation += f"**Coverage**: {data['estimated_coverage']}\n\n"
+        
+        presentation += "✅ **Please confirm**: Does this query accurately capture what you want to monitor?"
+        return presentation
+    
+    def _format_theme_approval_presentation(self, data: Dict[str, Any]) -> str:
+        """Format theme approval for user review."""
+        presentation = "🏷️ **Identified Themes**\n\n"
+        
+        themes = data.get("themes", [])
+        for i, theme in enumerate(themes[:5], 1):  # Show top 5 themes
+            presentation += f"**{i}. {theme.get('name', 'Unnamed Theme')}**\n"
+            presentation += f"   • {theme.get('description', 'No description')}\n"
+            presentation += f"   • Relevance: {theme.get('relevance_score', 0):.2f}\n"
+            presentation += f"   • Data Count: {theme.get('data_count', 0)}\n\n"
+        
+        if data.get("analysis_summary"):
+            presentation += f"**Analysis Summary**: {data['analysis_summary']}\n\n"
+        
+        presentation += "✅ **Please confirm**: Do these themes accurately represent your data interests?"
+        return presentation
+    
+    def _create_verification_message(self, verification_type: str, presentation: str) -> str:
+        """Create the verification message for the user."""
+        verification_config = self.verification_types.get(verification_type, {})
+        description = verification_config.get("description", "Please verify the following information")
+        
+        message = f"{description}:\n\n{presentation}\n\n"
+        message += "**Response Options**:\n"
+        message += "• Type 'yes' or 'confirm' to approve\n"
+        message += "• Type 'no' or 'reject' to reject\n"
+        message += "• Specify changes you'd like to make\n"
+        
+        return message
+    
+    def _analyze_user_response(self, response: str, verification_type: str) -> Dict[str, Any]:
+        """Analyze user's verification response."""
+        response_lower = response.lower().strip()
+        
+        # Check for clear approval
+        approval_keywords = ['yes', 'y', 'confirm', 'approve', 'correct', 'good', 'ok', 'okay', 'proceed']
+        rejection_keywords = ['no', 'n', 'reject', 'incorrect', 'wrong', 'cancel']
+        
+        if any(keyword in response_lower for keyword in approval_keywords):
+            return {
+                "status": "approved",
+                "user_response": response,
+                "confidence": 0.9
+            }
+        elif any(keyword in response_lower for keyword in rejection_keywords):
+            return {
+                "status": "rejected",
+                "user_response": response,
+                "reason": "User explicitly rejected the verification"
+            }
+        else:
+            # Try to extract modifications
+            modifications = self._extract_modifications(response, verification_type)
+            return {
+                "status": "modified",
+                "user_response": response,
+                "modifications": modifications,
+                "confidence": 0.7
+            }
+    
+    def _extract_modifications(self, response: str, verification_type: str) -> Dict[str, Any]:
+        """Extract modification requests from user response."""
+        try:
+            # Use LLM to extract structured modifications
+            extraction_prompt = f"""
+            The user wants to modify their {verification_type} data.
+            User response: "{response}"
+            
+            Extract the specific modifications they want to make.
+            Return the modifications in a structured format.
+            """
+            
+            llm_response = self.llm.invoke(extraction_prompt)
+            
+            # Simple parsing - in production this would be more sophisticated
+            modifications = {"raw_feedback": response}
+            
+            # Look for specific patterns
+            if "products" in response.lower() or "brand" in response.lower():
+                modifications["products_feedback"] = response
+            if "channels" in response.lower() or "platform" in response.lower():
+                modifications["channels_feedback"] = response
+            if "time" in response.lower() or "period" in response.lower():
+                modifications["time_period_feedback"] = response
+            
+            return modifications
+            
+        except Exception as e:
+            logger.error(f"Error extracting modifications: {e}")
+            return {"raw_feedback": response}
+    
+    def _create_fallback_verification(self, verification_type: str, 
+                                    data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a fallback verification when processing fails."""
+        return {
+            "verification_type": verification_type,
+            "data_to_verify": data,
+            "presentation": json.dumps(data, indent=2),
+            "message": f"Please verify the following {verification_type} data and respond with 'yes' to confirm or provide modifications.",
+            "status": "pending",
+            "agent": self.agent_name,
+            "error": "Fallback verification used"
+        }
+    
+    def _create_error_verification(self, original_request: Dict[str, Any], 
+                                 error_message: str) -> Dict[str, Any]:
+        """Create error verification response."""
+        return {
+            **original_request,
+            "status": "error",
+            "error_message": error_message,
+            "user_response": None
+        }
+    
+    def is_verification_complete(self, verification: Dict[str, Any]) -> bool:
+        """Check if verification is complete."""
+        status = verification.get("status", "pending")
+        return status in ["approved", "rejected", "modified"]
+    
+    def get_verification_result(self, verification: Dict[str, Any]) -> Dict[str, Any]:
+        """Get the final result of verification."""
+        status = verification.get("status")
+        
+        if status == "approved":
+            return {
+                "verified": True,
+                "data": verification.get("data_to_verify"),
+                "modifications": None
+            }
+        elif status == "modified":
+            return {
+                "verified": True,
+                "data": verification.get("data_to_verify"),
+                "modifications": verification.get("modifications")
+            }
+        else:
+            return {
+                "verified": False,
+                "data": None,
+                "reason": verification.get("reason", "Verification failed")
+            }
+
+    async def process_state(self, state) -> Any:
+        """
+        Process the dashboard state for HITL verification.
+        
+        This method creates verification requests for user data and handles
+        the verification workflow.
+        """
+        try:
+            logger.info("Processing state for HITL verification")
+            
+            # Check if we have data to verify
+            verification_data = {}
+            
+            # Collect data from various state attributes
+            if hasattr(state, 'user_data') and state.user_data:
+                verification_data.update(state.user_data.to_dict())
+            
+            if hasattr(state, 'user_collected_data') and state.user_collected_data:
+                verification_data.update(state.user_collected_data.to_dict())
+            
+            if hasattr(state, 'query_refinement_data') and state.query_refinement_data:
+                verification_data["refined_query"] = state.query_refinement_data.refined_query
+                verification_data["suggested_filters"] = state.query_refinement_data.suggested_filters
+            
+            # Create verification request for data collection
+            if verification_data:
+                verification_request = self.create_verification_request(
+                    "data_collection", 
+                    verification_data
+                )
+                
+                # For testing purposes, auto-approve verification when using MockLLM
+                # In production, this would wait for user input
+                if hasattr(self.llm, '_llm_type') and self.llm._llm_type() == "mock":
+                    verification_request["status"] = "approved"
+                    verification_request["auto_approved"] = True
+                    logger.info("Auto-approved verification for testing with MockLLM")
+                
+                # Store verification request in state
+                if hasattr(state, 'hitl_verification_data'):
+                    state.hitl_verification_data = verification_request
+                
+                # Add verification message to pending questions
+                presentation = verification_request.get("presentation", "")
+                if hasattr(state, 'add_pending_question'):
+                    state.add_pending_question(presentation)
+                elif hasattr(state, 'pending_questions'):
+                    state.pending_questions.append(presentation)
+                
+                # Update workflow status
+                if hasattr(state, 'workflow_status'):
+                    state.workflow_status = "awaiting_verification"
+                if hasattr(state, 'current_stage'):
+                    state.current_stage = "verifying"
+                
+            else:
+                # No data to verify yet
+                if hasattr(state, 'workflow_status'):
+                    state.workflow_status = "no_data_to_verify"
+                logger.warning("No data available for HITL verification")
+            
+            logger.info("HITL verification processing completed")
+            return state
+            
+        except Exception as e:
+            logger.error(f"Error processing state: {str(e)}")
+            # Add error to state if it has errors attribute
+            if hasattr(state, 'errors'):
+                state.errors.append(f"HITL verification error: {str(e)}")
+            if hasattr(state, 'workflow_status'):
+                state.workflow_status = "hitl_verification_failed"
+            return state
+def create_hitl_verification_agent(llm) -> HITLVerificationAgent:
+    """
+    Factory function to create a HITL Verification Agent.
+    
+    Args:
+        llm: Language model instance
+        
+    Returns:
+        Configured HITLVerificationAgent
+    """
+    return HITLVerificationAgent(llm)

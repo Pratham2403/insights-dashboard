@@ -1,1 +1,34 @@
-// Consist the List of All the Themes that are used in the Sprinklr
+{
+    "themes": [
+        {
+            "name": "brand-awareness",
+            "description": "Measures the extent to which consumers are familiar with a brand and its products.",
+            "query": "(brand OR \"brand name\" OR #brand OR \"#brand\")"
+        },
+        {
+            "name": "customer-engagement",
+            "description": "Evaluates how actively customers interact with a brand across various channels.",
+            "query": "(engagement OR interact OR interaction OR \"customer interaction\" OR \"customer engagement\" OR \"user engagement\" OR \"brand engagement\")"
+        },
+        {
+            "name": "sales-performance",
+            "description": "Tracks the effectiveness of sales strategies and the overall sales process.",
+            "query": "(\"sales growth\" OR \"revenue growth\" OR \"sales increase\" OR \"conversion rate\" OR \"deal size\" OR \"sales performance\" OR \"revenue performance\" OR \"sales metrics\")"
+        },
+        {
+            "name": "market-trends",
+            "description": "Analyzes current market conditions and emerging trends that affect business strategies.",
+            "query": "(\"market trend\" OR \"market share\" OR \"industry trend\" OR \"consumer trend\" OR \"competitive analysis\" OR \"market analysis\" OR \"consumer behavior\")"
+        },
+        {
+            "name": "product-development",
+            "description": "Focuses on the innovation and improvement of products to meet customer needs.",
+            "query": "(\"product development\" OR \"new product\" OR \"product feature\" OR \"product innovation\" OR \"product launch\" OR \"time to market\" OR \"product adoption\")"
+        },
+        {
+            "name": "customer-satisfaction",
+            "description": "Measures the level of satisfaction customers have with a product or service.",
+            "query": "(\"customer satisfaction\" OR \"customer experience\" OR \"customer feedback\" OR \"nps\" OR \"net promoter score\" OR \"csat\" OR \"customer satisfaction score\")"
+        }
+    ]
+}

@@ -12,6 +12,8 @@ sentence-transformers    # Sentence Transformers for semantic similarity and emb
 # ===== Web Framework & API =====
 fastapi                  # Fast API framework for building REST APIs
 uvicorn[standard]        # ASGI server for running FastAPI applications
+flask                    # Flask web framework for simple API development
+flask-cors               # Cross-Origin Resource Sharing support for Flask
 python-multipart         # Multipart form data parsing for file uploads
 pydantic                 # Data validation and settings management
 pydantic-settings        # Settings management extension for Pydantic
@@ -40,6 +42,7 @@ tiktoken                 # OpenAI's tokenizer for GPT models
 # ===== Data Processing & Analysis =====
 numpy                    # Numerical computing library
 pandas                   # Data analysis and manipulation library
+scikit-learn             # Machine learning library for classification and clustering
 
 # ===== Date & Time Handling =====
 arrow                    # Better date and time handling for Python

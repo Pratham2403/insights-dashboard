@@ -24,3 +24,293 @@ Output: {
 
 
 """
+
+import json
+import logging
+import os
+import importlib.util
+from typing import Dict, Any, List, Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate
+
+logger = logging.getLogger(__name__)
+
+def import_module_from_file(filepath, module_name):
+    """Import a module from a specific file path."""
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+class QueryRefinerAgent:
+    """
+    Query Refiner Agent for analyzing and refining user queries.
+    
+    Uses RAG context to understand user intent and suggest relevant
+    filters and themes for dashboard generation.
+    """
+    
+    def __init__(self, llm, rag_system):
+        """
+        Initialize the Query Refiner Agent.
+        
+        Args:
+            llm: Language model instance
+            rag_system: RAG system for context retrieval
+        """
+        self.llm = llm
+        self.rag_system = rag_system
+        self.agent_name = "query_refiner"
+    
+    def refine_query(self, user_query: str, additional_context: Optional[Dict] = None) -> Dict[str, Any]:
+        """
+        Refine a user query using RAG context.
+        
+        Args:
+            user_query: Original user query
+            additional_context: Optional additional context
+            
+        Returns:
+            Refined query data with suggestions
+        """
+        try:
+            # Get RAG context for the query
+            rag_context = self._get_rag_context(user_query)
+            
+            # Build the prompt with context
+            prompt = self._build_refinement_prompt(user_query, rag_context, additional_context)
+            
+            # Get LLM response
+            response = self.llm.invoke(prompt)
+            
+            # Parse the response
+            refined_data = self._parse_refinement_response(response.content)
+            
+            # Add metadata
+            refined_data["original_query"] = user_query
+            refined_data["agent"] = self.agent_name
+            refined_data["rag_context"] = rag_context
+            
+            logger.info(f"Successfully refined query: {user_query}")
+            return refined_data
+            
+        except Exception as e:
+            logger.error(f"Error refining query: {e}")
+            return self._create_fallback_refinement(user_query)
+    
+    def _get_rag_context(self, query: str) -> Dict[str, Any]:
+        """Get relevant context from RAG system."""
+        try:
+            context = self.rag_system.get_context_for_query(query)
+            return context
+        except Exception as e:
+            logger.error(f"Error getting RAG context: {e}")
+            return {"filters": [], "themes": [], "query": query}
+    
+    def _build_refinement_prompt(self, user_query: str, rag_context: Dict, additional_context: Optional[Dict] = None) -> str:
+        """Build the refinement prompt with context."""
+        try:
+            # Import prompts using the helper function
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            prompts_path = os.path.join(current_dir, '..', 'helpers', 'prompts.helper.py')
+            prompts_module = import_module_from_file(prompts_path, 'prompts_helper')
+            QUERY_REFINER_SYSTEM_PROMPT = prompts_module.QUERY_REFINER_SYSTEM_PROMPT
+        except Exception as e:
+            logger.error(f"Error importing prompts: {e}")
+            # Fallback prompt
+            QUERY_REFINER_SYSTEM_PROMPT = """
+            You are a Query Refiner Agent. Analyze the user query: {user_query}
+            Available filters: {filters_context}
+            Available themes: {themes_context}
+            Use cases: {use_cases_context}
+            
+            Return a JSON object with refined query and suggestions.
+            """
+        
+        # Format context information
+        filters_context = self._format_filters_context(rag_context.get("filters", []))
+        themes_context = self._format_themes_context(rag_context.get("themes", []))
+        use_cases_context = self._format_use_cases_context(rag_context.get("use_cases", []))
+        
+        prompt = QUERY_REFINER_SYSTEM_PROMPT.format(
+            user_query=user_query,
+            filters_context=filters_context,
+            themes_context=themes_context,
+            use_cases_context=use_cases_context
+        )
+        
+        if additional_context:
+            prompt += f"\n\nAdditional Context: {json.dumps(additional_context, indent=2)}"
+        
+        return prompt
+    
+    def _format_filters_context(self, filters: List[Dict]) -> str:
+        """Format filters for prompt context."""
+        if not filters:
+            return "No specific filters found."
+        
+        formatted = []
+        for filter_item in filters[:5]:  # Limit to top 5
+            formatted.append(f"- {filter_item.get('name', 'Unknown')}: {filter_item.get('description', 'No description')}")
+        
+        return "\n".join(formatted)
+    
+    def _format_themes_context(self, themes: List[Dict]) -> str:
+        """Format themes for prompt context."""
+        if not themes:
+            return "No specific themes found."
+        
+        formatted = []
+        for theme in themes[:3]:  # Limit to top 3
+            formatted.append(f"- {theme.get('name', 'Unknown')}: {theme.get('description', 'No description')}")
+        
+        return "\n".join(formatted)
+    
+    def _format_use_cases_context(self, use_cases: List[Dict]) -> str:
+        """Format use cases for prompt context."""
+        if not use_cases:
+            return "No similar use cases found."
+        
+        formatted = []
+        for use_case in use_cases[:2]:  # Limit to top 2
+            formatted.append(f"- {use_case.get('title', 'Unknown')}: {use_case.get('description', 'No description')}")
+        
+        return "\n".join(formatted)
+    
+    def _parse_refinement_response(self, response: str) -> Dict[str, Any]:
+        """Parse the LLM response into structured data."""
+        try:
+            # Try to extract JSON from the response
+            import re
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                return json.loads(json_str)
+            else:
+                # Fallback parsing
+                return self._extract_refinement_from_text(response)
+                
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON response: {e}")
+            return self._extract_refinement_from_text(response)
+        except Exception as e:
+            logger.error(f"Error parsing refinement response: {e}")
+            return self._extract_refinement_from_text(response)
+    
+    def _extract_refinement_from_text(self, response: str) -> Dict[str, Any]:
+        """Extract refinement data from plain text response."""
+        # Basic extraction logic
+        refined_query = response.split('\n')[0] if response else "Brand monitoring analysis"
+        
+        return {
+            "refined_query": refined_query,
+            "suggested_filters": [],
+            "suggested_themes": [],
+            "missing_information": ["products", "channels", "time_period"],
+            "confidence_score": 0.5
+        }
+    
+    def _create_fallback_refinement(self, user_query: str) -> Dict[str, Any]:
+        """Create a fallback refinement when processing fails."""
+        return {
+            "original_query": user_query,
+            "refined_query": f"Social media monitoring and analysis for: {user_query}",
+            "suggested_filters": [
+                {"name": "Brand Mentions", "description": "Track brand mentions"},
+                {"name": "Sentiment Analysis", "description": "Analyze sentiment"},
+                {"name": "Channel Filter", "description": "Filter by channels"}
+            ],
+            "suggested_themes": [
+                {"name": "Brand Health", "description": "Overall brand health monitoring"}
+            ],
+            "missing_information": ["products", "channels", "time_period", "goals"],
+            "confidence_score": 0.3,
+            "agent": self.agent_name,
+            "error": "Fallback refinement used"
+        }
+    
+    def validate_refinement(self, refinement_data: Dict[str, Any]) -> bool:
+        """Validate that refinement data has required fields."""
+        required_fields = ["refined_query", "suggested_filters", "missing_information"]
+        return all(field in refinement_data for field in required_fields)
+
+    async def process_state(self, state) -> Any:
+        """
+        Process the dashboard state for query refinement.
+        
+        This method wraps the refine_query method to work with the workflow state.
+        """
+        try:
+            logger.info("Processing state for query refinement")
+            
+            # Get the user query from state
+            user_query = getattr(state, 'user_query', '') or getattr(state, 'original_query', '')
+            if not user_query:
+                logger.warning("No user query found in state")
+                # Add error to state if it has errors attribute
+                if hasattr(state, 'errors'):
+                    state.errors.append("No user query found for refinement")
+                if hasattr(state, 'workflow_status'):
+                    state.workflow_status = "query_refinement_failed"
+                return state
+            
+            # Get additional context from state
+            additional_context = getattr(state, 'user_context', {})
+            
+            # Refine the query
+            refinement_result = self.refine_query(user_query, additional_context)
+            
+            # Create QueryRefinementData object
+            # Import using relative path since we're inside src
+            import sys
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            states_path = os.path.join(current_dir, '..', 'helpers', 'states.py')
+            states_module = import_module_from_file(states_path, 'states')
+            QueryRefinementData = states_module.QueryRefinementData
+            
+            query_refinement_data = QueryRefinementData(
+                original_query=user_query,
+                refined_query=refinement_result.get("refined_query", user_query),
+                suggested_filters=refinement_result.get("suggested_filters", []),
+                suggested_themes=refinement_result.get("suggested_themes", []),
+                missing_information=refinement_result.get("missing_information", []),
+                confidence_score=refinement_result.get("confidence_score", 0.0)
+            )
+            
+            # Update state with refinement data
+            if hasattr(state, 'query_refinement_data'):
+                state.query_refinement_data = query_refinement_data
+            if hasattr(state, 'query_refinement'):
+                state.query_refinement = query_refinement_data
+            
+            # Update workflow status
+            if hasattr(state, 'workflow_status'):
+                state.workflow_status = "query_refined"
+            if hasattr(state, 'current_stage'):
+                state.current_stage = "refining"
+                
+            logger.info("Query refinement completed successfully")
+            return state
+            
+        except Exception as e:
+            logger.error(f"Error processing state: {str(e)}")
+            # Add error to state if it has errors attribute
+            if hasattr(state, 'errors'):
+                state.errors.append(f"Query refinement error: {str(e)}")
+            if hasattr(state, 'workflow_status'):
+                state.workflow_status = "query_refinement_failed"
+            return state
+
+def create_query_refiner_agent(llm, rag_system) -> QueryRefinerAgent:
+    """
+    Factory function to create a Query Refiner Agent.
+    
+    Args:
+        llm: Language model instance
+        rag_system: RAG system instance
+        
+    Returns:
+        Configured QueryRefinerAgent
+    """
+    return QueryRefinerAgent(llm, rag_system)

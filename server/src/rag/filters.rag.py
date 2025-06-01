@@ -1,16 +1,470 @@
 """
-This Module is to setup the RAG (Retrieval Augmented Generation) Context for Filters used in Sprinklr for the application.
+RAG (Retrieval-Augmented Generation) system for Sprinklr filters.
 
-#Filter Information Source : src.knowledge_base.filters.json
+This module implements the RAG functionality for retrieving relevant filter
+information and context to help agents make better decisions about user queries.
 
-
-# Purpose of this module:
-- To Provide the Functionality to Embed the Data from Filters JSON, and Put the data as Embedding in the Vector Database.
-- To Provide the Dunctionality to Retrieve the Data from the Vector Database and Perform a Similarity Search to Get the Relevant Filters based on the User Query.
-
-# The Embedding Model is Initialized and Settd Up in the `src/setup/embedding.setup.py` file.
-# The Vector Database is Initialized and Set Up in the `src/setup/vector_db.setup.py` file.
-
-The RAG Context is Used by the Query Refiner Agent to Refine the User Query and Generate a More Refined Query that can be used to Fetch the Data from the Sprinklr API.
-
+# Purpose:
+- Load and index Sprinklr filter information
+- Provide semantic search capabilities for filters
+- Support query refinement with contextual filter suggestions
 """
+
+import json
+import logging
+import os
+import importlib.util
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+def import_module_from_file(filepath, module_name):
+    """Import a module from a specific file path."""
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+class FiltersRAG:
+    """
+    RAG system for Sprinklr filters and related context.
+    
+    Manages the loading, indexing, and retrieval of filter information
+    to provide context for query refinement and data collection.
+    """
+    
+    def __init__(self):
+        """Initialize the filters RAG system."""
+        # Import here to avoid circular imports
+        try:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            setup_dir = os.path.join(current_dir, '..', 'setup')
+            
+            vector_db_path = os.path.join(setup_dir, 'vector_db.setup.py')
+            embedding_path = os.path.join(setup_dir, 'embedding.setup.py')
+            
+            vector_db_module = import_module_from_file(vector_db_path, 'vector_db_setup')
+            embedding_module = import_module_from_file(embedding_path, 'embedding_setup')
+            
+            self.vector_db = vector_db_module.get_vector_db()
+            self.embedding_model = embedding_module.get_embedding_model()
+        except Exception as e:
+            logger.error(f"Error importing setup modules: {e}")
+            # Create mock instances for development
+            self.vector_db = None
+            self.embedding_model = None
+        
+        self.knowledge_base_path = Path(__file__).parent.parent / "knowledge_base"
+        
+        # Collection names
+        self.filters_collection = "filters_collection"
+        self.themes_collection = "themes_collection"
+        self.patterns_collection = "keyword_patterns_collection"
+        self.use_cases_collection = "use_cases_collection"
+        
+        self._initialize_collections()
+    
+    def _initialize_collections(self):
+        """Initialize and populate collections with knowledge base data."""
+        try:
+            # Create collections
+            self.vector_db.create_collection(self.filters_collection)
+            self.vector_db.create_collection(self.themes_collection)
+            self.vector_db.create_collection(self.patterns_collection)
+            self.vector_db.create_collection(self.use_cases_collection)
+            
+            # Load and index data
+            self._load_filters_data()
+            self._load_themes_data()
+            self._load_keyword_patterns()
+            self._load_use_cases()
+            
+            logger.info("Successfully initialized all RAG collections")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize RAG collections: {e}")
+            raise
+    
+    def _load_filters_data(self):
+        """Load and index Sprinklr filters data."""
+        try:
+            filters_file = self.knowledge_base_path / "filers.json"
+            
+            # For now, create sample filters data since the file is empty
+            sample_filters = [
+                {
+                    "name": "Brand Mentions",
+                    "description": "Filter to track mentions of specific brands across channels",
+                    "category": "content",
+                    "keywords": ["brand", "mentions", "tracking"]
+                },
+                {
+                    "name": "Sentiment Analysis",
+                    "description": "Filter posts by sentiment (positive, negative, neutral)",
+                    "category": "sentiment",
+                    "keywords": ["sentiment", "positive", "negative", "emotion"]
+                },
+                {
+                    "name": "Channel Filter",
+                    "description": "Filter by social media channels (Twitter, Facebook, Instagram)",
+                    "category": "source",
+                    "keywords": ["twitter", "facebook", "instagram", "channel", "platform"]
+                },
+                {
+                    "name": "Time Period",
+                    "description": "Filter by date ranges and time periods",
+                    "category": "temporal",
+                    "keywords": ["date", "time", "period", "last 30 days", "last week"]
+                },
+                {
+                    "name": "Geographic Location",
+                    "description": "Filter by geographic location and regions",
+                    "category": "location",
+                    "keywords": ["location", "geography", "region", "country", "city"]
+                },
+                {
+                    "name": "Influencer Analysis",
+                    "description": "Filter and analyze influencer content and reach",
+                    "category": "influencer",
+                    "keywords": ["influencer", "reach", "followers", "engagement"]
+                }
+            ]
+            
+            documents = []
+            metadatas = []
+            ids = []
+            
+            for i, filter_item in enumerate(sample_filters):
+                doc_text = f"{filter_item['name']}: {filter_item['description']} Keywords: {', '.join(filter_item['keywords'])}"
+                documents.append(doc_text)
+                
+                # Convert lists to strings for ChromaDB compatibility
+                metadata = {
+                    "name": filter_item["name"],
+                    "description": filter_item["description"],
+                    "keywords": ", ".join(filter_item["keywords"]),
+                    "category": filter_item.get("category", "general"),
+                    "required": filter_item.get("required", False)
+                }
+                metadatas.append(metadata)
+                ids.append(f"filter_{i}")
+            
+            self.vector_db.add_documents(
+                self.filters_collection,
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids
+            )
+            
+            logger.info(f"Loaded {len(documents)} filter items")
+            
+        except Exception as e:
+            logger.error(f"Failed to load filters data: {e}")
+            raise
+    
+    def _load_themes_data(self):
+        """Load and index themes data."""
+        try:
+            # Sample themes data
+            sample_themes = [
+                {
+                    "name": "Brand Health Monitoring",
+                    "description": "Track overall brand perception and health metrics",
+                    "keywords": ["brand health", "monitoring", "perception", "reputation"],
+                    "related_filters": ["Brand Mentions", "Sentiment Analysis", "Time Period"]
+                },
+                {
+                    "name": "Customer Satisfaction",
+                    "description": "Monitor customer satisfaction and feedback",
+                    "keywords": ["customer satisfaction", "feedback", "reviews", "rating"],
+                    "related_filters": ["Sentiment Analysis", "Brand Mentions"]
+                },
+                {
+                    "name": "Competitive Analysis",
+                    "description": "Analyze competitor presence and performance",
+                    "keywords": ["competitor", "competitive analysis", "market share"],
+                    "related_filters": ["Brand Mentions", "Channel Filter", "Time Period"]
+                },
+                {
+                    "name": "Product Launch Analysis",
+                    "description": "Track and analyze product launch performance",
+                    "keywords": ["product launch", "new product", "launch analysis"],
+                    "related_filters": ["Brand Mentions", "Sentiment Analysis", "Time Period", "Channel Filter"]
+                },
+                {
+                    "name": "Crisis Management",
+                    "description": "Monitor and manage brand crisis situations",
+                    "keywords": ["crisis", "crisis management", "negative sentiment", "issue tracking"],
+                    "related_filters": ["Sentiment Analysis", "Brand Mentions", "Time Period"]
+                }
+            ]
+            
+            documents = []
+            metadatas = []
+            ids = []
+            
+            for i, theme in enumerate(sample_themes):
+                doc_text = f"{theme['name']}: {theme['description']} Keywords: {', '.join(theme['keywords'])} Related Filters: {', '.join(theme['related_filters'])}"
+                documents.append(doc_text)
+                
+                # Convert lists to strings for ChromaDB compatibility
+                metadata = {
+                    "name": theme["name"],
+                    "description": theme["description"],
+                    "keywords": ", ".join(theme["keywords"]),
+                    "related_filters": ", ".join(theme["related_filters"])
+                }
+                metadatas.append(metadata)
+                ids.append(f"theme_{i}")
+            
+            self.vector_db.add_documents(
+                self.themes_collection,
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids
+            )
+            
+            logger.info(f"Loaded {len(documents)} theme items")
+            
+        except Exception as e:
+            logger.error(f"Failed to load themes data: {e}")
+            raise
+    
+    def _load_keyword_patterns(self):
+        """Load and index keyword query patterns."""
+        try:
+            patterns_file = self.knowledge_base_path / "keyword_query_patterns.json"
+            
+            with open(patterns_file, 'r') as f:
+                patterns_data = json.load(f)
+            
+            documents = []
+            metadatas = []
+            ids = []
+            
+            # Add syntax keywords
+            for i, keyword in enumerate(patterns_data.get("syntax_keywords", [])):
+                doc_text = f"Boolean syntax keyword: {keyword}"
+                documents.append(doc_text)
+                metadatas.append({"type": "syntax", "keyword": keyword})
+                ids.append(f"syntax_{i}")
+            
+            # Add example queries
+            for i, query in enumerate(patterns_data.get("example_queries", [])):
+                doc_text = f"Example boolean query: {query}"
+                documents.append(doc_text)
+                metadatas.append({"type": "example", "query": query})
+                ids.append(f"example_{i}")
+            
+            self.vector_db.add_documents(
+                self.patterns_collection,
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids
+            )
+            
+            logger.info(f"Loaded {len(documents)} keyword pattern items")
+            
+        except Exception as e:
+            logger.error(f"Failed to load keyword patterns: {e}")
+            raise
+    
+    def _load_use_cases(self):
+        """Load and index complete use cases."""
+        try:
+            # Sample complete use cases
+            sample_use_cases = [
+                {
+                    "title": "Samsung Brand Health Monitoring",
+                    "description": "Complete brand health monitoring setup for Samsung products",
+                    "user_query": "I want to monitor Samsung brand health",
+                    "refined_query": "Brand health monitoring for Samsung products across social media",
+                    "filters": {
+                        "brand": "Samsung",
+                        "channels": ["Twitter", "Facebook", "Instagram"],
+                        "time_period": "last 30 days",
+                        "metrics": ["brand mentions", "sentiment analysis", "reach"]
+                    }
+                },
+                {
+                    "title": "Product Launch Analysis",
+                    "description": "Track new product launch performance and reception",
+                    "user_query": "How is our new product performing?",
+                    "refined_query": "Product launch performance analysis with sentiment tracking",
+                    "filters": {
+                        "product": "new product launch",
+                        "channels": ["Twitter", "Facebook", "Instagram", "News"],
+                        "time_period": "since launch date",
+                        "metrics": ["mentions", "sentiment", "engagement", "reach"]
+                    }
+                }
+            ]
+            
+            documents = []
+            metadatas = []
+            ids = []
+            
+            for i, use_case in enumerate(sample_use_cases):
+                doc_text = f"{use_case['title']}: {use_case['description']} User Query: {use_case['user_query']} Refined: {use_case['refined_query']}"
+                documents.append(doc_text)
+                
+                # Convert nested structures to strings for ChromaDB compatibility
+                metadata = {
+                    "title": use_case["title"],
+                    "description": use_case["description"],
+                    "user_query": use_case["user_query"],
+                    "refined_query": use_case["refined_query"],
+                    "filters_json": json.dumps(use_case["filters"])
+                }
+                metadatas.append(metadata)
+                ids.append(f"use_case_{i}")
+            
+            self.vector_db.add_documents(
+                self.use_cases_collection,
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids
+            )
+            
+            logger.info(f"Loaded {len(documents)} use case items")
+            
+        except Exception as e:
+            logger.error(f"Failed to load use cases: {e}")
+            raise
+    
+    def search_filters(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
+        """
+        Search for relevant filters based on query.
+        
+        Args:
+            query: Search query
+            n_results: Number of results to return
+            
+        Returns:
+            List of relevant filter information
+        """
+        try:
+            results = self.vector_db.search_documents(
+                self.filters_collection,
+                query=query,
+                n_results=n_results
+            )
+            
+            return results.get("metadatas", [[]])[0]
+            
+        except Exception as e:
+            logger.error(f"Failed to search filters: {e}")
+            return []
+    
+    def search_themes(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
+        """
+        Search for relevant themes based on query.
+        
+        Args:
+            query: Search query
+            n_results: Number of results to return
+            
+        Returns:
+            List of relevant theme information
+        """
+        try:
+            results = self.vector_db.search_documents(
+                self.themes_collection,
+                query=query,
+                n_results=n_results
+            )
+            
+            return results.get("metadatas", [[]])[0]
+            
+        except Exception as e:
+            logger.error(f"Failed to search themes: {e}")
+            return []
+    
+    def search_keyword_patterns(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
+        """
+        Search for relevant keyword patterns based on query.
+        
+        Args:
+            query: Search query
+            n_results: Number of results to return
+            
+        Returns:
+            List of relevant keyword pattern information
+        """
+        try:
+            results = self.vector_db.search_documents(
+                self.patterns_collection,
+                query=query,
+                n_results=n_results
+            )
+            
+            return results.get("metadatas", [[]])[0]
+            
+        except Exception as e:
+            logger.error(f"Failed to search keyword patterns: {e}")
+            return []
+    
+    def search_use_cases(self, query: str, n_results: int = 2) -> List[Dict[str, Any]]:
+        """
+        Search for relevant use cases based on query.
+        
+        Args:
+            query: Search query
+            n_results: Number of results to return
+            
+        Returns:
+            List of relevant use case information
+        """
+        try:
+            results = self.vector_db.search_documents(
+                self.use_cases_collection,
+                query=query,
+                n_results=n_results
+            )
+            
+            return results.get("metadatas", [[]])[0]
+            
+        except Exception as e:
+            logger.error(f"Failed to search use cases: {e}")
+            return []
+    
+    def get_context_for_query(self, query: str) -> Dict[str, Any]:
+        """
+        Get comprehensive context for a user query.
+        
+        Args:
+            query: User query
+            
+        Returns:
+            Dictionary containing relevant context from all collections
+        """
+        try:
+            context = {
+                "filters": self.search_filters(query),
+                "themes": self.search_themes(query),
+                "keyword_patterns": self.search_keyword_patterns(query),
+                "use_cases": self.search_use_cases(query)
+            }
+            
+            logger.info(f"Retrieved context for query: {query}")
+            return context
+            
+        except Exception as e:
+            logger.error(f"Failed to get context for query: {e}")
+            return {}
+
+# Global RAG instance (lazily initialized)
+_filters_rag_instance = None
+
+def get_filters_rag() -> FiltersRAG:
+    """
+    Get the global filters RAG instance.
+    
+    Returns:
+        FiltersRAG instance
+    """
+    global _filters_rag_instance
+    if _filters_rag_instance is None:
+        _filters_rag_instance = FiltersRAG()
+    return _filters_rag_instance

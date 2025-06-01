@@ -1,1 +1,9 @@
-// Contains the List of All the Filter That are used in the Sprinklr
+{
+    "filters":{
+        "country":["India", "Afganistan", "Pakistan", "Bangladesh", "Sri Lanka", "Nepal", "Bhutan", "Maldives", "China", "Japan", "South Korea", "North Korea", "Mongolia", "Russia", "Kazakhstan", "Uzbekistan", "Turkmenistan", "Kyrgyzstan", "Tajikistan", "Iran", "Iraq", "Syria", "Lebanon"],
+        "region":["Asia", "Africa", "Middle East", "Europe", "North America", "South America", "Central America", "Caribbean", "Oceania", "Antarctica"],
+        "language":["English", "Hindi", "Bengali", "Punjabi", "Tamil", "Telugu", "Marathi", "Gujarati", "Urdu", "Malayalam", "Kannada", "Odia", "Assamese", "Maithili", "Santali", "Kashmiri", "Nepali", "Sinhala", "Burmese", "Thai"],
+        "source":["Twitter", "Reddit", "Facebook", "Instagram", "LinkedIn", "YouTube", "TikTok", "WhatsApp", "Telegram", "Signal", "News"],
+        "gender":["Male", "Female", "Non-binary", "Transgender", "Genderqueer", "Agender", "Genderfluid", "Bigender", "Two-Spirit", "Other"]
+    }
+}
