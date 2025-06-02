@@ -294,7 +294,7 @@ class DataAnalyzerAgent:
             # Prepare data sample for LLM
             data_sample = data[:50]  # Limit for LLM processing
             
-            system_prompt = self.prompts_helper.get_data_analyzer_prompt()
+            system_prompt = self.prompts_module.DATA_ANALYZER_SYSTEM_PROMPT
             
             user_message = f"""
             Analyze and categorize the following data into themes:
@@ -320,8 +320,14 @@ class DataAnalyzerAgent:
             
             response = await self.llm.ainvoke(messages)
             
+            # Handle both string and message object responses
+            if hasattr(response, 'content'):
+                response_content = response.content
+            else:
+                response_content = str(response)
+            
             # Parse LLM response into themes
-            themes = self._parse_llm_themes_response(response.content, data)
+            themes = self._parse_llm_themes_response(response_content, data)
             
             return themes
             
@@ -356,7 +362,7 @@ class DataAnalyzerAgent:
                         description=f"Content and mentions from {channel} channel",
                         keywords=keywords,
                         data_points=items,
-                        confidence=0.8
+                        confidence=0.8,
                     )
                     themes.append(theme)
             

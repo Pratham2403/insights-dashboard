@@ -9,9 +9,22 @@ import logging
 import httpx
 import json
 import asyncio # Added import for asyncio.sleep
+import os
+import sys
+import importlib.util
 
 # Assuming settings are available, e.g., from a config module
-from ..config.settings import settings
+def import_module_from_file(filepath, module_name):
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+# Get path to config directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(current_dir, '..', 'config')
+settings_module = import_module_from_file(os.path.join(config_path, 'settings.py'), 'settings')
+settings = settings_module.settings
 
 logger = logging.getLogger(__name__)
 

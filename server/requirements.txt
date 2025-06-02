@@ -35,11 +35,12 @@ elasticsearch            # Official Elasticsearch client
 
 # ===== Vector Stores & Embeddings =====
 chromadb                 # Vector database for embedding storage and retrieval
+protobuf<=3.20.3         # Protocol buffers (fixed version for chromadb compatibility)
 faiss-cpu                # Facebook AI Similarity Search for vector search
 tiktoken                 # OpenAI's tokenizer for GPT models
 
 # ===== Data Processing & Analysis =====
-numpy                    # Numerical computing library
+numpy<2.0                    # Numerical computing library
 pandas                   # Data analysis and manipulation library
 scikit-learn             # Machine learning library for classification and clustering
 

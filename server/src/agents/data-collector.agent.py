@@ -232,8 +232,14 @@ class DataCollectorAgent:
             extraction_prompt = self._build_extraction_prompt(response, category)
             llm_response = self.llm.invoke(extraction_prompt)
             
+            # Handle both string and message object responses
+            if hasattr(llm_response, 'content'):
+                response_content = llm_response.content
+            else:
+                response_content = str(llm_response)
+            
             # Parse the extracted data
-            extracted_data = self._parse_extraction_response(llm_response.content, category)
+            extracted_data = self._parse_extraction_response(response_content, category)
             
             # Update current data
             updated_data = current_data.copy()

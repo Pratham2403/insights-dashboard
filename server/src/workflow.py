@@ -10,19 +10,26 @@ Functionality:
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
+from langchain_core.runnables import RunnableConfig
 
 # Import agents and helpers
 import importlib.util
 import os
+from helpers.states import QueryRefinementData
 
 def import_module_from_file(filepath, module_name):
     """Helper function to import modules with dots in filenames"""
     spec = importlib.util.spec_from_file_location(module_name, filepath)
+    if spec is None:
+        raise ImportError(f"Could not load spec for module {module_name} from {filepath}")
     module = importlib.util.module_from_spec(spec)
+    if spec.loader is None:
+        raise ImportError(f"Spec loader is None for module {module_name} from {filepath}")
     spec.loader.exec_module(module)
     return module
 
@@ -171,6 +178,16 @@ class SprinklrWorkflow:
             logger.info("Processing query refinement node")
             updated_state = await self.query_refiner.process_state(state)
             updated_state.current_step = "query_refined"
+            
+            # Convert Pydantic models to dictionaries to avoid validation issues
+            if hasattr(updated_state, 'query_refinement') and isinstance(updated_state.query_refinement, QueryRefinementData):
+                # Use model_dump() instead of directly assigning None
+                updated_state.query_refinement = updated_state.query_refinement.model_dump()
+            
+            if hasattr(updated_state, 'query_refinement_data') and isinstance(updated_state.query_refinement_data, QueryRefinementData):
+                # Use model_dump() instead of directly assigning None
+                updated_state.query_refinement_data = updated_state.query_refinement_data.model_dump()
+            
             return updated_state
             
         except Exception as e:
@@ -199,6 +216,17 @@ class SprinklrWorkflow:
             logger.info("Processing query generator node")
             updated_state = await self.query_generator.process_state(state)
             updated_state.current_step = "query_generated"
+            
+            # Convert Pydantic models to dictionaries to avoid validation issues
+            if hasattr(updated_state, 'boolean_query_data') and hasattr(updated_state.boolean_query_data, 'model_dump'):
+                updated_state.boolean_query_data = updated_state.boolean_query_data.model_dump()
+            
+            if hasattr(updated_state, 'query_generation_data') and hasattr(updated_state.query_generation_data, 'model_dump'):
+                updated_state.query_generation_data = updated_state.query_generation_data.model_dump()
+                
+            if hasattr(updated_state, 'boolean_query') and hasattr(updated_state.boolean_query, 'model_dump'):
+                updated_state.boolean_query = updated_state.boolean_query.model_dump()
+            
             return updated_state
             
         except Exception as e:
@@ -213,6 +241,10 @@ class SprinklrWorkflow:
             logger.info("Processing data collector node")
             updated_state = await self.data_collector.process_state(state)
             updated_state.current_step = "data_collection_ready"
+            
+            # Add an AIMessage to the state for the ToolNode to process
+            updated_state.add_message(AIMessage(content=f"Fetch data using query: {updated_state.boolean_query_data.get('boolean_query', '') if isinstance(updated_state.boolean_query_data, dict) else getattr(updated_state.boolean_query_data, 'boolean_query', '')}"))
+            
             return updated_state
             
         except Exception as e:
@@ -299,13 +331,18 @@ class SprinklrWorkflow:
             logger.info(f"Starting workflow for query: {user_query[:100]}...")
             
             # Initialize state
+            from langchain_core.messages import HumanMessage
+            
             initial_state = DashboardState(
                 user_query=user_query,
                 original_query=user_query,  # Set both fields for compatibility
                 user_context=user_context or {},
                 workflow_status="started",
                 current_step="initializing",
-                errors=[]
+                errors=[],
+                messages=[HumanMessage(content=user_query)],  # Add initial message for LangGraph
+                query_refinement=None,
+                query_refinement_data=None  # Explicitly set to None to avoid validation errors
             )
             
             # Compile and run workflow
@@ -313,18 +350,50 @@ class SprinklrWorkflow:
             app = self.workflow.compile(checkpointer=memory)
             
             # Execute workflow
-            config = {"configurable": {"thread_id": f"workflow_{hash(user_query)}"}}
+            config: RunnableConfig = {"configurable": {"thread_id": f"workflow_{hash(user_query)}"}}
             final_state = None
             
             async for state_dict in app.astream(initial_state, config=config):
                 final_state = state_dict
                 # Extract the actual state object from the dictionary
                 if isinstance(final_state, dict) and final_state:
-                    # Get the first (and likely only) value from the state dictionary
-                    actual_state = list(final_state.values())[0]
+                    # Get the first value from the state dict (should be a dict or DashboardState)
+                    state_val = list(final_state.values())[0]
+                    
+                    # Create a safe copy of the state data that we can modify
+                    if isinstance(state_val, dict):
+                        # For dict representation, ensure nested model objects are properly handled
+                        state_data = state_val.copy()
+                        
+                        # Handle query_refinement_data specifically
+                        if 'query_refinement_data' in state_data and hasattr(state_data['query_refinement_data'], 'model_dump'):
+                            # Convert to dict to avoid validation issues
+                            state_data['query_refinement_data'] = state_data['query_refinement_data'].model_dump()
+                        
+                        if 'query_refinement' in state_data and hasattr(state_data['query_refinement'], 'model_dump'):
+                            # Convert to dict to avoid validation issues
+                            state_data['query_refinement'] = state_data['query_refinement'].model_dump()
+                        
+                        # Handle boolean query data similarly
+                        if 'boolean_query_data' in state_data and hasattr(state_data['boolean_query_data'], 'model_dump'):
+                            state_data['boolean_query_data'] = state_data['boolean_query_data'].model_dump()
+                            
+                        if 'query_generation_data' in state_data and hasattr(state_data['query_generation_data'], 'model_dump'):
+                            state_data['query_generation_data'] = state_data['query_generation_data'].model_dump()
+                            
+                        if 'boolean_query' in state_data and hasattr(state_data['boolean_query'], 'model_dump'):
+                            state_data['boolean_query'] = state_data['boolean_query'].model_dump()
+            
+                        actual_state = DashboardState(**state_data)
+                    else:
+                        # Already a DashboardState object
+                        actual_state = state_val
+                        
+                    logger.info(f"Current workflow state: {actual_state.workflow_status}")
                     current_step = getattr(actual_state, 'current_step', 'unknown')
                 else:
                     current_step = 'unknown'
+
                 logger.info(f"Workflow step completed: {current_step}")
             
             # Extract final state

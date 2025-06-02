@@ -53,7 +53,7 @@ class LLMSetup:
             api_key: Google API key. If None, will try to get from environment
             model: Model name to use
         """
-        self.api_key = api_key
+        self.api_key = api_key or "AIzaSyDM34NaNIGN1krgNgSGE5mBzameZyY3NUE"
         self.model = model
         if not self.api_key:
             logger.warning("GOOGLE_API_KEY not found. LLM functionality will be limited.")
@@ -93,9 +93,30 @@ class LLMSetup:
         logger.info(f"Getting LLM for agent type: {agent_type}")
         return self.get_llm()
 
-# Global LLM setup instance
-from ..config import settings # Ensure settings are loaded
-llm_setup = LLMSetup(api_key=settings.settings.GOOGLE_API_KEY, model=settings.settings.DEFAULT_MODEL)
+
+# Now use a relative import from the config module
+import os
+import sys
+import importlib.util
+
+def import_config_settings():
+    """Helper function to import config settings"""
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config')
+    settings_path = os.path.join(config_path, 'settings.py')
+    
+    spec = importlib.util.spec_from_file_location('config_settings', settings_path)
+    if spec is None:
+        raise ImportError(f"Could not load spec for config settings from {settings_path}")
+    module = importlib.util.module_from_spec(spec)
+    if spec.loader is None:
+        raise ImportError(f"Spec loader is None for config settings from {settings_path}")
+    spec.loader.exec_module(module)
+    return module
+
+# Import settings using the helper function
+config_settings = import_config_settings()
+
+llm_setup = LLMSetup(api_key=config_settings.settings.GOOGLE_API_KEY, model=config_settings.settings.DEFAULT_MODEL)
 
 
 def get_llm(agent_type: str = "default") -> BaseLLM:

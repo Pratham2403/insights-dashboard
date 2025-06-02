@@ -103,7 +103,7 @@ class QueryGeneratorAgent:
                 "query_metadata": formatted_query["metadata"],
                 "confidence": formatted_query.get("confidence", 0.8),
                 "query_components": formatted_query.get("components", {}),
-                "estimated_results": formatted_query.get("estimated_results", "unknown")
+                "estimated_results": self._convert_estimated_results_to_int(formatted_query.get("estimated_results", "unknown"))
             }
             
         except Exception as e:
@@ -243,8 +243,14 @@ class QueryGeneratorAgent:
             
             response = await self.llm.ainvoke(messages)
             
+            # Handle both string and message object responses
+            if hasattr(response, 'content'):
+                response_content = response.content
+            else:
+                response_content = str(response)
+            
             # Parse the response
-            return self._parse_query_response(response.content)
+            return self._parse_query_response(response_content)
             
         except Exception as e:
             logger.error(f"Error generating boolean query: {str(e)}")
@@ -276,7 +282,14 @@ class QueryGeneratorAgent:
             ]
             
             response = await self.llm.ainvoke(messages)
-            return self._parse_query_response(response.content)
+            
+            # Handle both string and message object responses
+            if hasattr(response, 'content'):
+                response_content = response.content
+            else:
+                response_content = str(response)
+                
+            return self._parse_query_response(response_content)
             
         except Exception as e:
             logger.error(f"Error generating theme-specific query: {str(e)}")
@@ -301,7 +314,7 @@ class QueryGeneratorAgent:
                 },
                 "confidence": query_response.get("confidence", 0.8),
                 "components": self._extract_query_components(query),
-                "estimated_results": query_response.get("estimated_results", "medium")
+                "estimated_results": self._convert_estimated_results_to_int(query_response.get("estimated_results", "medium"))
             }
             
             return formatted_query
@@ -358,7 +371,7 @@ class QueryGeneratorAgent:
             return {
                 "query": query,
                 "confidence": confidence,
-                "estimated_results": estimated_results
+                "estimated_results": self._convert_estimated_results_to_int(estimated_results)
             }
             
         except Exception as e:
@@ -366,7 +379,7 @@ class QueryGeneratorAgent:
             return {
                 "query": response_content.strip(),
                 "confidence": 0.5,
-                "estimated_results": "unknown"
+                "estimated_results": self._convert_estimated_results_to_int("unknown")
             }
     
     def _extract_query_components(self, query: str) -> Dict[str, List[str]]:
@@ -418,6 +431,24 @@ class QueryGeneratorAgent:
         except:
             return "theme"
     
+    def _convert_estimated_results_to_int(self, estimated_results: Any) -> Optional[int]:
+        """Convert estimated_results string values to integers."""
+        if isinstance(estimated_results, int):
+            return estimated_results
+        elif isinstance(estimated_results, str):
+            # Map common string values to integers
+            mapping = {
+                "low": 100,
+                "medium": 1000,
+                "high": 10000,
+                "unknown": None,
+                "small": 50,
+                "large": 50000
+            }
+            return mapping.get(estimated_results.lower(), None)
+        else:
+            return None
+    
     # State management methods for LangGraph integration
     async def process_state(self, state: DashboardState) -> DashboardState:
         """Process the dashboard state for query generation"""
@@ -436,13 +467,29 @@ class QueryGeneratorAgent:
             
             # Update state
             if result["success"]:
+                # Convert query_components from dict to list if needed
+                query_components = result["query_components"]
+                if isinstance(query_components, dict):
+                    # Extract all components from the dict and flatten to a list
+                    components_list = []
+                    for category, items in query_components.items():
+                        if isinstance(items, list):
+                            components_list.extend(items)
+                        else:
+                            components_list.append(str(items))
+                    query_components = components_list
+                elif not isinstance(query_components, list):
+                    query_components = [str(query_components)]
+                
                 boolean_query_data = BooleanQueryData(
                     boolean_query=result["boolean_query"],
-                    query_metadata=result["query_metadata"],
-                    confidence=result["confidence"],
-                    query_components=result["query_components"]
+                    query_components=query_components,
+                    target_channels=result.get("target_channels", []),
+                    filters_applied=result.get("filters_applied", {}),
+                    estimated_results=result.get("estimated_results")
                 )
-                state.boolean_query_data = boolean_query_data
+                state.query_generation_data = boolean_query_data
+                state.boolean_query_data = boolean_query_data  # Also set legacy field
                 state.workflow_status = "query_generated"
                 logger.info("Boolean query generated successfully")
             else:

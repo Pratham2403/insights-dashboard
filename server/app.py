@@ -143,14 +143,22 @@ def analyze_query():
         # Or if it uses the `process_query` method from the CLI example:
         # result = wf.process_query(user_query) # This might be async, see notes above.
 
-        # Let's assume a method `handle_analysis_request` exists in the workflow for web requests.
-        if hasattr(wf, 'handle_analysis_request'):
-            result = wf.handle_analysis_request(user_query) # Ideal scenario
-        else:
-            # Fallback or error if the method doesn't exist.
-            # This part is crucial and depends on the `workflow.py` implementation.
-            logger.error("Workflow does not have a 'handle_analysis_request' method.")
-            return jsonify({"error": "Analysis processing not configured in workflow"}), 501 # Not Implemented
+        # Use the workflow's process_user_query method 
+        # Since it's async, we need to run it using asyncio
+        import asyncio
+        
+        # Check if we're already in an async context
+        try:
+            loop = asyncio.get_running_loop()
+            # If we get here, we're in an async context, so we can't use asyncio.run()
+            # We need to create a new thread for this
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, wf.process_user_query(user_query, data.get('context', {})))
+                result = future.result()
+        except RuntimeError:
+            # No running event loop, safe to use asyncio.run()
+            result = asyncio.run(wf.process_user_query(user_query, data.get('context', {})))
 
         logger.info(f"Analysis successful for query: {user_query[:100]}...")
         return jsonify(result), 200
@@ -165,17 +173,13 @@ def get_workflow_status(thread_id):
     logger.info(f"Workflow status endpoint for thread_id '{thread_id}' accessed.")
     try:
         wf = get_workflow()
-        # Assuming workflow has a method to get status by thread_id
-        if hasattr(wf, 'get_thread_status'):
-            status = wf.get_thread_status(thread_id)
-            if status:
-                return jsonify(status), 200
-            else:
-                logger.warning(f"No status found for thread_id: {thread_id}")
-                return jsonify({"error": "Status not found for the given thread_id"}), 404
+        # Use the workflow's get_workflow_status method 
+        status = wf.get_workflow_status(thread_id)
+        if status:
+            return jsonify(status), 200
         else:
-            logger.error("Workflow does not have a 'get_thread_status' method.")
-            return jsonify({"error": "Workflow status tracking by thread_id not implemented"}), 501
+            logger.warning(f"No status found for thread_id: {thread_id}")
+            return jsonify({"error": "Status not found for the given thread_id"}), 404
 
     except Exception as e:
         logger.error(f"Error getting workflow status for thread_id '{thread_id}': {e}", exc_info=True)
@@ -235,7 +239,7 @@ if __name__ == "__main__":
         # Consistent with .env.example (PORT=8000, HOST=0.0.0.0)
         host = os.getenv('HOST', '0.0.0.0')
         port = int(os.getenv('PORT', 8000))
-        app.run(host=host, port=port, debug=False) # debug=False for production-like logging
+        app.run(host=host, port=port, debug=True) # debug=False for production-like logging
     except Exception as e:
         logger.critical(f"Failed to start Flask application: {e}", exc_info=True)
         sys.exit(1) # Exit if the server can't start

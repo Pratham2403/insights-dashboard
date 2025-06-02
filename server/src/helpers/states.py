@@ -121,8 +121,8 @@ class DashboardState(BaseModel):
     This state tracks the entire process from user input to dashboard generation.
     """
     
-    # Core message handling
-    messages: List[BaseMessage] = Field(default_factory=list)
+    # Core message handling for LangGraph compatibility
+    messages: Annotated[Sequence[BaseMessage], add_messages] = Field(default_factory=list)
     
     # Conversation tracking
     conversation_id: str = Field(default_factory=lambda: str(uuid4()))
@@ -172,7 +172,12 @@ class DashboardState(BaseModel):
     
     def add_message(self, message: BaseMessage):
         """Add a message to the conversation."""
-        self.messages.append(message)
+        # For LangGraph compatibility, we need to handle messages differently
+        if isinstance(self.messages, list):
+            self.messages.append(message)
+        else:
+            # Convert to list if it's not already
+            self.messages = list(self.messages) + [message]
     
     def update_user_data(self, **kwargs):
         """Update user collected data."""

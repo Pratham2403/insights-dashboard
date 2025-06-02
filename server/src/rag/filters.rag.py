@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 def import_module_from_file(filepath, module_name):
     """Import a module from a specific file path."""
     spec = importlib.util.spec_from_file_location(module_name, filepath)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load module spec for {filepath}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -45,15 +47,23 @@ class FiltersRAG:
             embedding_path = os.path.join(setup_dir, 'embedding.setup.py')
             
             vector_db_module = import_module_from_file(vector_db_path, 'vector_db_setup')
-            embedding_module = import_module_from_file(embedding_path, 'embedding_setup')
             
             self.vector_db = vector_db_module.get_vector_db()
-            self.embedding_model = embedding_module.get_embedding_model()
+            
+            # Try to get embedding model, but it's optional
+            try:
+                embedding_module = import_module_from_file(embedding_path, 'embedding_setup')
+                self.embedding_model = embedding_module.get_embedding_model()
+            except Exception as e:
+                logger.warning(f"Could not load embedding model: {e}")
+                self.embedding_model = None
+                
+            logger.info("Successfully initialized vector database for RAG")
+            
         except Exception as e:
             logger.error(f"Error importing setup modules: {e}")
-            # Create mock instances for development
-            self.vector_db = None
-            self.embedding_model = None
+            # Don't silently fail - raise the error so we can fix it
+            raise RuntimeError(f"Failed to initialize vector database: {e}")
         
         self.knowledge_base_path = Path(__file__).parent.parent / "knowledge_base"
         
@@ -63,11 +73,16 @@ class FiltersRAG:
         self.patterns_collection = "keyword_patterns_collection"
         self.use_cases_collection = "use_cases_collection"
         
+        # Initialize collections after vector_db is set up
         self._initialize_collections()
     
     def _initialize_collections(self):
         """Initialize and populate collections with knowledge base data."""
         try:
+            # Check if vector_db is available
+            if self.vector_db is None:
+                raise RuntimeError("Vector database not available, cannot initialize collections")
+                
             # Create collections
             self.vector_db.create_collection(self.filters_collection)
             self.vector_db.create_collection(self.themes_collection)
@@ -84,10 +99,14 @@ class FiltersRAG:
             
         except Exception as e:
             logger.error(f"Failed to initialize RAG collections: {e}")
+            # Re-raise the error so calling code knows initialization failed
             raise
     
     def _load_filters_data(self):
         """Load and index Sprinklr filters data."""
+        if self.vector_db is None:
+            raise RuntimeError("Vector database not available, cannot load filters data")
+            
         try:
             filters_file = self.knowledge_base_path / "filers.json"
             
@@ -165,6 +184,9 @@ class FiltersRAG:
     
     def _load_themes_data(self):
         """Load and index themes data."""
+        if self.vector_db is None:
+            raise RuntimeError("Vector database not available, cannot load themes data")
+            
         try:
             # Sample themes data
             sample_themes = [
@@ -233,6 +255,9 @@ class FiltersRAG:
     
     def _load_keyword_patterns(self):
         """Load and index keyword query patterns."""
+        if self.vector_db is None:
+            raise RuntimeError("Vector database not available, cannot load keyword patterns")
+            
         try:
             patterns_file = self.knowledge_base_path / "keyword_query_patterns.json"
             
@@ -272,6 +297,10 @@ class FiltersRAG:
     
     def _load_use_cases(self):
         """Load and index complete use cases."""
+        if self.vector_db is None:
+            logger.warning("Vector database not available, skipping use cases loading")
+            return
+            
         try:
             # Sample complete use cases
             sample_use_cases = [
@@ -344,6 +373,10 @@ class FiltersRAG:
         Returns:
             List of relevant filter information
         """
+        if self.vector_db is None:
+            logger.warning("Vector database not available, returning empty search results")
+            return []
+            
         try:
             results = self.vector_db.search_documents(
                 self.filters_collection,
@@ -368,6 +401,10 @@ class FiltersRAG:
         Returns:
             List of relevant theme information
         """
+        if self.vector_db is None:
+            logger.warning("Vector database not available, returning empty search results")
+            return []
+            
         try:
             results = self.vector_db.search_documents(
                 self.themes_collection,
@@ -392,6 +429,10 @@ class FiltersRAG:
         Returns:
             List of relevant keyword pattern information
         """
+        if self.vector_db is None:
+            logger.warning("Vector database not available, returning empty search results")
+            return []
+            
         try:
             results = self.vector_db.search_documents(
                 self.patterns_collection,
@@ -416,6 +457,10 @@ class FiltersRAG:
         Returns:
             List of relevant use case information
         """
+        if self.vector_db is None:
+            logger.warning("Vector database not available, returning empty search results")
+            return []
+            
         try:
             results = self.vector_db.search_documents(
                 self.use_cases_collection,

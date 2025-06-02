@@ -36,9 +36,13 @@ from langchain_core.prompts import ChatPromptTemplate
 logger = logging.getLogger(__name__)
 
 def import_module_from_file(filepath, module_name):
-    """Import a module from a specific file path."""
+    """Helper function to import modules with dots in filenames"""
     spec = importlib.util.spec_from_file_location(module_name, filepath)
+    if spec is None:
+        raise ImportError(f"Could not load spec for module {module_name} from {filepath}")
     module = importlib.util.module_from_spec(spec)
+    if spec.loader is None:
+        raise ImportError(f"Spec loader is None for module {module_name} from {filepath}")
     spec.loader.exec_module(module)
     return module
 
@@ -83,8 +87,16 @@ class QueryRefinerAgent:
             # Get LLM response
             response = self.llm.invoke(prompt)
             
+            # Handle different response types
+            if isinstance(response, str):
+                response_content = response
+            elif hasattr(response, 'content'):
+                response_content = response.content
+            else:
+                response_content = str(response)
+            
             # Parse the response
-            refined_data = self._parse_refinement_response(response.content)
+            refined_data = self._parse_refinement_response(response_content)
             
             # Add metadata
             refined_data["original_query"] = user_query
@@ -92,6 +104,7 @@ class QueryRefinerAgent:
             refined_data["rag_context"] = rag_context
             
             logger.info(f"Successfully refined query: {user_query}")
+
             return refined_data
             
         except Exception as e:
@@ -205,7 +218,9 @@ class QueryRefinerAgent:
         return {
             "refined_query": refined_query,
             "suggested_filters": [],
-            "suggested_themes": [],
+            "suggested_themes": [
+                {"name": "Brand Health", "description": "Overall brand health monitoring"}
+            ],
             "missing_information": ["products", "channels", "time_period"],
             "confidence_score": 0.5
         }
@@ -269,20 +284,39 @@ class QueryRefinerAgent:
             states_module = import_module_from_file(states_path, 'states')
             QueryRefinementData = states_module.QueryRefinementData
             
+            # Ensure suggested_filters and suggested_themes are lists of dictionaries
+            suggested_filters = refinement_result.get("suggested_filters", [])
+            if not isinstance(suggested_filters, list):
+                suggested_filters = []
+            # Convert strings to dictionaries if needed
+            for i, filter_item in enumerate(suggested_filters):
+                if isinstance(filter_item, str):
+                    suggested_filters[i] = {"name": filter_item, "description": f"Filter for {filter_item}"}
+            
+            suggested_themes = refinement_result.get("suggested_themes", [])
+            if not isinstance(suggested_themes, list):
+                suggested_themes = []
+            # Convert strings to dictionaries if needed
+            for i, theme_item in enumerate(suggested_themes):
+                if isinstance(theme_item, str):
+                    suggested_themes[i] = {"name": theme_item, "description": f"Theme for {theme_item}"}
+            
             query_refinement_data = QueryRefinementData(
                 original_query=user_query,
                 refined_query=refinement_result.get("refined_query", user_query),
-                suggested_filters=refinement_result.get("suggested_filters", []),
-                suggested_themes=refinement_result.get("suggested_themes", []),
+                suggested_filters=suggested_filters,
+                suggested_themes=suggested_themes,
                 missing_information=refinement_result.get("missing_information", []),
                 confidence_score=refinement_result.get("confidence_score", 0.0)
             )
             
             # Update state with refinement data
             if hasattr(state, 'query_refinement_data'):
-                state.query_refinement_data = query_refinement_data
+                # Convert to dictionary to avoid validation issues with Pydantic models
+                state.query_refinement_data = query_refinement_data.model_dump()
             if hasattr(state, 'query_refinement'):
-                state.query_refinement = query_refinement_data
+                # Convert to dictionary to avoid validation issues with Pydantic models
+                state.query_refinement = query_refinement_data.model_dump()
             
             # Update workflow status
             if hasattr(state, 'workflow_status'):
