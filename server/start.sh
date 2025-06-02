@@ -41,55 +41,29 @@ if [ -f "requirements.txt" ]; then
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ Requirements installed.${NC}"
     else
-        echo -e "${YELLOW}⚠️  Some packages may have failed to install.${NC}"
+        echo -e "${YELLOW}⚠️  Some packages may have failed to install. Check pip output above.${NC}" # Clarified message
     fi
 fi
 
-# Show available options
+# Show available options - Simplified to only web server
 echo -e "\n${BLUE}🚀 Choose an option:${NC}"
-echo "1. 💬 Interactive Mode (Default)"
-echo "2. 🎭 Demo Mode (Sample queries)"
-echo "3. 🧪 System Tests"
-echo "4. 🌐 Web Server"
-echo "5. ⚙️  System Status"
-echo "6. 🔍 Custom Query"
-echo "7. ❓ Help"
+echo "1. 🌐 Web Server (Default)"
+echo "2. ❓ Help"
 
-read -p "Enter your choice (1-7, or press Enter for Interactive): " choice
+read -p "Enter your choice (1-2, or press Enter for Web Server): " choice
 
 case $choice in
     1|"")
-        echo -e "${GREEN}🚀 Starting Interactive Mode...${NC}"
-        python3 run.py
-        ;;
-    2)
-        echo -e "${GREEN}🎭 Starting Demo Mode...${NC}"
-        python3 run.py --demo
-        ;;
-    3)
-        echo -e "${GREEN}🧪 Running System Tests...${NC}"
-        python3 run.py --test
-        ;;
-    4)
         echo -e "${GREEN}🌐 Starting Web Server...${NC}"
         python3 run.py --web
         ;;
-    5)
-        echo -e "${GREEN}⚙️  Checking System Status...${NC}"
-        python3 run.py --status
-        ;;
-    6)
-        read -p "Enter your query: " query
-        echo -e "${GREEN}🔍 Processing query: '$query'${NC}"
-        python3 run.py --query "$query"
-        ;;
-    7)
+    2)
         echo -e "${GREEN}❓ Showing Help...${NC}"
-        python3 run.py --help
+        python3 run.py --help # run.py --help will show minimal help now
         ;;
+    # Removed cases for Interactive, Demo, System Tests, System Status, Custom Query
     *)
-        echo -e "${RED}❌ Invalid choice. Starting Interactive Mode...${NC}"
-        python3 run.py
+        echo -e "${YELLOW}⚠️  Invalid choice. Please select 1 or 2.${NC}"
         ;;
 esac
 

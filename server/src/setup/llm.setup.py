@@ -9,16 +9,16 @@ It initializes the LLM and its components.
 
 ## LLM Router Used:
 ```bash
-curl -X POST 'http://qa6-intuitionx-llm-router-v2.sprinklr.com/chat-completion' \
--H "Content-Type: application/json" \
--d '{
+curl -X POST \'http://qa6-intuitionx-llm-router-v2.sprinklr.com/chat-completion\' \\
+-H "Content-Type: application/json" \\
+-d \'{
   "model": "gpt-4o",
   "messages": [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Hello!"}
   ],
   "client_identifier": "spr-backend-interns-25"
-}'
+}\'
 ```
  
 
@@ -28,7 +28,6 @@ curl -X POST 'http://qa6-intuitionx-llm-router-v2.sprinklr.com/chat-completion' 
 
 """
 
-import os
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.language_models import BaseLLM
 from langchain_core.outputs import LLMResult
@@ -37,69 +36,6 @@ from typing import Optional, List, Any
 import logging
 
 logger = logging.getLogger(__name__)
-
-class MockLLM(BaseLLM):
-    """Mock LLM for testing when no valid API key is available."""
-    
-    def _generate(
-        self,
-        prompts: List[str],
-        stop: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
-    ) -> LLMResult:
-        """Generate mock responses."""
-        from langchain_core.outputs import Generation
-        
-        # Simple mock response based on the prompt
-        mock_responses = []
-        for prompt in prompts:
-            if "refined_query" in prompt.lower():
-                response = '''{"refined_query": "Brand monitoring analysis", "suggested_filters": [{"name": "Brand Mentions", "description": "Track brand mentions"}], "suggested_themes": [{"name": "Brand Health", "description": "Overall brand health"}], "missing_information": ["products", "channels"], "confidence_score": 0.8}'''
-            else:
-                response = "Mock LLM response: This is a placeholder response for testing purposes."
-            mock_responses.append(Generation(text=response))
-        
-        return LLMResult(generations=[mock_responses])
-    
-    def _llm_type(self) -> str:
-        return "mock"
-    
-    async def _agenerate(
-        self,
-        prompts: List[str],
-        stop: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
-    ) -> LLMResult:
-        """Generate mock responses asynchronously."""
-        return self._generate(prompts, stop, run_manager, **kwargs)
-    
-    def invoke(self, prompt, **kwargs):
-        """Invoke method that returns a response with content attribute."""
-        from types import SimpleNamespace
-        
-        if isinstance(prompt, str):
-            prompt_text = prompt
-        else:
-            prompt_text = str(prompt)
-            
-        if "refined_query" in prompt_text.lower():
-            content = '''{"refined_query": "Brand monitoring analysis", "suggested_filters": [{"name": "Brand Mentions", "description": "Track brand mentions"}], "suggested_themes": [{"name": "Brand Health", "description": "Overall brand health"}], "missing_information": ["products", "channels"], "confidence_score": 0.8}'''
-        elif "query" in prompt_text.lower() and "boolean" in prompt_text.lower():
-            content = '''query: (brand AND monitor) OR (insights AND analysis)
-confidence: 0.85
-estimated_results: medium'''
-        else:
-            content = "Mock LLM response: This is a placeholder response for testing purposes."
-            
-        # Return an object with content attribute like real LLM responses
-        return SimpleNamespace(content=content)
-    
-    async def ainvoke(self, prompt, **kwargs):
-        """Async invoke method that returns a response with content attribute."""
-        # For testing purposes, just return the same as invoke
-        return self.invoke(prompt, **kwargs)
 
 class LLMSetup:
     """
@@ -117,16 +53,12 @@ class LLMSetup:
             api_key: Google API key. If None, will try to get from environment
             model: Model name to use
         """
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self.api_key = api_key
         self.model = model
-        
-        # Check if API key is valid (not placeholder)
-        if not self.api_key or self.api_key == "<gemini-api-key>" or self.api_key == "your_gemini_api_key_here":
-            logger.warning("No valid GEMINI_API_KEY found. Using mock LLM for testing.")
-            self.use_mock = True
-        else:
-            self.use_mock = False
-    
+        if not self.api_key:
+            logger.warning("GOOGLE_API_KEY not found. LLM functionality will be limited.")
+        logger.info(f"LLMSetup initialized with model: {self.model}")
+
     def get_llm(self, temperature: float = 0.7, max_tokens: Optional[int] = None) -> BaseLLM:
         """
         Get a configured LLM instance.
@@ -138,24 +70,15 @@ class LLMSetup:
         Returns:
             Configured LLM instance
         """
-        try:
-            if self.use_mock:
-                # Return a mock LLM for testing
-                return MockLLM()
-            
-            llm = GoogleGenerativeAI(
-                model=self.model,
-                google_api_key=self.api_key,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            
-            logger.info(f"Successfully initialized {self.model} LLM")
-            return llm
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize LLM: {e}")
-            raise
+        if not self.api_key:
+            logger.error("Cannot create LLM: GOOGLE_API_KEY is not configured.")
+            raise ValueError("GOOGLE_API_KEY is not configured, cannot create LLM instance.")
+
+        llm_params = {"model": self.model, "temperature": temperature}
+        if max_tokens:
+            llm_params["max_output_tokens"] = max_tokens
+        
+        return GoogleGenerativeAI(google_api_key=self.api_key, **llm_params)
     
     def get_agent_llm(self, agent_type: str) -> BaseLLM:
         """
@@ -167,20 +90,13 @@ class LLMSetup:
         Returns:
             LLM configured for the specific agent
         """
-        # Different agents may need different temperature settings
-        agent_configs = {
-            "query_refiner": {"temperature": 0.3},  # More deterministic for query refinement
-            "data_collector": {"temperature": 0.5}, # Balanced for interaction
-            "hitl_verification": {"temperature": 0.2}, # Very deterministic for verification
-            "query_generator": {"temperature": 0.1}, # Very precise for query generation
-            "data_analyzer": {"temperature": 0.4}, # Balanced for analysis
-        }
-        
-        config = agent_configs.get(agent_type, {"temperature": 0.7})
-        return self.get_llm(**config)
+        logger.info(f"Getting LLM for agent type: {agent_type}")
+        return self.get_llm()
 
 # Global LLM setup instance
-llm_setup = LLMSetup()
+from ..config import settings # Ensure settings are loaded
+llm_setup = LLMSetup(api_key=settings.settings.GOOGLE_API_KEY, model=settings.settings.DEFAULT_MODEL)
+
 
 def get_llm(agent_type: str = "default") -> BaseLLM:
     """
