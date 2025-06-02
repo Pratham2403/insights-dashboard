@@ -5,7 +5,6 @@ langchain-community      # Community integrations for LangChain
 langgraph                # Directed graphs for LLM application flows
 
 # ===== LLM Providers =====
-langchain-openai         # OpenAI integration for LangChain
 langchain-google-genai   # Google Generative AI integration for LangChain
 sentence-transformers    # Sentence Transformers for semantic similarity and embeddings
 
