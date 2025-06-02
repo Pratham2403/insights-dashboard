@@ -161,6 +161,15 @@ class DataAnalyzerAgent:
         self.llm = self.llm_setup.get_agent_llm("data_analyzer")
         self.classifier = None  # Will be initialized when needed
         
+        # Initialize query generator for theme queries
+        # Import QueryGeneratorAgent
+        query_generator_module = import_module_from_file(
+            os.path.join(os.path.dirname(__file__), 'query-generator.agent.py'), 
+            'query_generator'
+        )
+        QueryGeneratorAgent = query_generator_module.QueryGeneratorAgent
+        self.query_generator = QueryGeneratorAgent()
+        
         # Analysis configuration
         self.max_themes = 10
         self.min_cluster_size = 5
@@ -690,12 +699,18 @@ class DataAnalyzerAgent:
             total_categorized = sum(len(theme.data_points) for theme in themes)
             coverage = (total_categorized / len(request.data)) * 100 if request.data else 0
             
+            # Convert numpy types to Python native types to avoid serialization issues
+            avg_confidence = 0
+            if themes:
+                confidences = [theme.confidence for theme in themes]
+                avg_confidence = float(sum(confidences) / len(confidences))
+            
             return {
                 "total_themes": len(themes),
                 "data_coverage": f"{coverage:.1f}%",
                 "categorized_points": total_categorized,
                 "uncategorized_points": len(request.data) - total_categorized,
-                "average_theme_confidence": np.mean([theme.confidence for theme in themes]) if themes else 0,
+                "average_theme_confidence": avg_confidence,
                 "analysis_method": "multi-method",
                 "processing_status": "completed"
             }
@@ -716,27 +731,51 @@ class DataAnalyzerAgent:
                 state.workflow_status = "data_analysis_failed"
                 return state
             
+            # Get refined query and user context
+            refined_query = ""
+            if hasattr(state, 'query_refinement_data') and state.query_refinement_data:
+                if isinstance(state.query_refinement_data, dict):
+                    refined_query = state.query_refinement_data.get('refined_query', '')
+                else:
+                    refined_query = getattr(state.query_refinement_data, 'refined_query', '')
+            
+            user_context = {}
+            if hasattr(state, 'user_collected_data') and state.user_collected_data:
+                if isinstance(state.user_collected_data, dict):
+                    user_context = state.user_collected_data
+                else:
+                    user_context = getattr(state.user_collected_data, 'to_dict', lambda: {})()
+            
             # Create analysis request
             request = DataAnalysisRequest(
                 data=state.fetched_data,
-                refined_query=state.query_refinement_data.refined_query if state.query_refinement_data else "",
-                user_context=state.user_collected_data.data if state.user_collected_data else {}
+                refined_query=refined_query or state.user_query,
+                user_context=user_context
             )
             
             # Perform analysis
             result = await self.analyze_data(request)
             
-            # Update state
-            if result["success"]:
-                theme_data = ThemeData(
-                    themes=result["themes"],
-                    analysis_summary=result["analysis_summary"],
-                    total_themes=result["themes_count"],
-                    processing_method=result["analysis_method"]
-                )
-                state.theme_data = theme_data
+            # Update state with proper structure for USAGE.md
+            if result.get("success", False):
+                # Create theme data in the format expected by USAGE.md
+                themes_list = []
+                for theme in result.get("themes", []):
+                    theme_item = {
+                        "theme_name": theme.get("name", "Unknown Theme"),
+                        "description": theme.get("description", "No description available"),
+                        "boolean_query": theme.get("boolean_query", f'"{theme.get("name", "unknown")}"')
+                    }
+                    themes_list.append(theme_item)
+                
+                state.theme_data = {
+                    "themes": themes_list,
+                    "analysis_summary": result.get("analysis_summary", {}),
+                    "total_themes": len(themes_list),
+                    "processing_method": result.get("analysis_method", "hybrid")
+                }
                 state.workflow_status = "data_analyzed"
-                logger.info(f"Data analysis completed with {result['themes_count']} themes")
+                logger.info(f"Data analysis completed with {len(themes_list)} themes")
             else:
                 state.errors.append(f"Data analysis failed: {result.get('error', 'Unknown error')}")
                 state.workflow_status = "data_analysis_failed"
@@ -749,3 +788,4 @@ class DataAnalyzerAgent:
             state.errors.append(f"Data analysis error: {str(e)}")
             state.workflow_status = "data_analysis_failed"
             return state
+    

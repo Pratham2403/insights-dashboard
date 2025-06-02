@@ -20,7 +20,6 @@ from langchain_core.runnables import RunnableConfig
 # Import agents and helpers
 import importlib.util
 import os
-from helpers.states import QueryRefinementData
 
 def import_module_from_file(filepath, module_name):
     """Helper function to import modules with dots in filenames"""
@@ -88,6 +87,7 @@ DataCollectorAgent = data_collector_module.DataCollectorAgent
 DataAnalyzerAgent = data_analyzer_module.DataAnalyzerAgent
 HITLVerificationAgent = hitl_verification_module.HITLVerificationAgent
 DashboardState = states_module.DashboardState
+QueryRefinementData = states_module.QueryRefinementData
 
 logger = logging.getLogger(__name__)
 
@@ -160,8 +160,7 @@ class SprinklrWorkflow:
             )
             
             workflow.add_edge("query_generator", "data_collector")
-            workflow.add_edge("data_collector", "tools")
-            workflow.add_edge("tools", "data_analyzer")
+            workflow.add_edge("data_collector", "data_analyzer")
             workflow.add_edge("data_analyzer", "final_review")
             workflow.add_edge("final_review", END)
             
@@ -242,8 +241,50 @@ class SprinklrWorkflow:
             updated_state = await self.data_collector.process_state(state)
             updated_state.current_step = "data_collection_ready"
             
-            # Add an AIMessage to the state for the ToolNode to process
-            updated_state.add_message(AIMessage(content=f"Fetch data using query: {updated_state.boolean_query_data.get('boolean_query', '') if isinstance(updated_state.boolean_query_data, dict) else getattr(updated_state.boolean_query_data, 'boolean_query', '')}"))
+            # Extract boolean query from state
+            boolean_query = ""
+            if hasattr(updated_state, 'boolean_query_data') and updated_state.boolean_query_data:
+                if isinstance(updated_state.boolean_query_data, dict):
+                    boolean_query = updated_state.boolean_query_data.get('boolean_query', '')
+                else:
+                    boolean_query = getattr(updated_state.boolean_query_data, 'boolean_query', '')
+            
+            # Clean up the boolean query if it's wrapped in JSON
+            import re
+            if boolean_query and boolean_query.strip().startswith('```json'):
+                # Extract the actual query from JSON response
+                try:
+                    import json
+                    # Remove markdown formatting
+                    json_str = re.sub(r'```json\n(.*?)\n```', r'\1', boolean_query, flags=re.DOTALL)
+                    parsed = json.loads(json_str)
+                    boolean_query = parsed.get('boolean_query', '')
+                except Exception as e:
+                    logger.warning(f"Failed to parse JSON boolean query: {e}")
+                    # Fallback to simple query
+                    boolean_query = 'brand monitoring'
+            
+            # Call the tool directly and populate fetched_data
+            if boolean_query:
+                logger.info(f"Fetching data with query: {boolean_query}")
+                try:
+                    # Use the tool directly with proper invoke method
+                    fetched_data = await self.get_tools.get_sprinklr_data.invoke({
+                        "query": boolean_query,
+                        "filters": None,
+                        "limit": 0
+                    })
+                    updated_state.fetched_data = fetched_data if fetched_data else []
+                    logger.info(f"Fetched {len(updated_state.fetched_data)} data points")
+                    
+                except Exception as tool_error:
+                    logger.error(f"Error fetching data with tool: {tool_error}")
+                    updated_state.fetched_data = []
+                    updated_state.errors.append(f"Data fetching failed: {str(tool_error)}")
+            else:
+                logger.error("No boolean query available for data fetching")
+                updated_state.fetched_data = []
+                updated_state.errors.append("No boolean query available for data fetching")
             
             return updated_state
             
@@ -273,10 +314,19 @@ class SprinklrWorkflow:
             logger.info("Processing final review")
             
             # Check if we have successful results
-            if state.theme_data and len(state.theme_data.themes) > 0:
+            themes_count = 0
+            if state.theme_data:
+                if isinstance(state.theme_data, dict):
+                    themes = state.theme_data.get('themes', [])
+                    themes_count = len(themes) if themes else 0
+                else:
+                    themes = getattr(state.theme_data, 'themes', [])
+                    themes_count = len(themes) if themes else 0
+            
+            if themes_count > 0:
                 state.workflow_status = "completed"
                 state.current_step = "completed"
-                logger.info(f"Workflow completed successfully with {len(state.theme_data.themes)} themes")
+                logger.info(f"Workflow completed successfully with {themes_count} themes")
             else:
                 state.workflow_status = "completed_with_warnings"
                 state.current_step = "completed"
@@ -400,24 +450,44 @@ class SprinklrWorkflow:
             if final_state:
                 result_state = list(final_state.values())[0]
                 
-                # Safely access attributes with getattr to avoid AttributeError
+                # Get themes in the format expected by USAGE.md
+                themes = []
+                if hasattr(result_state, 'theme_data') and result_state.theme_data:
+                    if isinstance(result_state.theme_data, dict):
+                        themes = result_state.theme_data.get('themes', [])
+                    else:
+                        themes = getattr(result_state.theme_data, 'themes', [])
+                
+                # Get refined query
+                refined_query = ""
+                if hasattr(result_state, 'query_refinement_data') and result_state.query_refinement_data:
+                    if isinstance(result_state.query_refinement_data, dict):
+                        refined_query = result_state.query_refinement_data.get('refined_query', '')
+                    else:
+                        refined_query = getattr(result_state.query_refinement_data, 'refined_query', '')
+                
+                # Check if workflow was successful
+                workflow_status = getattr(result_state, 'workflow_status', 'failed')
+                is_successful = workflow_status in ["completed", "completed_with_warnings", "data_analyzed"]
+                
+                # Return response in USAGE.md format
                 return {
-                    "success": getattr(result_state, 'workflow_status', 'failed') in ["completed", "completed_with_warnings"],
-                    "status": getattr(result_state, 'workflow_status', 'failed'),
+                    "status": "success" if is_successful else "failed",
+                    "message": f"Brand monitor insights have been successfully generated." if is_successful else "Failed to generate insights",
+                    "themes": themes,
+                    "refined_query": refined_query,
+                    "workflow_status": workflow_status,
                     "current_step": getattr(result_state, 'current_step', 'unknown'),
-                    "themes": getattr(result_state.theme_data, 'themes', []) if getattr(result_state, 'theme_data', None) else [],
-                    "analysis_summary": getattr(result_state.theme_data, 'analysis_summary', {}) if getattr(result_state, 'theme_data', None) else {},
-                    "refined_query": getattr(result_state.query_refinement_data, 'refined_query', '') if getattr(result_state, 'query_refinement_data', None) else "",
-                    "boolean_query": getattr(result_state.query_generation_data, 'boolean_query', '') if getattr(result_state, 'query_generation_data', None) else "",
                     "errors": getattr(result_state, 'errors', []),
-                    "processing_time": getattr(result_state, 'timestamp', None)
+                    "conversation_id": getattr(result_state, 'conversation_id', 'unknown'),
+                    "timestamp": getattr(result_state, 'timestamp', None)
                 }
             else:
                 return {
-                    "success": False,
                     "status": "failed",
-                    "error": "Workflow did not complete properly",
+                    "message": "Workflow did not complete properly",
                     "themes": [],
+                    "refined_query": "",
                     "errors": ["Workflow execution failed"]
                 }
                 

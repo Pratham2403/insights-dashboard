@@ -20,7 +20,11 @@ class Settings(BaseSettings):
     SPRINKLR_DATA_API_URL: str = Field(
         default="https://space-prod0.sprinklr.com/ui/rest/reports/query",
     )
-    SPRINKLR_COOKIES: Optional[Dict[str, str]] = None
+    SPRINKLR_COOKIES: Optional[Union[Dict[str, str], str]] = None
+    SPRINKLR_CSRF_TOKEN: Optional[str] = None
+    SPRINKLR_USER_CONTEXT: Optional[str] = None
+    SPRINKLR_DASHBOARD_ID: Optional[str] = None
+    SPRINKLR_WIDGET_ID: Optional[str] = None
     
     
     
