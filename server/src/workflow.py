@@ -10,16 +10,16 @@ Functionality:
 """
 
 import logging
+import importlib.util
+import os
+import re
+import json
 from typing import Dict, Any, List, Optional, Union
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables import RunnableConfig
-
-# Import agents and helpers
-import importlib.util
-import os
 
 def import_module_from_file(filepath, module_name):
     """Helper function to import modules with dots in filenames"""
@@ -101,29 +101,86 @@ class SprinklrWorkflow:
     """
     
     def __init__(self):
-        """Initialize the workflow with all agents and tools"""
+        """Initialize the workflow with lazy loading for better performance"""
         
-        # Initialize LLM setup
-        llm_setup = LLMSetup()
-        llm = llm_setup.get_agent_llm("workflow")
+        # Lazy initialization to improve startup performance
+        self._llm_setup = None
+        self._rag_system = None
+        self._query_refiner = None
+        self._query_generator = None
+        self._data_collector = None
+        self._data_analyzer = None
+        self._hitl_verification = None
+        self._get_tools = None
+        self._workflow = None
         
-        # Initialize RAG system (lazy initialization)
-        rag_system = filters_rag_module.get_filters_rag()
-        
-        # Initialize agents with required parameters
-        self.query_refiner = QueryRefinerAgent(llm=llm, rag_system=rag_system)
-        self.query_generator = QueryGeneratorAgent()
-        self.data_collector = DataCollectorAgent(llm=llm)
-        self.data_analyzer = DataAnalyzerAgent()
-        self.hitl_verification = HITLVerificationAgent(llm=llm)
-        
-        # Initialize tools
-        self.get_tools = get_tool_module.GetTools()
-        
-        # Create the workflow graph
-        self.workflow = self._create_workflow()
-        
-        logger.info("SprinklrWorkflow initialized successfully")
+        logger.info("SprinklrWorkflow initialized with lazy loading")
+    
+    @property
+    def llm_setup(self):
+        """Lazy initialize LLM setup"""
+        if self._llm_setup is None:
+            self._llm_setup = LLMSetup()
+        return self._llm_setup
+    
+    @property
+    def rag_system(self):
+        """Lazy initialize RAG system"""
+        if self._rag_system is None:
+            self._rag_system = filters_rag_module.get_filters_rag()
+        return self._rag_system
+    
+    @property
+    def query_refiner(self):
+        """Lazy initialize query refiner agent"""
+        if self._query_refiner is None:
+            llm = self.llm_setup.get_agent_llm("workflow")
+            self._query_refiner = QueryRefinerAgent(llm=llm, rag_system=self.rag_system)
+        return self._query_refiner
+    
+    @property
+    def query_generator(self):
+        """Lazy initialize query generator agent"""
+        if self._query_generator is None:
+            self._query_generator = QueryGeneratorAgent()
+        return self._query_generator
+    
+    @property
+    def data_collector(self):
+        """Lazy initialize data collector agent"""
+        if self._data_collector is None:
+            llm = self.llm_setup.get_agent_llm("workflow")
+            self._data_collector = DataCollectorAgent(llm=llm)
+        return self._data_collector
+    
+    @property
+    def data_analyzer(self):
+        """Lazy initialize data analyzer agent"""
+        if self._data_analyzer is None:
+            self._data_analyzer = DataAnalyzerAgent()
+        return self._data_analyzer
+    
+    @property
+    def hitl_verification(self):
+        """Lazy initialize HITL verification agent"""
+        if self._hitl_verification is None:
+            llm = self.llm_setup.get_agent_llm("workflow")
+            self._hitl_verification = HITLVerificationAgent(llm=llm)
+        return self._hitl_verification
+    
+    @property
+    def get_tools(self):
+        """Lazy initialize tools"""
+        if self._get_tools is None:
+            self._get_tools = get_tool_module.GetTools()
+        return self._get_tools
+    
+    @property 
+    def workflow(self):
+        """Lazy initialize workflow graph"""
+        if self._workflow is None:
+            self._workflow = self._create_workflow()
+        return self._workflow
     
     def _create_workflow(self) -> StateGraph:
         """Create and configure the LangGraph workflow"""
@@ -250,11 +307,9 @@ class SprinklrWorkflow:
                     boolean_query = getattr(updated_state.boolean_query_data, 'boolean_query', '')
             
             # Clean up the boolean query if it's wrapped in JSON
-            import re
             if boolean_query and boolean_query.strip().startswith('```json'):
                 # Extract the actual query from JSON response
                 try:
-                    import json
                     # Remove markdown formatting
                     json_str = re.sub(r'```json\n(.*?)\n```', r'\1', boolean_query, flags=re.DOTALL)
                     parsed = json.loads(json_str)
@@ -269,7 +324,7 @@ class SprinklrWorkflow:
                 logger.info(f"Fetching data with query: {boolean_query}")
                 try:
                     # Use the tool directly with proper invoke method
-                    fetched_data = await self.get_tools.get_sprinklr_data.invoke({
+                    fetched_data = await self.get_tools.get_sprinklr_data.ainvoke({
                         "query": boolean_query,
                         "filters": None,
                         "limit": 0
