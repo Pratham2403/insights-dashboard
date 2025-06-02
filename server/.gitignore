@@ -12,3 +12,8 @@ __pycache__/
 chroma_db/
 
 docs/
+
+
+/chroma_db/
+
+__pycache__/
