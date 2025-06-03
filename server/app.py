@@ -1,5 +1,7 @@
 """
-This module contains the main application logic and entry point if using the flask framework and working with API
+Main application logic and entry point using Flask.
+
+Provides API endpoints for health checks, status, and query analysis.
 """
 
 from flask import Flask, request, jsonify, render_template
@@ -12,19 +14,9 @@ import logging # Ensure logging is imported
 
 # Add the src directory to the path for imports
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
+from src.utils.files_helper import import_module_from_file  
 
 # Import workflow and configuration
-
-def import_module_from_file(filepath, module_name):
-    """Helper function to import modules with dots in filenames"""
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    if spec is None:
-        raise ImportError(f"Could not load spec for module {module_name} from {filepath}")
-    module = importlib.util.module_from_spec(spec)
-    if spec.loader is None:
-        raise ImportError(f"Spec loader is None for module {module_name} from {filepath}")
-    spec.loader.exec_module(module)
-    return module
 
 # Import workflow
 workflow_module = import_module_from_file(

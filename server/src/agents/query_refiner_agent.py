@@ -32,19 +32,12 @@ import importlib.util
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
+import sys
+from src.utils.files_helper import import_module_from_file
 
 logger = logging.getLogger(__name__)
 
-def import_module_from_file(filepath, module_name):
-    """Helper function to import modules with dots in filenames"""
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    if spec is None:
-        raise ImportError(f"Could not load spec for module {module_name} from {filepath}")
-    module = importlib.util.module_from_spec(spec)
-    if spec.loader is None:
-        raise ImportError(f"Spec loader is None for module {module_name} from {filepath}")
-    spec.loader.exec_module(module)
-    return module
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 
 class QueryRefinerAgent:
     """

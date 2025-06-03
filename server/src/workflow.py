@@ -1,12 +1,9 @@
 """
-This modules Sets Up the Langgraph Workflow for the Application.
-
-This Modules is Responsible for Initializing and Configuring the Langgraph Workflow to Handle User Queries, Data Analysis, and Classification.
+This module sets up the LangGraph workflow for the application.
 
 Functionality:
-- Uses Langgraph to Define the Workflow for the Application.
-- Uses Langgraph Predefine Modules/libraries, to Contruct the Graph, set Up the Nodes, ToolNodes, and Define the Edges between the Nodes.
-
+- Defines the workflow for handling user queries, data analysis, and classification.
+- Uses LangGraph to construct the graph, set up nodes, and define edges.
 """
 
 import logging
@@ -21,17 +18,10 @@ from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables import RunnableConfig
+import sys
 
-def import_module_from_file(filepath, module_name):
-    """Helper function to import modules with dots in filenames"""
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    if spec is None:
-        raise ImportError(f"Could not load spec for module {module_name} from {filepath}")
-    module = importlib.util.module_from_spec(spec)
-    if spec.loader is None:
-        raise ImportError(f"Spec loader is None for module {module_name} from {filepath}")
-    spec.loader.exec_module(module)
-    return module
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
+from src.utils.files_helper import import_module_from_file 
 
 # Import required modules
 agents_path = os.path.join(os.path.dirname(__file__), 'agents')
@@ -49,23 +39,23 @@ FiltersRAG = filters_rag_module.FiltersRAG
 
 # Import agents
 query_refiner_module = import_module_from_file(
-    os.path.join(agents_path, 'query-refiner.agent.py'), 
+    os.path.join(agents_path, 'query_refiner_agent.py'), 
     'query_refiner'
 )
 query_generator_module = import_module_from_file(
-    os.path.join(agents_path, 'query-generator.agent.py'), 
+    os.path.join(agents_path, 'query_generator_agent.py'), 
     'query_generator'
 )
 data_collector_module = import_module_from_file(
-    os.path.join(agents_path, 'data-collector.agent.py'), 
+    os.path.join(agents_path, 'data_collector_agent.py'), 
     'data_collector'
 )
 data_analyzer_module = import_module_from_file(
-    os.path.join(agents_path, 'data-analyzer.agent.py'), 
+    os.path.join(agents_path, 'data_analyzer_agent.py'), 
     'data_analyzer'
 )
 hitl_verification_module = import_module_from_file(
-    os.path.join(agents_path, 'hitl-verification.agent.py'), 
+    os.path.join(agents_path, 'hitl_verification_agent.py'), 
     'hitl_verification'
 )
 
