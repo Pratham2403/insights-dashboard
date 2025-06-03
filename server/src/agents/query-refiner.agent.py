@@ -259,14 +259,12 @@ class QueryRefinerAgent:
             logger.info("Processing state for query refinement")
             
             # Get the user query from state
+            # Modify around line 259
             user_query = getattr(state, 'user_query', '') or getattr(state, 'original_query', '')
-            if not user_query:
-                logger.warning("No user query found in state")
-                # Add error to state if it has errors attribute
-                if hasattr(state, 'errors'):
-                    state.errors.append("No user query found for refinement")
-                if hasattr(state, 'workflow_status'):
-                    state.workflow_status = "query_refinement_failed"
+            if not user_query or not user_query.strip():
+                logger.error("No valid user query found in state")
+                state.errors.append("No valid user query found for refinement")
+                state.workflow_status = "query_refinement_failed"
                 return state
             
             # Get additional context from state

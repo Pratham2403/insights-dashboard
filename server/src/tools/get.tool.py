@@ -3,6 +3,727 @@ This module Consists of the List of Functions to Fetch Data from Different APIs,
 
 """
 
+mock = {
+	"responses": {
+		"c85c0d7d-3a2a-4c62-839c-212ff872a188": {
+			"count": 126,
+			"hits": [
+				{
+					"domain": "slideshare.net",
+					"supportsComment": False,
+					"truncated": False,
+					"isNewAPIAmazonQAMessage": False,
+					"isReplyViaExtensionPermissible": False,
+					"publicationInfo": {
+						"name": "SlideShare",
+						"iconUrl": "https://www.google.com/s2/favicons?sz=64&domain=slideshare.net"
+					},
+					"partnerId": 9004,
+					"clientId": 1000004509,
+					"sourceId": -1,
+					"accountId": 999998,
+					"sourceType": "LISTENING",
+					"inboundMessageType": "WebInboundMessage",
+					"snType": "WEB",
+					"snMsgId": "105ce2f7607615e4fdd1c77f22187551",
+					"messageType": 98,
+					"messageSubType": 1001,
+					"universalMessageId": "WEB_98_105ce2f7607615e4fdd1c77f22187551",
+					"permalink": "https://www.slideshare.net/slideshow/moral-reasoning-in-medical-context-pptxx/280027410",
+					"title": "Moral Reasoning In Medical Context.pptxx",
+					"message": "Submit Search\nMoral Reasoning In Medical Context.pptxx\nJun 2, 2025\nDownload as PPTX, PDF\n0 likes\n0 views\nS\nsowakaharshitafounda\nMoral Reasoning In Medical Context.pptxx\nRead more\n1 of 4\nDownload presentation\nYour download has started\nDownload now\nDownload to read offline\nRecommended\nHippocratic Oath-1.pptxxxxxxxxxxxxxxxxxxxx\nHippocratic Oath-1.pptxxxxxxxxxxxxxxxxxxxx\nsowakaharshitafounda\nHippocratic Oath-1.pptxxxxxxxxxxxxxxxxxxxx\nRoss's Prima Facie Duty.ppttttttttttttttt\nRoss's Prima Facie Duty.ppttttttttttttttt\nsowakaharshitafounda\nRoss's Prima Facie Duty.ppttttttttttttttt\nKants absolute duties.ppttttttttttttttttttttttttttt\nKants absolute duties.ppttttttttttttttttttttttttttt\nsowakaharshitafounda\nKants absolute duties.ppttttttttttttttttttttttttttt\nKant.pptxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nKant.pptxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nsowakaharshitafounda\npptxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nUtilitarianism.pptxxxxxxxxxxxxxxxxxxxxxxxxx\nUtilitarianism.pptxxxxxxxxxxxxxxxxxxxxxxxxx\nsowakaharshitafounda\nUtilitarianism.pptxxxxxxxxxxxxxxxxxxxxxxxxx\nList Of Virtues.pptttttttttttttttttttttttttttttttt\nList Of Virtues.pptttttttttttttttttttttttttttttttt\nsowakaharshitafounda\nList Of Virtues.pptttttttttttttttttttttttttttttttt\nBiomedical Ethics Introduction201 2.pptx\nBiomedical Ethics Introduction201 2.pptx\nsowakaharshitafounda\nBiomedical Ethics Introduction201 2.pptx\nWhy Biomedical Ethics.pptx\nWhy Biomedical Ethics.pptx\nsowakaharshitafounda\nWhy Biomedical Ethics.pptx\nA Deep Dive Into African Culture: What’s Always in the News\nA Deep Dive Into African Culture: What’s Always in the News\nAFRICAN CULTURE TV\nThis presentation uncovers the key elements consistently featured in African culture news—music, fashion, language, cuisine, and sacred traditions. Designed for education, engagement, and cultural appreciation. Ideal for cultural workshops, classrooms, or community showcases. 🔗 Explore African culture news: https://africanculturetv.com/category/news/culture/\nHas Tracy Barlow Left Coronation Street for Good?\nHas Tracy Barlow Left Coronation Street for Good?\nFree News Report\nTracy Barlow, one of Coronation Street's most iconic and controversial characters, has once again become the center of speculation among fans. After her sudden absence from the cobbles, questions have begun to swirl: Has Tracy Barlow left Coronation Street for good? Or is there more to the story than meets the eye? The answer might not be as final as it seems. According to recent reports, Tracy will in fact be making a brief return to Weatherfield this summer—but not without drama.\nThe Birthday Cheat Sheet for 5-22-2025.pdf\nThe Birthday Cheat Sheet for 5-22-2025.pdf\nAbdul-Hakim Shabazz\nIt's our birthday, but you get the gift. Have a cheat sheet on us.\nIndia on World News: The Rise of a Global Power | New India Abroad\nIndia on World News: The Rise of a Global Power | New India Abroad\nNew India Abroad\nIndia on world news is no longer an occasional headline—it’s a consistent narrative. From technological innovation to diplomatic leadership, India is shaping global conversations. New India Abroad captures this dynamic shift, highlighting stories of Indian achievements and the global Indian diaspora. Whether it’s advancements in digital infrastructure, space exploration, or international diplomacy, India’s influence is growing steadily. Cultural exports like cinema, yoga, and cuisine further boost India’s global presence. As the world watches closely, New India Abroad continues to spotlight how India on world news reflects a rising power with global aspirations.\nCatching Up with Paul Qualley: His Journey Beyond Fame\nCatching Up with Paul Qualley: His Journey Beyond Fame\nFree News Report\nOnce known for his striking presence on the runway, Paul Qualley is a name that resonates not just because of his career in modeling, but also due to his connection with Hollywood actress Andie MacDowell. While his early years were filled with fashion campaigns and public attention, Paul Qualley has since chosen a much quieter path, shifting gears from the fast-paced world of entertainment to a serene life rooted in the rural beauty of Montana.\nThe Trump Presidency’s World-Historical Heist\nThe Trump Presidency’s World-Historical Heist\nLUMINATIVE MEDIA/PROJECT COUNSEL MEDIA GROUP\nHe is taking self-enrichment to a scale never seen before in America.\n26-May-2025 Current Affairs | UPSC Daily Dose\n26-May-2025 Current Affairs | UPSC Daily Dose\nZenstudy\nStay updated with the most important events of 26th May 2025, curated specially for UPSC 2025 aspirants. ZenStudy brings you a concise and insightful summary covering topics from The Hindu, PIB, Indian Express, and other major sources. Today’s highlights include updates in international diplomacy, science-tech innovations, economic indicators, and environmental actions. Each topic is explained with exam relevance, helping in answer writing, MCQs, and essay building. Strengthen your Prelims facts and Mains perspective—all in one place. Make ZenStudy your go-to platform for smart and strategic UPSC preparation. 🌐 Website: https://zenstudy.in/ 📲 Telegram: https://t.me/Zenstudyltd 📘 Facebook: https://www.facebook.com/profile.php?id=61555473406607 📸 Instagram: https://www.instagram.com/zenstudyz/ ▶️ YouTube: https://www.youtube.com/@Zenstudyz\nLegalisation of prostitutuon as freedom of trade.pdf\nLegalisation of prostitutuon as freedom of trade.pdf\nhimanshuadhinayak\nSocial studies - Legalisation of prostitutuon.\nChina-Pakistan Economic Corridor (CPEC): Route, Impact, & Geopolitical Challe...\nChina-Pakistan Economic Corridor (CPEC): Route, Impact, & Geopolitical Challe...\nAaryan Kansari\nExplore the China-Pakistan Economic Corridor (CPEC), a $65 billion flagship project of China's Belt and Road Initiative (BRI). This comprehensive overview details its 3,000 km route from Xinjiang to Gwadar Port, strategic aims to secure China's trade/energy routes, and economic impact on Pakistan. Discover key infrastructure projects, recent expansion efforts into Afghanistan, and the significant challenges it faces, including security threats, debt concerns, and regional opposition from India.\nChandrababu Naidu's Leadership in Disaster Management and Relief Efforts\nChandrababu Naidu's Leadership in Disaster Management and Relief Efforts\nnarsireddynannuri1\nWhen implementing early warning systems, it is essential to establish clear communication channels to guarantee timely dissemination of critical information to relevant stakeholders. Effective disaster response and risk mitigation heavily rely on the efficiency of these systems. By leveraging advanced technology and data analytics, early warning systems can provide real-time alerts and predictive insights, enabling proactive measures to be taken in anticipation of potential disasters.\nUnveiling_Transformative_Megatrends_in_Western_Europe.pdf\nUnveiling_Transformative_Megatrends_in_Western_Europe.pdf\nnicholesim1\ntrends euromonitor\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global...\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global...\nnarsireddynannuri1\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global Tech Powerhouse In the late 1990s, India was at a crossroads, struggling to position itself as a global power while grappling with economic and infrastructural challenges. N. Chandrababu Naidu, the Chief Minister of Andhra Pradesh from 1995 to 2004, whose visionary leadership helped reshape Hyderabad into \"Cyberabad,\" a thriving hub of information technology, innovation, and enterprise.N.Chandrababu Naidu’s rise to prominence in Indian politics came at a time when the country was opening up to globalization, thanks to the economic liberalization of 1991. Naidu recognized the untapped potential of Hyderabad, a city primarily known for its rich cultural heritage but lacking a modern economic infrastructure. As a leader, Naidu was pragmatic and forward-thinking, understanding that the future of India lies in technology and IT-driven services. With this vision, he embarked on a journey to transform Hyderabad into an international technology hub that could rival global cities like Silicon Valley. N. Chandrababu Naidu's strategy was multifaceted. First, he focused on infrastructure. Hyderabad’s roads, telecommunications, and transport systems were significantly improved, laying the groundwork for a business-friendly environment. Naidu also leveraged his strong ties with global business leaders, particularly in the technology sector, to bring in foreign direct investment (FDI). In a landmark move, he attracted Microsoft to open its first research and development center outside the United States in Hyderabad in 1998. This event was pivotal, signaling that Hyderabad was ready to be a part of the global IT revolution. Under N. Chandrababu Naidu's leadership, HITEC City (Hyderabad Information Technology and Engineering Consultancy City) was established as the epicenter of IT and technology companies. Located in the heart of what is now referred to as Cyberabad, HITEC City attracted giants like IBM, Oracle, Infosys, and Google, alongside a myriad of startups and local companies, which turned the region into a buzzing economic zone.N. Chandrababu Naidu's governance model was instrumental in Cyberabad’s rise. He introduced policies that cut through bureaucratic red tape, encouraging ease of doing business. His government offered tax incentives, developed specialized IT parks, and created policies favorable to both international investors and domestic entrepreneurs. Naidu was also a strong advocate of e-governance, using technology to streamline public administration and improve service delivery to citizens. Moreover, education and skill development were central to his plans. Naidu understood that a city’s success in the tech-driven economy would depend on its workforce. He pushed for partnerships between the government and academic institutions to build a strong talent pool in IT, engineering, and research.\nChoose New India Abroad for Overseas Indian Affairs\nChoose New India Abroad for Overseas Indian Affairs\nNew India Abroad\nNew India Abroad is the go-to source for reliable, in-depth coverage of Overseas Indian affairs. We uniquely blend journalism with cultural insight, highlighting diaspora achievements, policy updates, and community stories across the globe. With a focus on accuracy, representation, and relevance, we connect Indians worldwide through trusted reporting. Choose New India Abroad for a powerful voice that truly reflects the global Indian experience.\nDaniel Dubois Closing In on Rematch with Usyk at Wembley – July 12 Targeted\nDaniel Dubois Closing In on Rematch with Usyk at Wembley – July 12 Targeted\nFree News Report\nIt looks like Daniel Dubois is about to get a shot at redemption that many boxing fans didn’t know they needed—until now. The British heavyweight is reportedly in advanced talks for a rematch against Oleksandr Usyk, with July 12, 2025, at Wembley Stadium being earmarked as the potential date for this blockbuster showdown. While nothing has been officially signed just yet, insiders suggest that both camps are deep in negotiations and that the bout is closer than ever to being finalized.\nJohnny Somali and the Ethics of Shock Content Online\nJohnny Somali and the Ethics of Shock Content Online\nFree News Report\nIn today's hyper-connected world, Johnny Somali has become one of the most polarizing figures in the growing trend of IRL (In Real Life) streaming—a digital genre where streamers broadcast their real-time experiences across the globe. Whether it’s the neon-lit streets of Tokyo or the quiet alleys of a European village, IRL streaming lets audiences explore the world live, unfiltered, and often unscripted. The appeal is obvious: you get to witness reality as it unfolds. But when this genre merges with controversial personas and shock tactics, as seen in the case of Johnny Somali, it raises serious questions about the ethics of content creation in the digital age.\nTop 25 Stories 2025 by S Vijay Kumar.pdf\nTop 25 Stories 2025 by S Vijay Kumar.pdf\nSanskarTiwari20\nExclusive byline stories of Global Politics by S Vijay Kumar, International Editor, BB News International Washington DC\n„The best thing in the world is to be Hungarian!”\n„The best thing in the world is to be Hungarian!”\nGábor Polyák\nIllustrations of how the populist government in Hungary is faking history.\nThree Documents of the Maoist Communist Group\nThree Documents of the Maoist Communist Group\nMLMartista\nthis used to be posted on Maoist Communist Group’s website, but everything has been taken down. in the interest of making their backwards politics known the masses, i publish this here. i will eventually write a criticism of their conception of the Mass Line and their adherence to Shengwulian’s Trotskyist line\nUnveiling_Transformative_Megatrends_in_Latin_America.pdf\nUnveiling_Transformative_Megatrends_in_Latin_America.pdf\nnicholesim1\ntrends\nSuri Cruise Then and Now: Growing Up in the Shadow of Celebrity\nSuri Cruise Then and Now: Growing Up in the Shadow of Celebrity\nFree News Report\nBeing born into one of Hollywood’s most famous families, Suri Cruise never really had the option of growing up in anonymity. With Katie Holmes and Tom Cruise as her parents, her name was known before she could even walk. The spotlight has followed her since birth, and while many celebrity children fade from public attention as they grow older, Suri Cruise’s journey through childhood has remained a topic of public fascination. From her first steps captured by paparazzi to her appearances on the arms of her famous mother in New York City, Suri Cruise has been a constant presence in the media. But behind the glamour and public interest lies a more private story — one of a mother’s deliberate effort to provide her daughter with a life that’s as grounded and “normal” as possible, despite the circumstances.\n2024 Trend Updates: What Really Works In SEO & Content Marketing\n2024 Trend Updates: What Really Works In SEO & Content Marketing\nSearch Engine Journal\nThe future of SEO is trending toward a more human-first and user-centric approach, powered by AI intelligence and collaboration. Are you ready? Watch as we explore which SEO trends to prioritize to achieve sustainable growth and deliver reliable results. We’ll dive into best practices to adapt your strategy around industry-wide disruptions like SGE, how to navigate the top challenges SEO professionals are facing, and proven tactics for prioritizing quality and building trust. You’ll hear: - The top SEO trends to prioritize in 2024 to achieve long-term success. - Predictions for SGE’s impact, and how to adapt. - What E-E-A-T really means, and how to implement it holistically (hint: it’s never been more important). With Zack Kadish and Alex Carchietta, we’ll show you which SEO trends to ignore and which to focus on, along with the solution to overcoming rapid, significant and disruptive Google algorithm updates. If you’re looking to cut through the noise of constant SEO and content trends to drive success, you won’t want to miss this webinar.\nStorytelling For The Web: Integrate Storytelling in your Design Process\nStorytelling For The Web: Integrate Storytelling in your Design Process\nChiara Aliotta\nIn this slides I explain how I have used storytelling techniques to elevate websites and brands and create memorable user experiences. You can discover practical tips as I showcase the elements of good storytelling and its applied to some examples of diverse brands/projects..\nMore Related Content\nRecently uploaded\n(20)\nA Deep Dive Into African Culture: What’s Always in the News\nA Deep Dive Into African Culture: What’s Always in the News\nAFRICAN CULTURE TV\nThis presentation uncovers the key elements consistently featured in African culture news—music, fashion, language, cuisine, and sacred traditions. Designed for education, engagement, and cultural appreciation. Ideal for cultural workshops, classrooms, or community showcases. 🔗 Explore African culture news: https://africanculturetv.com/category/news/culture/\nHas Tracy Barlow Left Coronation Street for Good?\nHas Tracy Barlow Left Coronation Street for Good?\nFree News Report\nTracy Barlow, one of Coronation Street's most iconic and controversial characters, has once again become the center of speculation among fans. After her sudden absence from the cobbles, questions have begun to swirl: Has Tracy Barlow left Coronation Street for good? Or is there more to the story than meets the eye? The answer might not be as final as it seems. According to recent reports, Tracy will in fact be making a brief return to Weatherfield this summer—but not without drama.\nThe Birthday Cheat Sheet for 5-22-2025.pdf\nThe Birthday Cheat Sheet for 5-22-2025.pdf\nAbdul-Hakim Shabazz\nIt's our birthday, but you get the gift. Have a cheat sheet on us.\nIndia on World News: The Rise of a Global Power | New India Abroad\nIndia on World News: The Rise of a Global Power | New India Abroad\nNew India Abroad\nIndia on world news is no longer an occasional headline—it’s a consistent narrative. From technological innovation to diplomatic leadership, India is shaping global conversations. New India Abroad captures this dynamic shift, highlighting stories of Indian achievements and the global Indian diaspora. Whether it’s advancements in digital infrastructure, space exploration, or international diplomacy, India’s influence is growing steadily. Cultural exports like cinema, yoga, and cuisine further boost India’s global presence. As the world watches closely, New India Abroad continues to spotlight how India on world news reflects a rising power with global aspirations.\nCatching Up with Paul Qualley: His Journey Beyond Fame\nCatching Up with Paul Qualley: His Journey Beyond Fame\nFree News Report\nOnce known for his striking presence on the runway, Paul Qualley is a name that resonates not just because of his career in modeling, but also due to his connection with Hollywood actress Andie MacDowell. While his early years were filled with fashion campaigns and public attention, Paul Qualley has since chosen a much quieter path, shifting gears from the fast-paced world of entertainment to a serene life rooted in the rural beauty of Montana.\nThe Trump Presidency’s World-Historical Heist\nThe Trump Presidency’s World-Historical Heist\nLUMINATIVE MEDIA/PROJECT COUNSEL MEDIA GROUP\nHe is taking self-enrichment to a scale never seen before in America.\n26-May-2025 Current Affairs | UPSC Daily Dose\n26-May-2025 Current Affairs | UPSC Daily Dose\nZenstudy\nStay updated with the most important events of 26th May 2025, curated specially for UPSC 2025 aspirants. ZenStudy brings you a concise and insightful summary covering topics from The Hindu, PIB, Indian Express, and other major sources. Today’s highlights include updates in international diplomacy, science-tech innovations, economic indicators, and environmental actions. Each topic is explained with exam relevance, helping in answer writing, MCQs, and essay building. Strengthen your Prelims facts and Mains perspective—all in one place. Make ZenStudy your go-to platform for smart and strategic UPSC preparation. 🌐 Website: https://zenstudy.in/ 📲 Telegram: https://t.me/Zenstudyltd 📘 Facebook: https://www.facebook.com/profile.php?id=61555473406607 📸 Instagram: https://www.instagram.com/zenstudyz/ ▶️ YouTube: https://www.youtube.com/@Zenstudyz\nLegalisation of prostitutuon as freedom of trade.pdf\nLegalisation of prostitutuon as freedom of trade.pdf\nhimanshuadhinayak\nSocial studies - Legalisation of prostitutuon.\nChina-Pakistan Economic Corridor (CPEC): Route, Impact, & Geopolitical Challe...\nChina-Pakistan Economic Corridor (CPEC): Route, Impact, & Geopolitical Challe...\nAaryan Kansari\nExplore the China-Pakistan Economic Corridor (CPEC), a $65 billion flagship project of China's Belt and Road Initiative (BRI). This comprehensive overview details its 3,000 km route from Xinjiang to Gwadar Port, strategic aims to secure China's trade/energy routes, and economic impact on Pakistan. Discover key infrastructure projects, recent expansion efforts into Afghanistan, and the significant challenges it faces, including security threats, debt concerns, and regional opposition from India.\nChandrababu Naidu's Leadership in Disaster Management and Relief Efforts\nChandrababu Naidu's Leadership in Disaster Management and Relief Efforts\nnarsireddynannuri1\nWhen implementing early warning systems, it is essential to establish clear communication channels to guarantee timely dissemination of critical information to relevant stakeholders. Effective disaster response and risk mitigation heavily rely on the efficiency of these systems. By leveraging advanced technology and data analytics, early warning systems can provide real-time alerts and predictive insights, enabling proactive measures to be taken in anticipation of potential disasters.\nUnveiling_Transformative_Megatrends_in_Western_Europe.pdf\nUnveiling_Transformative_Megatrends_in_Western_Europe.pdf\nnicholesim1\ntrends euromonitor\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global...\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global...\nnarsireddynannuri1\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global Tech Powerhouse In the late 1990s, India was at a crossroads, struggling to position itself as a global power while grappling with economic and infrastructural challenges. N. Chandrababu Naidu, the Chief Minister of Andhra Pradesh from 1995 to 2004, whose visionary leadership helped reshape Hyderabad into \"Cyberabad,\" a thriving hub of information technology, innovation, and enterprise.N.Chandrababu Naidu’s rise to prominence in Indian politics came at a time when the country was opening up to globalization, thanks to the economic liberalization of 1991. Naidu recognized the untapped potential of Hyderabad, a city primarily known for its rich cultural heritage but lacking a modern economic infrastructure. As a leader, Naidu was pragmatic and forward-thinking, understanding that the future of India lies in technology and IT-driven services. With this vision, he embarked on a journey to transform Hyderabad into an international technology hub that could rival global cities like Silicon Valley. N. Chandrababu Naidu's strategy was multifaceted. First, he focused on infrastructure. Hyderabad’s roads, telecommunications, and transport systems were significantly improved, laying the groundwork for a business-friendly environment. Naidu also leveraged his strong ties with global business leaders, particularly in the technology sector, to bring in foreign direct investment (FDI). In a landmark move, he attracted Microsoft to open its first research and development center outside the United States in Hyderabad in 1998. This event was pivotal, signaling that Hyderabad was ready to be a part of the global IT revolution. Under N. Chandrababu Naidu's leadership, HITEC City (Hyderabad Information Technology and Engineering Consultancy City) was established as the epicenter of IT and technology companies. Located in the heart of what is now referred to as Cyberabad, HITEC City attracted giants like IBM, Oracle, Infosys, and Google, alongside a myriad of startups and local companies, which turned the region into a buzzing economic zone.N. Chandrababu Naidu's governance model was instrumental in Cyberabad’s rise. He introduced policies that cut through bureaucratic red tape, encouraging ease of doing business. His government offered tax incentives, developed specialized IT parks, and created policies favorable to both international investors and domestic entrepreneurs. Naidu was also a strong advocate of e-governance, using technology to streamline public administration and improve service delivery to citizens. Moreover, education and skill development were central to his plans. Naidu understood that a city’s success in the tech-driven economy would depend on its workforce. He pushed for partnerships between the government and academic institutions to build a strong talent pool in IT, engineering, and research.\nChoose New India Abroad for Overseas Indian Affairs\nChoose New India Abroad for Overseas Indian Affairs\nNew India Abroad\nNew India Abroad is the go-to source for reliable, in-depth coverage of Overseas Indian affairs. We uniquely blend journalism with cultural insight, highlighting diaspora achievements, policy updates, and community stories across the globe. With a focus on accuracy, representation, and relevance, we connect Indians worldwide through trusted reporting. Choose New India Abroad for a powerful voice that truly reflects the global Indian experience.\nDaniel Dubois Closing In on Rematch with Usyk at Wembley – July 12 Targeted\nDaniel Dubois Closing In on Rematch with Usyk at Wembley – July 12 Targeted\nFree News Report\nIt looks like Daniel Dubois is about to get a shot at redemption that many boxing fans didn’t know they needed—until now. The British heavyweight is reportedly in advanced talks for a rematch against Oleksandr Usyk, with July 12, 2025, at Wembley Stadium being earmarked as the potential date for this blockbuster showdown. While nothing has been officially signed just yet, insiders suggest that both camps are deep in negotiations and that the bout is closer than ever to being finalized.\nJohnny Somali and the Ethics of Shock Content Online\nJohnny Somali and the Ethics of Shock Content Online\nFree News Report\nIn today's hyper-connected world, Johnny Somali has become one of the most polarizing figures in the growing trend of IRL (In Real Life) streaming—a digital genre where streamers broadcast their real-time experiences across the globe. Whether it’s the neon-lit streets of Tokyo or the quiet alleys of a European village, IRL streaming lets audiences explore the world live, unfiltered, and often unscripted. The appeal is obvious: you get to witness reality as it unfolds. But when this genre merges with controversial personas and shock tactics, as seen in the case of Johnny Somali, it raises serious questions about the ethics of content creation in the digital age.\nTop 25 Stories 2025 by S Vijay Kumar.pdf\nTop 25 Stories 2025 by S Vijay Kumar.pdf\nSanskarTiwari20\nExclusive byline stories of Global Politics by S Vijay Kumar, International Editor, BB News International Washington DC\n„The best thing in the world is to be Hungarian!”\n„The best thing in the world is to be Hungarian!”\nGábor Polyák\nIllustrations of how the populist government in Hungary is faking history.\nThree Documents of the Maoist Communist Group\nThree Documents of the Maoist Communist Group\nMLMartista\nthis used to be posted on Maoist Communist Group’s website, but everything has been taken down. in the interest of making their backwards politics known the masses, i publish this here. i will eventually write a criticism of their conception of the Mass Line and their adherence to Shengwulian’s Trotskyist line\nUnveiling_Transformative_Megatrends_in_Latin_America.pdf\nUnveiling_Transformative_Megatrends_in_Latin_America.pdf\nnicholesim1\ntrends\nSuri Cruise Then and Now: Growing Up in the Shadow of Celebrity\nSuri Cruise Then and Now: Growing Up in the Shadow of Celebrity\nFree News Report\nBeing born into one of Hollywood’s most famous families, Suri Cruise never really had the option of growing up in anonymity. With Katie Holmes and Tom Cruise as her parents, her name was known before she could even walk. The spotlight has followed her since birth, and while many celebrity children fade from public attention as they grow older, Suri Cruise’s journey through childhood has remained a topic of public fascination. From her first steps captured by paparazzi to her appearances on the arms of her famous mother in New York City, Suri Cruise has been a constant presence in the media. But behind the glamour and public interest lies a more private story — one of a mother’s deliberate effort to provide her daughter with a life that’s as grounded and “normal” as possible, despite the circumstances.\nA Deep Dive Into African Culture: What’s Always in the News\nA Deep Dive Into African Culture: What’s Always in the News\nAFRICAN CULTURE TV\nHas Tracy Barlow Left Coronation Street for Good?\nHas Tracy Barlow Left Coronation Street for Good?\nFree News Report\nThe Birthday Cheat Sheet for 5-22-2025.pdf\nThe Birthday Cheat Sheet for 5-22-2025.pdf\nAbdul-Hakim Shabazz\nIndia on World News: The Rise of a Global Power | New India Abroad\nIndia on World News: The Rise of a Global Power | New India Abroad\nNew India Abroad\nCatching Up with Paul Qualley: His Journey Beyond Fame\nCatching Up with Paul Qualley: His Journey Beyond Fame\nFree News Report\nThe Trump Presidency’s World-Historical Heist\nThe Trump Presidency’s World-Historical Heist\nLUMINATIVE MEDIA/PROJECT COUNSEL MEDIA GROUP\n26-May-2025 Current Affairs | UPSC Daily Dose\n26-May-2025 Current Affairs | UPSC Daily Dose\nZenstudy\nLegalisation of prostitutuon as freedom of trade.pdf\nLegalisation of prostitutuon as freedom of trade.pdf\nhimanshuadhinayak\nChina-Pakistan Economic Corridor (CPEC): Route, Impact, & Geopolitical Challe...\nChina-Pakistan Economic Corridor (CPEC): Route, Impact, & Geopolitical Challe...\nAaryan Kansari\nChandrababu Naidu's Leadership in Disaster Management and Relief Efforts\nChandrababu Naidu's Leadership in Disaster Management and Relief Efforts\nnarsireddynannuri1\nUnveiling_Transformative_Megatrends_in_Western_Europe.pdf\nUnveiling_Transformative_Megatrends_in_Western_Europe.pdf\nnicholesim1\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global...\nCyberabad Unveiled: How Chandrababu Naidu Transformed Hyderabad into a Global...\nnarsireddynannuri1\nChoose New India Abroad for Overseas Indian Affairs\nChoose New India Abroad for Overseas Indian Affairs\nNew India Abroad\nDaniel Dubois Closing In on Rematch with Usyk at Wembley – July 12 Targeted\nDaniel Dubois Closing In on Rematch with Usyk at Wembley – July 12 Targeted\nFree News Report\nJohnny Somali and the Ethics of Shock Content Online\nJohnny Somali and the Ethics of Shock Content Online\nFree News Report\nTop 25 Stories 2025 by S Vijay Kumar.pdf\nTop 25 Stories 2025 by S Vijay Kumar.pdf\nSanskarTiwari20\n„The best thing in the world is to be Hungarian!”\n„The best thing in the world is to be Hungarian!”\nGábor Polyák\nThree Documents of the Maoist Communist Group\nThree Documents of the Maoist Communist Group\nMLMartista\nUnveiling_Transformative_Megatrends_in_Latin_America.pdf\nUnveiling_Transformative_Megatrends_in_Latin_America.pdf\nnicholesim1\nSuri Cruise Then and Now: Growing Up in the Shadow of Celebrity\nSuri Cruise Then and Now: Growing Up in the Shadow of Celebrity\nFree News Report\nFeatured\n(20)\n2024 Trend Updates: What Really Works In SEO & Content Marketing\n2024 Trend Updates: What Really Works In SEO & Content Marketing\nSearch Engine Journal\nThe future of SEO is trending toward a more human-first and user-centric approach, powered by AI intelligence and collaboration. Are you ready? Watch as we explore which SEO trends to prioritize to achieve sustainable growth and deliver reliable results. We’ll dive into best practices to adapt your strategy around industry-wide disruptions like SGE, how to navigate the top challenges SEO professionals are facing, and proven tactics for prioritizing quality and building trust. You’ll hear: - The top SEO trends to prioritize in 2024 to achieve long-term success. - Predictions for SGE’s impact, and how to adapt. - What E-E-A-T really means, and how to implement it holistically (hint: it’s never been more important). With Zack Kadish and Alex Carchietta, we’ll show you which SEO trends to ignore and which to focus on, along with the solution to overcoming rapid, significant and disruptive Google algorithm updates. If you’re looking to cut through the noise of constant SEO and content trends to drive success, you won’t want to miss this webinar.\nStorytelling For The Web: Integrate Storytelling in your Design Process\nStorytelling For The Web: Integrate Storytelling in your Design Process\nChiara Aliotta\nIn this slides I explain how I have used storytelling techniques to elevate websites and brands and create memorable user experiences. You can discover practical tips as I showcase the elements of good storytelling and its applied to some examples of diverse brands/projects..\nArtificial Intelligence, Data and Competition – SCHREPEL – June 2024 OECD dis...\nArtificial Intelligence, Data and Competition – SCHREPEL – June 2024 OECD dis...\nOECD Directorate for Financial and Enterprise Affairs\nThis presentation by Thibault Schrepel, Associate Professor of Law at Vrije Universiteit Amsterdam University, was made during the discussion “Artificial Intelligence, Data and Competition” held at the 143rd meeting of the OECD Competition Committee on 12 June 2024. More papers and presentations on the topic can be found at oe.cd/aicomp. This presentation was uploaded with the author’s consent.\nHow to Leverage AI to Boost Employee Wellness - Lydia Di Francesco - SocialHR...\nHow to Leverage AI to Boost Employee Wellness - Lydia Di Francesco - SocialHR...\nSocialHRCamp\nSpeaker: Lydia Di Francesco In this workshop, participants will delve into the realm of AI and its profound potential to revolutionize employee wellness initiatives. From stress management to fostering work-life harmony, AI offers a myriad of innovative tools and strategies that can significantly enhance the wellbeing of employees in any organization. Attendees will learn how to effectively leverage AI technologies to cultivate a healthier, happier, and more productive workforce. Whether it's utilizing AI-powered chatbots for mental health support, implementing data analytics to identify internal, systemic risk factors, or deploying personalized wellness apps, this workshop will equip participants with actionable insights and best practices to harness the power of AI for boosting employee wellness. Join us and discover how AI can be a strategic partner towards a culture of wellbeing and resilience in the workplace.\n2024 State of Marketing Report – by Hubspot\n2024 State of Marketing Report – by Hubspot\nMarius Sescu\nhttps://www.hubspot.com/state-of-marketing · Scaling relationships and proving ROI · Social media is the place for search, sales, and service · Authentic influencer partnerships fuel brand growth · The strongest connections happen via call, click, chat, and camera. · Time saved with AI leads to more creative work · Seeking: A single source of truth · TLDR; Get on social, try AI, and align your systems. · More human marketing, powered by robots\nEverything You Need To Know About ChatGPT\nEverything You Need To Know About ChatGPT\nExpeed Software\nChatGPT is a revolutionary addition to the world since its introduction in 2022. A big shift in the sector of information gathering and processing happened because of this chatbot. What is the story of ChatGPT? How is the bot responding to prompts and generating contents? Swipe through these slides prepared by Expeed Software, a web development company regarding the development and technical intricacies of ChatGPT!\nProduct Design Trends in 2024 | Teenage Engineerings\nProduct Design Trends in 2024 | Teenage Engineerings\nPixeldarts\nThe realm of product design is a constantly changing environment where technology and style intersect. Every year introduces fresh challenges and exciting trends that mold the future of this captivating art form. In this piece, we delve into the significant trends set to influence the look and functionality of product design in the year 2024.\nHow Race, Age and Gender Shape Attitudes Towards Mental Health\nHow Race, Age and Gender Shape Attitudes Towards Mental Health\nThinkNow\nMental health has been in the news quite a bit lately. Dozens of U.S. states are currently suing Meta for contributing to the youth mental health crisis by inserting addictive features into their products, while the U.S. Surgeon General is touring the nation to bring awareness to the growing epidemic of loneliness and isolation. The country has endured periods of low national morale, such as in the 1970s when high inflation and the energy crisis worsened public sentiment following the Vietnam War. The current mood, however, feels different. Gallup recently reported that national mental health is at an all-time low, with few bright spots to lift spirits. To better understand how Americans are feeling and their attitudes towards mental health in general, ThinkNow conducted a nationally representative quantitative survey of 1,500 respondents and found some interesting differences among ethnic, age and gender groups. Technology For example, 52% agree that technology and social media have a negative impact on mental health, but when broken out by race, 61% of Whites felt technology had a negative effect, and only 48% of Hispanics thought it did. While technology has helped us keep in touch with friends and family in faraway places, it appears to have degraded our ability to connect in person. Staying connected online is a double-edged sword since the same news feed that brings us pictures of the grandkids and fluffy kittens also feeds us news about the wars in Israel and Ukraine, the dysfunction in Washington, the latest mass shooting and the climate crisis. Hispanics may have a built-in defense against the isolation technology breeds, owing to their large, multigenerational households, strong social support systems, and tendency to use social media to stay connected with relatives abroad. Age and Gender When asked how individuals rate their mental health, men rate it higher than women by 11 percentage points, and Baby Boomers rank it highest at 83%, saying it’s good or excellent vs. 57% of Gen Z saying the same. Gen Z spends the most amount of time on social media, so the notion that social media negatively affects mental health appears to be correlated. Unfortunately, Gen Z is also the generation that’s least comfortable discussing mental health concerns with healthcare professionals. Only 40% of them state they’re comfortable discussing their issues with a professional compared to 60% of Millennials and 65% of Boomers. Race Affects Attitudes As seen in previous research conducted by ThinkNow, Asian Americans lag other groups when it comes to awareness of mental health issues. Twenty-four percent of Asian Americans believe that having a mental health issue is a sign of weakness compared to the 16% average for all groups. Asians are also considerably less likely to be aware of mental health services in their communities (42% vs. 55%) and most likely to seek out information on social media (51% vs. 35%).\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nmarketingartwork\nCreative operations teams expect increased AI use in 2024. Currently, over half of tasks are not AI-enabled, but this is expected to decrease in the coming year. ChatGPT is the most popular AI tool currently. Business leaders are more actively exploring AI benefits than individual contributors. Most respondents do not believe AI will impact workforce size in 2024. However, some inhibitions still exist around AI accuracy and lack of understanding. Creatives primarily want to use AI to save time on mundane tasks and boost productivity.\nSkeleton Culture Code\nSkeleton Culture Code\nSkeleton Technologies\nOrganizational culture includes values, norms, systems, symbols, language, assumptions, beliefs, and habits that influence employee behaviors and how people interpret those behaviors. It is important because culture can help or hinder a company's success. Some key aspects of Netflix's culture that help it achieve results include hiring smartly so every position has stars, focusing on attitude over just aptitude, and having a strict policy against peacocks, whiners, and jerks.\nPEPSICO Presentation to CAGNY Conference Feb 2024\nPEPSICO Presentation to CAGNY Conference Feb 2024\nNeil Kimberley\nPepsiCo provided a safe harbor statement noting that any forward-looking statements are based on currently available information and are subject to risks and uncertainties. It also provided information on non-GAAP measures and directing readers to its website for disclosure and reconciliation. The document then discussed PepsiCo's business overview, including that it is a global beverage and convenient food company with iconic brands, $91 billion in net revenue in 2023, and nearly $14 billion in core operating profit. It operates through a divisional structure with a focus on local consumers.\nContent Methodology: A Best Practices Report (Webinar)\nContent Methodology: A Best Practices Report (Webinar)\ncontently\nThis document provides an overview of content methodology best practices. It defines content methodology as establishing objectives, KPIs, and a culture of continuous learning and iteration. An effective methodology focuses on connecting with audiences, creating optimal content, and optimizing processes. It also discusses why a methodology is needed due to the competitive landscape, proliferation of channels, and opportunities for improvement. Components of an effective methodology include defining objectives and KPIs, audience analysis, identifying opportunities, and evaluating resources. The document concludes with recommendations around creating a content plan, testing and optimizing content over 90 days.\nHow to Prepare For a Successful Job Search for 2024\nHow to Prepare For a Successful Job Search for 2024\nAlbert Qian\nThe document provides guidance on preparing a job search for 2024. It discusses the state of the job market, focusing on growth in AI and healthcare but also continued layoffs. It recommends figuring out what you want to do by researching interests and skills, then conducting informational interviews. The job search should involve building a personal brand on LinkedIn, actively applying to jobs, tailoring resumes and interviews, maintaining job hunting as a habit, and continuing self-improvement. Once hired, the document advises setting new goals and keeping skills and networking active in case of future opportunities.\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nKurio // The Social Media Age(ncy)\nA report by thenetworkone and Kurio. The contributing experts and agencies are (in an alphabetical order): Sylwia Rytel, Social Media Supervisor, 180heartbeats + JUNG v MATT (PL), Sharlene Jenner, Vice President - Director of Engagement Strategy, Abelson Taylor (USA), Alex Casanovas, Digital Director, Atrevia (ES), Dora Beilin, Senior Social Strategist, Barrett Hoffher (USA), Min Seo, Campaign Director, Brand New Agency (KR), Deshé M. Gully, Associate Strategist, Day One Agency (USA), Francesca Trevisan, Strategist, Different (IT), Trevor Crossman, CX and Digital Transformation Director; Olivia Hussey, Strategic Planner; Simi Srinarula, Social Media Manager, The Hallway (AUS), James Hebbert, Managing Director, Hylink (CN / UK), Mundy Álvarez, Planning Director; Pedro Rojas, Social Media Manager; Pancho González, CCO, Inbrax (CH), Oana Oprea, Head of Digital Planning, Jam Session Agency (RO), Amy Bottrill, Social Account Director, Launch (UK), Gaby Arriaga, Founder, Leonardo1452 (MX), Shantesh S Row, Creative Director, Liwa (UAE), Rajesh Mehta, Chief Strategy Officer; Dhruv Gaur, Digital Planning Lead; Leonie Mergulhao, Account Supervisor - Social Media & PR, Medulla (IN), Aurelija Plioplytė, Head of Digital & Social, Not Perfect (LI), Daiana Khaidargaliyeva, Account Manager, Osaka Labs (UK / USA), Stefanie Söhnchen, Vice President Digital, PIABO Communications (DE), Elisabeth Winiartati, Managing Consultant, Head of Global Integrated Communications; Lydia Aprina, Account Manager, Integrated Marketing and Communications; Nita Prabowo, Account Manager, Integrated Marketing and Communications; Okhi, Web Developer, PNTR Group (ID), Kei Obusan, Insights Director; Daffi Ranandi, Insights Manager, Radarr (SG), Gautam Reghunath, Co-founder & CEO, Talented (IN), Donagh Humphreys, Head of Social and Digital Innovation, THINKHOUSE (IRE), Sarah Yim, Strategy Director, Zulu Alpha Kilo (CA).\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nSearch Engine Journal\nThe search marketing landscape is evolving rapidly with new technologies, and professionals, like you, rely on innovative paid search strategies to meet changing demands. It’s important that you’re ready to implement new strategies in 2024. Check this out and learn the top trends in paid search advertising that are expected to gain traction, so you can drive higher ROI more efficiently in 2024. You’ll learn: - The latest trends in AI and automation, and what this means for an evolving paid search ecosystem. - New developments in privacy and data regulation. - Emerging ad formats that are expected to make an impact next year. Watch Sreekant Lanka from iQuanti and Irina Klein from OneMain Financial as they dive into the future of paid search and explore the trends, strategies, and technologies that will shape the search marketing landscape. If you’re looking to assess your paid search strategy and design an industry-aligned plan for 2024, then this webinar is for you.\n5 Public speaking tips from TED - Visualized summary\n5 Public speaking tips from TED - Visualized summary\nSpeakerHub\nFrom their humble beginnings in 1984, TED has grown into the world’s most powerful amplifier for speakers and thought-leaders to share their ideas. They have over 2,400 filmed talks (not including the 30,000+ TEDx videos) freely available online, and have hosted over 17,500 events around the world. With over one billion views in a year, it’s no wonder that so many speakers are looking to TED for ideas on how to share their message more effectively. The article “5 Public-Speaking Tips TED Gives Its Speakers”, by Carmine Gallo for Forbes, gives speakers five practical ways to connect with their audience, and effectively share their ideas on stage. Whether you are gearing up to get on a TED stage yourself, or just want to master the skills that so many of their speakers possess, these tips and quotes from Chris Anderson, the TED Talks Curator, will encourage you to make the most impactful impression on your audience. See the full article and more summaries like this on SpeakerHub here: https://speakerhub.com/blog/5-presentation-tips-ted-gives-its-speakers See the original article on Forbes here: http://www.forbes.com/forbes/welcome/?toURL=http://www.forbes.com/sites/carminegallo/2016/05/06/5-public-speaking-tips-ted-gives-its-speakers/&refURL=&referrer=#5c07a8221d9b\nChatGPT and the Future of Work - Clark Boyd\nChatGPT and the Future of Work - Clark Boyd\nClark Boyd\nEveryone is in agreement that ChatGPT (and other generative AI tools) will shape the future of work. Yet there is little consensus on exactly how, when, and to what extent this technology will change our world. Businesses that extract maximum value from ChatGPT will use it as a collaborative tool for everything from brainstorming to technical maintenance. For individuals, now is the time to pinpoint the skills the future professional will need to thrive in the AI age. Check out this presentation to understand what ChatGPT is, how it will shape the future of work, and how you can prepare to take advantage.\nGetting into the tech field. what next\nGetting into the tech field. what next\nTessa Mero\nThe document provides career advice for getting into the tech field, including: - Doing projects and internships in college to build a portfolio. - Learning about different roles and technologies through industry research. - Contributing to open source projects to build experience and network. - Developing a personal brand through a website and social media presence. - Networking through events, communities, and finding a mentor. - Practicing interviews through mock interviews and whiteboarding coding questions.\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nLily Ray\n1. Core updates from Google periodically change how its algorithms assess and rank websites and pages. This can impact rankings through shifts in user intent, site quality issues being caught up to, world events influencing queries, and overhauls to search like the E-A-T framework. 2. There are many possible user intents beyond just transactional, navigational and informational. Identifying intent shifts is important during core updates. Sites may need to optimize for new intents through different content types and sections. 3. Responding effectively to core updates requires analyzing \"before and after\" data to understand changes, identifying new intents or page types, and ensuring content matches appropriate intents across video, images, knowledge graphs and more.\nHow to have difficult conversations\nHow to have difficult conversations\nRajiv Jayarajah, MAppComm, ACC\nStop putting off having difficult conversations. Seven practical tips to ensure your next difficult conversation go smoothly.\n2024 Trend Updates: What Really Works In SEO & Content Marketing\n2024 Trend Updates: What Really Works In SEO & Content Marketing\nSearch Engine Journal\nStorytelling For The Web: Integrate Storytelling in your Design Process\nStorytelling For The Web: Integrate Storytelling in your Design Process\nChiara Aliotta\nArtificial Intelligence, Data and Competition – SCHREPEL – June 2024 OECD dis...\nArtificial Intelligence, Data and Competition – SCHREPEL – June 2024 OECD dis...\nOECD Directorate for Financial and Enterprise Affairs\nHow to Leverage AI to Boost Employee Wellness - Lydia Di Francesco - SocialHR...\nHow to Leverage AI to Boost Employee Wellness - Lydia Di Francesco - SocialHR...\nSocialHRCamp\n2024 State of Marketing Report – by Hubspot\n2024 State of Marketing Report – by Hubspot\nMarius Sescu\nEverything You Need To Know About ChatGPT\nEverything You Need To Know About ChatGPT\nExpeed Software\nProduct Design Trends in 2024 | Teenage Engineerings\nProduct Design Trends in 2024 | Teenage Engineerings\nPixeldarts\nHow Race, Age and Gender Shape Attitudes Towards Mental Health\nHow Race, Age and Gender Shape Attitudes Towards Mental Health\nThinkNow\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nmarketingartwork\nSkeleton Culture Code\nSkeleton Culture Code\nSkeleton Technologies\nPEPSICO Presentation to CAGNY Conference Feb 2024\nPEPSICO Presentation to CAGNY Conference Feb 2024\nNeil Kimberley\nContent Methodology: A Best Practices Report (Webinar)\nContent Methodology: A Best Practices Report (Webinar)\ncontently\nHow to Prepare For a Successful Job Search for 2024\nHow to Prepare For a Successful Job Search for 2024\nAlbert Qian\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nKurio // The Social Media Age(ncy)\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nSearch Engine Journal\n5 Public speaking tips from TED - Visualized summary\n5 Public speaking tips from TED - Visualized summary\nSpeakerHub\nChatGPT and the Future of Work - Clark Boyd\nChatGPT and the Future of Work - Clark Boyd\nClark Boyd\nGetting into the tech field. what next\nGetting into the tech field. what next\nTessa Mero\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nLily Ray\nHow to have difficult conversations\nHow to have difficult conversations\nRajiv Jayarajah, MAppComm, ACC\nMoral Reasoning In Medical Context.pptxx\n1.\nMoral Reasoning In\nMedical Context\n2.\n• Bioethics is\na normative discipline • Bioethics deals with moral dilemmas, actions involving moral dilemmas, the question about what constitutes a virtuous “trait” amongst health care professionals, and social policies pertaining to the practice of medicine. • Since bioethics deals with justifying actions of individuals within the practice of medicine, the judgments in bioethics are all normative or “ought” statement, and not assertive statements.\n3.\nWhy Biomedical Ethics? •\nTechnological advancement has brought in new issues within the medical field that involve difficult moral decision making. • Some of these issues touch our basic values and religious convictions • Some of these issues deal with the life and death and the allocation of resources. • The role of civil rights movements have also impacted questions in biomedical issues. • The latter has impacted questions such as the autonomy of patients, the right of the patient to all the information, informed consent in case of clinical trials.\n4.\nThree Levels In\nInvestigation • Factual • Conceptual • Moral problems • In biomedical ethics we analyze issues with regards to certain ethical principles.\nDownload presentation\nYour download has started\nDownload",
+					"highLightEntities": {},
+					"mediaChangeInfo": {
+						"isVideoUpdated": False,
+						"isImageUpdated": False,
+						"isLinkUpdated": False
+					},
+					"hideMessageInUI": False,
+					"senderProfile": {
+						"snType": "WEB",
+						"age": 0,
+						"gender": "OTHER",
+						"snId": "1c90906e0093c36b3e72202cfc748350",
+						"screenName": "S sowakaharshitafounda",
+						"publisherName": "SlideShare",
+						"following": 0,
+						"followers": 0,
+						"favCount": 0,
+						"statusCount": 0,
+						"profileWorkflowProperties": {
+							"tags": [],
+							"comments": [],
+							"notifyUserIds": [],
+							"partnerProfileLists": [],
+							"clientProfileLists": [],
+							"partnerCustomProperties": {},
+							"clientCustomProperties": {},
+							"spaceCustomProperties": {},
+							"userCustomProperties": {},
+							"clientTags": []
+						},
+						"participationIndex": 0.0,
+						"influencerIndex": 0.0,
+						"spamIndex": 0.0,
+						"accountsFollowedByUser": [],
+						"accountsFollowingUser": [],
+						"accountsUnFollowingUser": [],
+						"accountsUnFollowedByUser": [],
+						"accountsBlockingUser": [],
+						"accountsSuspendingUser": [],
+						"accountsDeactivatingUser": [],
+						"accountsSilencingUser": [],
+						"unMaskedData": {},
+						"restrictedProfile": False
+					},
+					"receiverProfile": {
+						"age": 0,
+						"following": 0,
+						"followers": 0,
+						"favCount": 0,
+						"statusCount": 0,
+						"profileWorkflowProperties": {
+							"tags": [],
+							"comments": [],
+							"notifyUserIds": [],
+							"partnerProfileLists": [],
+							"clientProfileLists": [],
+							"partnerCustomProperties": {},
+							"clientCustomProperties": {},
+							"spaceCustomProperties": {},
+							"userCustomProperties": {},
+							"clientTags": []
+						},
+						"participationIndex": 0.0,
+						"influencerIndex": 0.0,
+						"spamIndex": 0.0,
+						"accountsFollowedByUser": [],
+						"accountsFollowingUser": [],
+						"accountsUnFollowingUser": [],
+						"accountsUnFollowedByUser": [],
+						"accountsBlockingUser": [],
+						"accountsSuspendingUser": [],
+						"accountsDeactivatingUser": [],
+						"accountsSilencingUser": [],
+						"unMaskedData": {},
+						"restrictedProfile": False
+					},
+					"isSenderFollower": False,
+					"createdTime": 1748841557762,
+					"modifiedTime": 1748841557762,
+					"snCreatedTime": 1748839920000,
+					"snCreatedTimeYearMonth": "2025_06",
+					"snModifiedTime": 1748839920000,
+					"snStats": {
+						"conLen": 53396,
+						"erEng": 0,
+						"nF": 0,
+						"reC": 0,
+						"spSc": 0,
+						"titleLen": 40,
+						"ubLen": 0,
+						"wreC": 17927832,
+						"nS": 0,
+						"wImp": 47
+					},
+					"mediaList": [
+						{
+							"type": "PHOTO",
+							"picture": "https://cdn.slidesharecdn.com/ss_thumbnails/moralreasoninginmedicalcontext-250602045214-a603de71-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+							"source": "https://cdn.slidesharecdn.com/ss_thumbnails/moralreasoninginmedicalcontext-250602045214-a603de71-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+							"nsfw": False,
+							"askConsentToRenderImage": False,
+							"mediaTags": [
+								{
+									"cN": "Medical",
+									"cf": 0.018370096,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_sc_Medical_https://cdn.slidesharecdn.com/ss_thumbnails/moralreasoninginmedicalcontext-250602045214-a603de71-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "Medical",
+										"eT": "sc"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "sc"
+								},
+								{
+									"cN": "Medical",
+									"cf": 0.018370096,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_ac_Medical_https://cdn.slidesharecdn.com/ss_thumbnails/moralreasoninginmedicalcontext-250602045214-a603de71-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "Medical",
+										"eT": "ac"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "ac"
+								},
+								{
+									"cN": "Medical",
+									"cf": 0.018370096,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_gn_Medical_https://cdn.slidesharecdn.com/ss_thumbnails/moralreasoninginmedicalcontext-250602045214-a603de71-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "Medical",
+										"eT": "gn"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "gn"
+								},
+								{
+									"cN": "SFW",
+									"cf": 0.99961203,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_nfr_SFW_https://cdn.slidesharecdn.com/ss_thumbnails/moralreasoninginmedicalcontext-250602045214-a603de71-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "SFW",
+										"eT": "nfr"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "nfr"
+								}
+							]
+						}
+					],
+					"workflowProperties": {
+						"sentiment": 2,
+						"isSpam": False,
+						"isProfane": False,
+						"read": False
+					},
+					"location": {
+						"text": "United States",
+						"lat": 0.0,
+						"lon": 0.0,
+						"additional": {
+							"country": "United States",
+							"code": "US"
+						}
+					},
+					"language": "en",
+					"conversationId": "105ce2f7607615e4fdd1c77f22187551",
+					"parentMsgType": 0,
+					"deleted": False,
+					"archived": False,
+					"brandPost": False,
+					"parentBrandPost": False,
+					"hasBrandComment": False,
+					"hasScheduledComment": False,
+					"hasParentPost": False,
+					"hasApplicationConversation": False,
+					"isStoryMessage": False,
+					"isSharedPost": False,
+					"hasConversation": False,
+					"colorCode": "red",
+					"colorDescription": "0-24 hours range",
+					"messageMasked": False,
+					"messageReadByUser": False,
+					"dataSource": "wh",
+					"additionalInformation": {
+						"dD": {
+							"dA": 94.0,
+							"mozRank": 7.5,
+							"mozSpamScore": 1,
+							"mozExternalLinks": 3156364,
+							"alexaRank": 431,
+							"alexaReach": 1250000000,
+							"alexaPageViews": 59400000,
+							"swGR": 1009,
+							"swR": 13550952,
+							"swTV": 12706109
+						},
+						"spm": "Not Spam",
+						"lstBU": {
+							"ord": [
+								4
+							]
+						},
+						"intel": {
+							"liAssetInfo": {
+								"location": "United States",
+								"assetTitle": "ZXzXz sadsa asd",
+								"assetType": "INTEL_LOCATION",
+								"assetId": "64c4aba401f08d64fb1ecccd"
+							},
+							"piAssetInfo": {
+								"productBrandName": "Fossil",
+								"assetTitle": "Fossil_Test_30_Jul",
+								"assetType": "COMMERCE_PRODUCT",
+								"assetId": "64c61512f28adc66a39274fe"
+							}
+						},
+						"eS": [
+							{
+								"title": "1Click",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"Google"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"try"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"you"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"You"
+								]
+							},
+							{
+								"title": "Ent0303",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"major"
+								]
+							}
+						]
+					},
+					"hasChildren": False,
+					"tagInReplyToMessage": False,
+					"isPinnedOnCase": False,
+					"userActions": [],
+					"detectedSurveyMessage": False,
+					"sourceInfos": [],
+					"videoChatEnabled": False,
+					"unMaskedData": {},
+					"sentToAdvocacy": False,
+					"chatGPTActionsDisabled": False
+				},
+				{
+					"domain": "slideshare.net",
+					"supportsComment": False,
+					"truncated": False,
+					"isNewAPIAmazonQAMessage": False,
+					"isReplyViaExtensionPermissible": False,
+					"publicationInfo": {
+						"name": "SlideShare",
+						"iconUrl": "https://www.google.com/s2/favicons?sz=64&domain=slideshare.net"
+					},
+					"partnerId": 9004,
+					"clientId": 1000004509,
+					"sourceId": -1,
+					"accountId": 999998,
+					"sourceType": "LISTENING",
+					"inboundMessageType": "WebInboundMessage",
+					"snType": "WEB",
+					"snMsgId": "b5c3338fd7c3850dbd1b4e1a2fd76592",
+					"messageType": 98,
+					"messageSubType": 1001,
+					"universalMessageId": "WEB_98_b5c3338fd7c3850dbd1b4e1a2fd76592",
+					"permalink": "https://www.slideshare.net/slideshow/eduction-in-afghanistan-and-mal-try-to-overcome/280026997",
+					"title": "eduction in afghanistan and mal try to overcome",
+					"message": "Submit Search\neduction in afghanistan and mal try to overcome\nJun 2, 2025\nDownload as PPT, PDF\n0 likes\n0 views\nS\nSMShakeel\nedction\nRead more\n1 of 23\nDownload presentation\nYour download has started\nDownload now\nDownload to read offline\nRecommended\n2024 Trend Updates: What Really Works In SEO & Content Marketing\n2024 Trend Updates: What Really Works In SEO & Content Marketing\nSearch Engine Journal\nThe future of SEO is trending toward a more human-first and user-centric approach, powered by AI intelligence and collaboration. Are you ready? Watch as we explore which SEO trends to prioritize to achieve sustainable growth and deliver reliable results. We’ll dive into best practices to adapt your strategy around industry-wide disruptions like SGE, how to navigate the top challenges SEO professionals are facing, and proven tactics for prioritizing quality and building trust. You’ll hear: - The top SEO trends to prioritize in 2024 to achieve long-term success. - Predictions for SGE’s impact, and how to adapt. - What E-E-A-T really means, and how to implement it holistically (hint: it’s never been more important). With Zack Kadish and Alex Carchietta, we’ll show you which SEO trends to ignore and which to focus on, along with the solution to overcoming rapid, significant and disruptive Google algorithm updates. If you’re looking to cut through the noise of constant SEO and content trends to drive success, you won’t want to miss this webinar.\nStorytelling For The Web: Integrate Storytelling in your Design Process\nStorytelling For The Web: Integrate Storytelling in your Design Process\nChiara Aliotta\nIn this slides I explain how I have used storytelling techniques to elevate websites and brands and create memorable user experiences. You can discover practical tips as I showcase the elements of good storytelling and its applied to some examples of diverse brands/projects..\nArtificial Intelligence, Data and Competition – SCHREPEL – June 2024 OECD dis...\nArtificial Intelligence, Data and Competition – SCHREPEL – June 2024 OECD dis...\nOECD Directorate for Financial and Enterprise Affairs\nThis presentation by Thibault Schrepel, Associate Professor of Law at Vrije Universiteit Amsterdam University, was made during the discussion “Artificial Intelligence, Data and Competition” held at the 143rd meeting of the OECD Competition Committee on 12 June 2024. More papers and presentations on the topic can be found at oe.cd/aicomp. This presentation was uploaded with the author’s consent.\nHow to Leverage AI to Boost Employee Wellness - Lydia Di Francesco - SocialHR...\nHow to Leverage AI to Boost Employee Wellness - Lydia Di Francesco - SocialHR...\nSocialHRCamp\nSpeaker: Lydia Di Francesco In this workshop, participants will delve into the realm of AI and its profound potential to revolutionize employee wellness initiatives. From stress management to fostering work-life harmony, AI offers a myriad of innovative tools and strategies that can significantly enhance the wellbeing of employees in any organization. Attendees will learn how to effectively leverage AI technologies to cultivate a healthier, happier, and more productive workforce. Whether it's utilizing AI-powered chatbots for mental health support, implementing data analytics to identify internal, systemic risk factors, or deploying personalized wellness apps, this workshop will equip participants with actionable insights and best practices to harness the power of AI for boosting employee wellness. Join us and discover how AI can be a strategic partner towards a culture of wellbeing and resilience in the workplace.\n2024 State of Marketing Report – by Hubspot\n2024 State of Marketing Report – by Hubspot\nMarius Sescu\nhttps://www.hubspot.com/state-of-marketing · Scaling relationships and proving ROI · Social media is the place for search, sales, and service · Authentic influencer partnerships fuel brand growth · The strongest connections happen via call, click, chat, and camera. · Time saved with AI leads to more creative work · Seeking: A single source of truth · TLDR; Get on social, try AI, and align your systems. · More human marketing, powered by robots\nEverything You Need To Know About ChatGPT\nEverything You Need To Know About ChatGPT\nExpeed Software\nChatGPT is a revolutionary addition to the world since its introduction in 2022. A big shift in the sector of information gathering and processing happened because of this chatbot. What is the story of ChatGPT? How is the bot responding to prompts and generating contents? Swipe through these slides prepared by Expeed Software, a web development company regarding the development and technical intricacies of ChatGPT!\nProduct Design Trends in 2024 | Teenage Engineerings\nProduct Design Trends in 2024 | Teenage Engineerings\nPixeldarts\nThe realm of product design is a constantly changing environment where technology and style intersect. Every year introduces fresh challenges and exciting trends that mold the future of this captivating art form. In this piece, we delve into the significant trends set to influence the look and functionality of product design in the year 2024.\nHow Race, Age and Gender Shape Attitudes Towards Mental Health\nHow Race, Age and Gender Shape Attitudes Towards Mental Health\nThinkNow\nMental health has been in the news quite a bit lately. Dozens of U.S. states are currently suing Meta for contributing to the youth mental health crisis by inserting addictive features into their products, while the U.S. Surgeon General is touring the nation to bring awareness to the growing epidemic of loneliness and isolation. The country has endured periods of low national morale, such as in the 1970s when high inflation and the energy crisis worsened public sentiment following the Vietnam War. The current mood, however, feels different. Gallup recently reported that national mental health is at an all-time low, with few bright spots to lift spirits. To better understand how Americans are feeling and their attitudes towards mental health in general, ThinkNow conducted a nationally representative quantitative survey of 1,500 respondents and found some interesting differences among ethnic, age and gender groups. Technology For example, 52% agree that technology and social media have a negative impact on mental health, but when broken out by race, 61% of Whites felt technology had a negative effect, and only 48% of Hispanics thought it did. While technology has helped us keep in touch with friends and family in faraway places, it appears to have degraded our ability to connect in person. Staying connected online is a double-edged sword since the same news feed that brings us pictures of the grandkids and fluffy kittens also feeds us news about the wars in Israel and Ukraine, the dysfunction in Washington, the latest mass shooting and the climate crisis. Hispanics may have a built-in defense against the isolation technology breeds, owing to their large, multigenerational households, strong social support systems, and tendency to use social media to stay connected with relatives abroad. Age and Gender When asked how individuals rate their mental health, men rate it higher than women by 11 percentage points, and Baby Boomers rank it highest at 83%, saying it’s good or excellent vs. 57% of Gen Z saying the same. Gen Z spends the most amount of time on social media, so the notion that social media negatively affects mental health appears to be correlated. Unfortunately, Gen Z is also the generation that’s least comfortable discussing mental health concerns with healthcare professionals. Only 40% of them state they’re comfortable discussing their issues with a professional compared to 60% of Millennials and 65% of Boomers. Race Affects Attitudes As seen in previous research conducted by ThinkNow, Asian Americans lag other groups when it comes to awareness of mental health issues. Twenty-four percent of Asian Americans believe that having a mental health issue is a sign of weakness compared to the 16% average for all groups. Asians are also considerably less likely to be aware of mental health services in their communities (42% vs. 55%) and most likely to seek out information on social media (51% vs. 35%).\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV .pptx\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV .pptx\nSourav Kr Podder\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV\nYSPH VMOC Special Report - Measles Outbreak Southwest US 5-25-2025.pptx\nYSPH VMOC Special Report - Measles Outbreak Southwest US 5-25-2025.pptx\nYale School of Public Health - The Virtual Medical Operations Center (VMOC)\nCURRENT CASE COUNT: 880 • Texas: 729 (+5) (56% of cases are in Gaines County) • New Mexico: 78 (+4) (83% of cases are from Lea County) • Oklahoma: 17 • Kansas: 56 (38.89% of the cases are from Gray County) HOSPITALIZATIONS: 103 • Texas: 94 - This accounts for 13% of all cases in the State. • New Mexico: 7 – This accounts for 9.47% of all cases in New Mexico. • Kansas: 2 - This accounts for 3.7% of all cases in Kansas. DEATHS: 3 • Texas: 2 – This is 0.28% of all cases • New Mexico: 1 – This is 1.35% of all cases US NATIONAL CASE COUNT: 1,076 (confirmed and suspected) INTERNATIONAL SPREAD • Mexico: 1,753 (+198) 4 fatalities ‒ Chihuahua, Mexico: 1,657 (+167) cases, 3 fatalities, 9 hospitalizations • Canada: 2518 (+239) (Includes Ontario’s outbreak, which began November 2024) ‒ Ontario, Canada: 1,795 (+173) 129 (+10) hospitalizations ‒ Alberta, Canada: 560 (+55) Things to keep an eye on: Mexico: Three children have died this month (all linked to the Chihuahua outbreak): An 11-month-old and a 7-year-old with underlying conditions A 1-year-old in Sonora whose family is from Chihuahua Canada: Ontario now reports more cases than the entire U.S. Alberta’s case count continues to climb rapidly and is quickly closing in on 600 cases. Emerging transmission chains in Manitoba and Saskatchewan underscore the need for vigilant monitoring of under-immunized communities and potential cross-provincial spread. United States: North Dakota: Grand Forks County has confirmed its first cases (2), linked to international travel. The state total is 21 since May 2 (including 4 in Cass County and 2 in Williams County), with one hospitalization reported. OUTLOOK: With the spring–summer travel season peaking between Memorial Day and Labor Day, both domestic and international travel may fuel additional importations and spread. Although measles transmission is not strictly seasonal, crowded travel settings increase the risk for under-immunized individuals.\nBasic principles involved in the traditional systems of medicine, Chapter 7,...\nBasic principles involved in the traditional systems of medicine, Chapter 7,...\nARUN KUMAR\nBasic principles involved in the traditional systems of medicine include: Ayurveda, Siddha, Unani, and Homeopathy Method of preparation of Ayurvedic formulations like: Arista, Asava, Gutika, Taila, Churna, Lehya and Bhasma\nGeographical-Diversity-of-India.pptx/7th class /new ncert /samyans academy\nGeographical-Diversity-of-India.pptx/7th class /new ncert /samyans academy\nSandeep Swamy\nGeographical Diversity of India India stands as a land of remarkable geographical diversity. Its unique features shape the national character, as noted by Sri Aurobindo. We'll explore how India's varied landscapes influence daily life and contribute to its distinct identity on the world stage.\nUnit 4 Reverse Engineering Tools Functionalities & Use-Cases.pdf\nUnit 4 Reverse Engineering Tools Functionalities & Use-Cases.pdf\nChatanBawankar\nReverse Engineering Tools Functionalities & Use-Cases\nOptical and non optical devices used in low vision\nOptical and non optical devices used in low vision\nAligarh Muslim University, Aligarh, Uttar Pradesh, India\nLow vision devices description for optometry students. For educational purposes.\nUnit Kali NetHunter is the official Kali Linux penetration testing platform f...\nUnit Kali NetHunter is the official Kali Linux penetration testing platform f...\nChatanBawankar\nKali NetHunter is the official Kali Linux penetration testing platform for Android devices.\nSamarth QUIZ 2024-25_ FINAL ROUND QUESTIONS\nSamarth QUIZ 2024-25_ FINAL ROUND QUESTIONS\nAnand Kumar\nSAMARTH QUIZ 2024-25- FINAL ROUND: As a part of SAIL level Management Business Quiz, final round of Quiz conducted at DSP SAIL.\nOrder Lepidoptera: Butterflies and Moths.pptx\nOrder Lepidoptera: Butterflies and Moths.pptx\nArshad Shaikh\nLepidoptera is an order of insects comprising butterflies and moths. Characterized by scaly wings and a distinct life cycle, Lepidoptera undergo metamorphosis from egg to larva (caterpillar) to pupa (chrysalis or cocoon) and finally to adult. With over 180,000 described species, they exhibit incredible diversity in form, behavior, and habitat, playing vital roles in ecosystems as pollinators, herbivores, and prey. Their striking colors, patterns, and adaptations make them a fascinating group for study and appreciation.\nUnderstanding-the-Weather.pdf/7th class/social/ 2nd chapter/Samyans Academy n...\nUnderstanding-the-Weather.pdf/7th class/social/ 2nd chapter/Samyans Academy n...\nSandeep Swamy\nWeather shapes our world and daily lives. This presentation explores how we measure weather conditions and use predictions to prepare for various weather events. \"A change in the weather is sufficient to create the world and oneself anew.\" - Marcel Proust, French novelist by sandeep swamy\n\"Dictyoptera: The Order of Cockroaches and Mantises\" Or, more specifically: ...\n\"Dictyoptera: The Order of Cockroaches and Mantises\" Or, more specifically: ...\nArshad Shaikh\nDictyoptera is an order of insects that includes cockroaches and praying mantises. These insects are characterized by their flat, oval-shaped bodies and unique features such as modified forelegs in mantises for predation. They inhabit diverse environments worldwide.\nthe dynastic history of the Gahadwals of Early Medieval Period\nthe dynastic history of the Gahadwals of Early Medieval Period\nPrachiSontakke5\nfor students of Sem II BHU\nWriting Research Papers: Guidance for Research Community\nWriting Research Papers: Guidance for Research Community\nRishi Bankim Chandra Evening College, Naihati, North 24 Parganas, West Bengal, India\nThis study describe how to write the Research Paper and its related issues. It also presents the major sections of Research Paper and various tools & techniques used for Polishing Research Paper before final submission. Finding a Right Journal and Publication Ethics are explain in brief.\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nKweku Zurek\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nUnit 2 DNS Spoofing in a BadUSB Attack.pdf\nUnit 2 DNS Spoofing in a BadUSB Attack.pdf\nChatanBawankar\nDNS Spoofing in a BadUSB Attack.\nSAMARTH QUIZ 2024-25_ PRELIMINARY ROUNDS\nSAMARTH QUIZ 2024-25_ PRELIMINARY ROUNDS\nAnand Kumar\nSAMARTH QUIZ 2024-25 PRELIMNARY ROUND : Conducted as a part of SAIL level Management Business Quiz at DSP SAIL.\nThe Splitting of the Moon (Shaqq al-Qamar).pdf\nThe Splitting of the Moon (Shaqq al-Qamar).pdf\nMirza Gazanfar Ali Baig\nThis article explores the miraculous event of the Splitting of the Moon (Shaqq al-Qamar) as recorded in Islamic scripture and tradition. Drawing from the Qur'an, authentic hadith collections, and classical tafsir, the article affirms the event as a literal miracle performed by Prophet Muhammad ﷺ in response to the Quraysh’s demand for a sign. It also investigates external historical accounts, particularly the legend of Cheraman Perumal, a South Indian king who allegedly witnessed the miracle and embraced Islam. The article critically examines the authenticity and impact of such regional traditions, while also discussing the lack of parallel astronomical records and how scholars have interpreted this event across centuries. Concluding with the theological significance of the miracle, the article offers a well-rounded view of one of Islam’s most discussed supernatural events.\nPhilosophical Basis of Curriculum Designing\nPhilosophical Basis of Curriculum Designing\nAnkit Choudhary\nThe philosophical basis of curriculum refers to the foundational beliefs and values that shape the goals, content, structure, and methods of education. Major educational philosophies—idealism, realism, pragmatism, and existentialism—guide how knowledge is selected, organized, and delivered to learners. In the digital age, understanding these philosophies helps educators and content creators design curriculum materials that are purposeful, learner-centred, and adaptable for online environments. By aligning educational content with philosophical principles and presenting it through interactive and multimedia formats.\nKNN,Weighted KNN,Nearest Centroid Classifier,Locally Weighted Regression\nKNN,Weighted KNN,Nearest Centroid Classifier,Locally Weighted Regression\nGlobal Academy of Technology\nKNN Weighted KNN Nearest Centroid Classifier Locally Weighted Regression\nProtest - Student Revision Booklet For VCE English\nProtest - Student Revision Booklet For VCE English\njpinnuck\nThe 'Protest Student Revision Booklet' is a comprehensive resource to scaffold students to prepare for writing about this idea framework on a SAC or for the exam. This resource helps students breakdown the big idea of protest, practise writing in different styles, brainstorm ideas in response to different stimuli and develop a bank of creative ideas.\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nmarketingartwork\nCreative operations teams expect increased AI use in 2024. Currently, over half of tasks are not AI-enabled, but this is expected to decrease in the coming year. ChatGPT is the most popular AI tool currently. Business leaders are more actively exploring AI benefits than individual contributors. Most respondents do not believe AI will impact workforce size in 2024. However, some inhibitions still exist around AI accuracy and lack of understanding. Creatives primarily want to use AI to save time on mundane tasks and boost productivity.\nSkeleton Culture Code\nSkeleton Culture Code\nSkeleton Technologies\nOrganizational culture includes values, norms, systems, symbols, language, assumptions, beliefs, and habits that influence employee behaviors and how people interpret those behaviors. It is important because culture can help or hinder a company's success. Some key aspects of Netflix's culture that help it achieve results include hiring smartly so every position has stars, focusing on attitude over just aptitude, and having a strict policy against peacocks, whiners, and jerks.\nMore Related Content\nRecently uploaded\n(20)\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV .pptx\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV .pptx\nSourav Kr Podder\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV\nYSPH VMOC Special Report - Measles Outbreak Southwest US 5-25-2025.pptx\nYSPH VMOC Special Report - Measles Outbreak Southwest US 5-25-2025.pptx\nYale School of Public Health - The Virtual Medical Operations Center (VMOC)\nCURRENT CASE COUNT: 880 • Texas: 729 (+5) (56% of cases are in Gaines County) • New Mexico: 78 (+4) (83% of cases are from Lea County) • Oklahoma: 17 • Kansas: 56 (38.89% of the cases are from Gray County) HOSPITALIZATIONS: 103 • Texas: 94 - This accounts for 13% of all cases in the State. • New Mexico: 7 – This accounts for 9.47% of all cases in New Mexico. • Kansas: 2 - This accounts for 3.7% of all cases in Kansas. DEATHS: 3 • Texas: 2 – This is 0.28% of all cases • New Mexico: 1 – This is 1.35% of all cases US NATIONAL CASE COUNT: 1,076 (confirmed and suspected) INTERNATIONAL SPREAD • Mexico: 1,753 (+198) 4 fatalities ‒ Chihuahua, Mexico: 1,657 (+167) cases, 3 fatalities, 9 hospitalizations • Canada: 2518 (+239) (Includes Ontario’s outbreak, which began November 2024) ‒ Ontario, Canada: 1,795 (+173) 129 (+10) hospitalizations ‒ Alberta, Canada: 560 (+55) Things to keep an eye on: Mexico: Three children have died this month (all linked to the Chihuahua outbreak): An 11-month-old and a 7-year-old with underlying conditions A 1-year-old in Sonora whose family is from Chihuahua Canada: Ontario now reports more cases than the entire U.S. Alberta’s case count continues to climb rapidly and is quickly closing in on 600 cases. Emerging transmission chains in Manitoba and Saskatchewan underscore the need for vigilant monitoring of under-immunized communities and potential cross-provincial spread. United States: North Dakota: Grand Forks County has confirmed its first cases (2), linked to international travel. The state total is 21 since May 2 (including 4 in Cass County and 2 in Williams County), with one hospitalization reported. OUTLOOK: With the spring–summer travel season peaking between Memorial Day and Labor Day, both domestic and international travel may fuel additional importations and spread. Although measles transmission is not strictly seasonal, crowded travel settings increase the risk for under-immunized individuals.\nBasic principles involved in the traditional systems of medicine, Chapter 7,...\nBasic principles involved in the traditional systems of medicine, Chapter 7,...\nARUN KUMAR\nBasic principles involved in the traditional systems of medicine include: Ayurveda, Siddha, Unani, and Homeopathy Method of preparation of Ayurvedic formulations like: Arista, Asava, Gutika, Taila, Churna, Lehya and Bhasma\nGeographical-Diversity-of-India.pptx/7th class /new ncert /samyans academy\nGeographical-Diversity-of-India.pptx/7th class /new ncert /samyans academy\nSandeep Swamy\nGeographical Diversity of India India stands as a land of remarkable geographical diversity. Its unique features shape the national character, as noted by Sri Aurobindo. We'll explore how India's varied landscapes influence daily life and contribute to its distinct identity on the world stage.\nUnit 4 Reverse Engineering Tools Functionalities & Use-Cases.pdf\nUnit 4 Reverse Engineering Tools Functionalities & Use-Cases.pdf\nChatanBawankar\nReverse Engineering Tools Functionalities & Use-Cases\nOptical and non optical devices used in low vision\nOptical and non optical devices used in low vision\nAligarh Muslim University, Aligarh, Uttar Pradesh, India\nLow vision devices description for optometry students. For educational purposes.\nUnit Kali NetHunter is the official Kali Linux penetration testing platform f...\nUnit Kali NetHunter is the official Kali Linux penetration testing platform f...\nChatanBawankar\nKali NetHunter is the official Kali Linux penetration testing platform for Android devices.\nSamarth QUIZ 2024-25_ FINAL ROUND QUESTIONS\nSamarth QUIZ 2024-25_ FINAL ROUND QUESTIONS\nAnand Kumar\nSAMARTH QUIZ 2024-25- FINAL ROUND: As a part of SAIL level Management Business Quiz, final round of Quiz conducted at DSP SAIL.\nOrder Lepidoptera: Butterflies and Moths.pptx\nOrder Lepidoptera: Butterflies and Moths.pptx\nArshad Shaikh\nLepidoptera is an order of insects comprising butterflies and moths. Characterized by scaly wings and a distinct life cycle, Lepidoptera undergo metamorphosis from egg to larva (caterpillar) to pupa (chrysalis or cocoon) and finally to adult. With over 180,000 described species, they exhibit incredible diversity in form, behavior, and habitat, playing vital roles in ecosystems as pollinators, herbivores, and prey. Their striking colors, patterns, and adaptations make them a fascinating group for study and appreciation.\nUnderstanding-the-Weather.pdf/7th class/social/ 2nd chapter/Samyans Academy n...\nUnderstanding-the-Weather.pdf/7th class/social/ 2nd chapter/Samyans Academy n...\nSandeep Swamy\nWeather shapes our world and daily lives. This presentation explores how we measure weather conditions and use predictions to prepare for various weather events. \"A change in the weather is sufficient to create the world and oneself anew.\" - Marcel Proust, French novelist by sandeep swamy\n\"Dictyoptera: The Order of Cockroaches and Mantises\" Or, more specifically: ...\n\"Dictyoptera: The Order of Cockroaches and Mantises\" Or, more specifically: ...\nArshad Shaikh\nDictyoptera is an order of insects that includes cockroaches and praying mantises. These insects are characterized by their flat, oval-shaped bodies and unique features such as modified forelegs in mantises for predation. They inhabit diverse environments worldwide.\nthe dynastic history of the Gahadwals of Early Medieval Period\nthe dynastic history of the Gahadwals of Early Medieval Period\nPrachiSontakke5\nfor students of Sem II BHU\nWriting Research Papers: Guidance for Research Community\nWriting Research Papers: Guidance for Research Community\nRishi Bankim Chandra Evening College, Naihati, North 24 Parganas, West Bengal, India\nThis study describe how to write the Research Paper and its related issues. It also presents the major sections of Research Paper and various tools & techniques used for Polishing Research Paper before final submission. Finding a Right Journal and Publication Ethics are explain in brief.\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nKweku Zurek\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nUnit 2 DNS Spoofing in a BadUSB Attack.pdf\nUnit 2 DNS Spoofing in a BadUSB Attack.pdf\nChatanBawankar\nDNS Spoofing in a BadUSB Attack.\nSAMARTH QUIZ 2024-25_ PRELIMINARY ROUNDS\nSAMARTH QUIZ 2024-25_ PRELIMINARY ROUNDS\nAnand Kumar\nSAMARTH QUIZ 2024-25 PRELIMNARY ROUND : Conducted as a part of SAIL level Management Business Quiz at DSP SAIL.\nThe Splitting of the Moon (Shaqq al-Qamar).pdf\nThe Splitting of the Moon (Shaqq al-Qamar).pdf\nMirza Gazanfar Ali Baig\nThis article explores the miraculous event of the Splitting of the Moon (Shaqq al-Qamar) as recorded in Islamic scripture and tradition. Drawing from the Qur'an, authentic hadith collections, and classical tafsir, the article affirms the event as a literal miracle performed by Prophet Muhammad ﷺ in response to the Quraysh’s demand for a sign. It also investigates external historical accounts, particularly the legend of Cheraman Perumal, a South Indian king who allegedly witnessed the miracle and embraced Islam. The article critically examines the authenticity and impact of such regional traditions, while also discussing the lack of parallel astronomical records and how scholars have interpreted this event across centuries. Concluding with the theological significance of the miracle, the article offers a well-rounded view of one of Islam’s most discussed supernatural events.\nPhilosophical Basis of Curriculum Designing\nPhilosophical Basis of Curriculum Designing\nAnkit Choudhary\nThe philosophical basis of curriculum refers to the foundational beliefs and values that shape the goals, content, structure, and methods of education. Major educational philosophies—idealism, realism, pragmatism, and existentialism—guide how knowledge is selected, organized, and delivered to learners. In the digital age, understanding these philosophies helps educators and content creators design curriculum materials that are purposeful, learner-centred, and adaptable for online environments. By aligning educational content with philosophical principles and presenting it through interactive and multimedia formats.\nKNN,Weighted KNN,Nearest Centroid Classifier,Locally Weighted Regression\nKNN,Weighted KNN,Nearest Centroid Classifier,Locally Weighted Regression\nGlobal Academy of Technology\nKNN Weighted KNN Nearest Centroid Classifier Locally Weighted Regression\nProtest - Student Revision Booklet For VCE English\nProtest - Student Revision Booklet For VCE English\njpinnuck\nThe 'Protest Student Revision Booklet' is a comprehensive resource to scaffold students to prepare for writing about this idea framework on a SAC or for the exam. This resource helps students breakdown the big idea of protest, practise writing in different styles, brainstorm ideas in response to different stimuli and develop a bank of creative ideas.\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV .pptx\nQUIZ-O-FORCE 3.0 FINAL SET BY SOURAV .pptx\nSourav Kr Podder\nYSPH VMOC Special Report - Measles Outbreak Southwest US 5-25-2025.pptx\nYSPH VMOC Special Report - Measles Outbreak Southwest US 5-25-2025.pptx\nYale School of Public Health - The Virtual Medical Operations Center (VMOC)\nBasic principles involved in the traditional systems of medicine, Chapter 7,...\nBasic principles involved in the traditional systems of medicine, Chapter 7,...\nARUN KUMAR\nGeographical-Diversity-of-India.pptx/7th class /new ncert /samyans academy\nGeographical-Diversity-of-India.pptx/7th class /new ncert /samyans academy\nSandeep Swamy\nUnit 4 Reverse Engineering Tools Functionalities & Use-Cases.pdf\nUnit 4 Reverse Engineering Tools Functionalities & Use-Cases.pdf\nChatanBawankar\nOptical and non optical devices used in low vision\nOptical and non optical devices used in low vision\nAligarh Muslim University, Aligarh, Uttar Pradesh, India\nUnit Kali NetHunter is the official Kali Linux penetration testing platform f...\nUnit Kali NetHunter is the official Kali Linux penetration testing platform f...\nChatanBawankar\nSamarth QUIZ 2024-25_ FINAL ROUND QUESTIONS\nSamarth QUIZ 2024-25_ FINAL ROUND QUESTIONS\nAnand Kumar\nOrder Lepidoptera: Butterflies and Moths.pptx\nOrder Lepidoptera: Butterflies and Moths.pptx\nArshad Shaikh\nUnderstanding-the-Weather.pdf/7th class/social/ 2nd chapter/Samyans Academy n...\nUnderstanding-the-Weather.pdf/7th class/social/ 2nd chapter/Samyans Academy n...\nSandeep Swamy\n\"Dictyoptera: The Order of Cockroaches and Mantises\" Or, more specifically: ...\n\"Dictyoptera: The Order of Cockroaches and Mantises\" Or, more specifically: ...\nArshad Shaikh\nthe dynastic history of the Gahadwals of Early Medieval Period\nthe dynastic history of the Gahadwals of Early Medieval Period\nPrachiSontakke5\nWriting Research Papers: Guidance for Research Community\nWriting Research Papers: Guidance for Research Community\nRishi Bankim Chandra Evening College, Naihati, North 24 Parganas, West Bengal, India\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nSTUDENT LOAN TRUST FUND DEFAULTERS GHANA\nKweku Zurek\nUnit 2 DNS Spoofing in a BadUSB Attack.pdf\nUnit 2 DNS Spoofing in a BadUSB Attack.pdf\nChatanBawankar\nSAMARTH QUIZ 2024-25_ PRELIMINARY ROUNDS\nSAMARTH QUIZ 2024-25_ PRELIMINARY ROUNDS\nAnand Kumar\nThe Splitting of the Moon (Shaqq al-Qamar).pdf\nThe Splitting of the Moon (Shaqq al-Qamar).pdf\nMirza Gazanfar Ali Baig\nPhilosophical Basis of Curriculum Designing\nPhilosophical Basis of Curriculum Designing\nAnkit Choudhary\nKNN,Weighted KNN,Nearest Centroid Classifier,Locally Weighted Regression\nKNN,Weighted KNN,Nearest Centroid Classifier,Locally Weighted Regression\nGlobal Academy of Technology\nProtest - Student Revision Booklet For VCE English\nProtest - Student Revision Booklet For VCE English\njpinnuck\nFeatured\n(20)\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nmarketingartwork\nCreative operations teams expect increased AI use in 2024. Currently, over half of tasks are not AI-enabled, but this is expected to decrease in the coming year. ChatGPT is the most popular AI tool currently. Business leaders are more actively exploring AI benefits than individual contributors. Most respondents do not believe AI will impact workforce size in 2024. However, some inhibitions still exist around AI accuracy and lack of understanding. Creatives primarily want to use AI to save time on mundane tasks and boost productivity.\nSkeleton Culture Code\nSkeleton Culture Code\nSkeleton Technologies\nOrganizational culture includes values, norms, systems, symbols, language, assumptions, beliefs, and habits that influence employee behaviors and how people interpret those behaviors. It is important because culture can help or hinder a company's success. Some key aspects of Netflix's culture that help it achieve results include hiring smartly so every position has stars, focusing on attitude over just aptitude, and having a strict policy against peacocks, whiners, and jerks.\nPEPSICO Presentation to CAGNY Conference Feb 2024\nPEPSICO Presentation to CAGNY Conference Feb 2024\nNeil Kimberley\nPepsiCo provided a safe harbor statement noting that any forward-looking statements are based on currently available information and are subject to risks and uncertainties. It also provided information on non-GAAP measures and directing readers to its website for disclosure and reconciliation. The document then discussed PepsiCo's business overview, including that it is a global beverage and convenient food company with iconic brands, $91 billion in net revenue in 2023, and nearly $14 billion in core operating profit. It operates through a divisional structure with a focus on local consumers.\nContent Methodology: A Best Practices Report (Webinar)\nContent Methodology: A Best Practices Report (Webinar)\ncontently\nThis document provides an overview of content methodology best practices. It defines content methodology as establishing objectives, KPIs, and a culture of continuous learning and iteration. An effective methodology focuses on connecting with audiences, creating optimal content, and optimizing processes. It also discusses why a methodology is needed due to the competitive landscape, proliferation of channels, and opportunities for improvement. Components of an effective methodology include defining objectives and KPIs, audience analysis, identifying opportunities, and evaluating resources. The document concludes with recommendations around creating a content plan, testing and optimizing content over 90 days.\nHow to Prepare For a Successful Job Search for 2024\nHow to Prepare For a Successful Job Search for 2024\nAlbert Qian\nThe document provides guidance on preparing a job search for 2024. It discusses the state of the job market, focusing on growth in AI and healthcare but also continued layoffs. It recommends figuring out what you want to do by researching interests and skills, then conducting informational interviews. The job search should involve building a personal brand on LinkedIn, actively applying to jobs, tailoring resumes and interviews, maintaining job hunting as a habit, and continuing self-improvement. Once hired, the document advises setting new goals and keeping skills and networking active in case of future opportunities.\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nKurio // The Social Media Age(ncy)\nA report by thenetworkone and Kurio. The contributing experts and agencies are (in an alphabetical order): Sylwia Rytel, Social Media Supervisor, 180heartbeats + JUNG v MATT (PL), Sharlene Jenner, Vice President - Director of Engagement Strategy, Abelson Taylor (USA), Alex Casanovas, Digital Director, Atrevia (ES), Dora Beilin, Senior Social Strategist, Barrett Hoffher (USA), Min Seo, Campaign Director, Brand New Agency (KR), Deshé M. Gully, Associate Strategist, Day One Agency (USA), Francesca Trevisan, Strategist, Different (IT), Trevor Crossman, CX and Digital Transformation Director; Olivia Hussey, Strategic Planner; Simi Srinarula, Social Media Manager, The Hallway (AUS), James Hebbert, Managing Director, Hylink (CN / UK), Mundy Álvarez, Planning Director; Pedro Rojas, Social Media Manager; Pancho González, CCO, Inbrax (CH), Oana Oprea, Head of Digital Planning, Jam Session Agency (RO), Amy Bottrill, Social Account Director, Launch (UK), Gaby Arriaga, Founder, Leonardo1452 (MX), Shantesh S Row, Creative Director, Liwa (UAE), Rajesh Mehta, Chief Strategy Officer; Dhruv Gaur, Digital Planning Lead; Leonie Mergulhao, Account Supervisor - Social Media & PR, Medulla (IN), Aurelija Plioplytė, Head of Digital & Social, Not Perfect (LI), Daiana Khaidargaliyeva, Account Manager, Osaka Labs (UK / USA), Stefanie Söhnchen, Vice President Digital, PIABO Communications (DE), Elisabeth Winiartati, Managing Consultant, Head of Global Integrated Communications; Lydia Aprina, Account Manager, Integrated Marketing and Communications; Nita Prabowo, Account Manager, Integrated Marketing and Communications; Okhi, Web Developer, PNTR Group (ID), Kei Obusan, Insights Director; Daffi Ranandi, Insights Manager, Radarr (SG), Gautam Reghunath, Co-founder & CEO, Talented (IN), Donagh Humphreys, Head of Social and Digital Innovation, THINKHOUSE (IRE), Sarah Yim, Strategy Director, Zulu Alpha Kilo (CA).\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nSearch Engine Journal\nThe search marketing landscape is evolving rapidly with new technologies, and professionals, like you, rely on innovative paid search strategies to meet changing demands. It’s important that you’re ready to implement new strategies in 2024. Check this out and learn the top trends in paid search advertising that are expected to gain traction, so you can drive higher ROI more efficiently in 2024. You’ll learn: - The latest trends in AI and automation, and what this means for an evolving paid search ecosystem. - New developments in privacy and data regulation. - Emerging ad formats that are expected to make an impact next year. Watch Sreekant Lanka from iQuanti and Irina Klein from OneMain Financial as they dive into the future of paid search and explore the trends, strategies, and technologies that will shape the search marketing landscape. If you’re looking to assess your paid search strategy and design an industry-aligned plan for 2024, then this webinar is for you.\n5 Public speaking tips from TED - Visualized summary\n5 Public speaking tips from TED - Visualized summary\nSpeakerHub\nFrom their humble beginnings in 1984, TED has grown into the world’s most powerful amplifier for speakers and thought-leaders to share their ideas. They have over 2,400 filmed talks (not including the 30,000+ TEDx videos) freely available online, and have hosted over 17,500 events around the world. With over one billion views in a year, it’s no wonder that so many speakers are looking to TED for ideas on how to share their message more effectively. The article “5 Public-Speaking Tips TED Gives Its Speakers”, by Carmine Gallo for Forbes, gives speakers five practical ways to connect with their audience, and effectively share their ideas on stage. Whether you are gearing up to get on a TED stage yourself, or just want to master the skills that so many of their speakers possess, these tips and quotes from Chris Anderson, the TED Talks Curator, will encourage you to make the most impactful impression on your audience. See the full article and more summaries like this on SpeakerHub here: https://speakerhub.com/blog/5-presentation-tips-ted-gives-its-speakers See the original article on Forbes here: http://www.forbes.com/forbes/welcome/?toURL=http://www.forbes.com/sites/carminegallo/2016/05/06/5-public-speaking-tips-ted-gives-its-speakers/&refURL=&referrer=#5c07a8221d9b\nChatGPT and the Future of Work - Clark Boyd\nChatGPT and the Future of Work - Clark Boyd\nClark Boyd\nEveryone is in agreement that ChatGPT (and other generative AI tools) will shape the future of work. Yet there is little consensus on exactly how, when, and to what extent this technology will change our world. Businesses that extract maximum value from ChatGPT will use it as a collaborative tool for everything from brainstorming to technical maintenance. For individuals, now is the time to pinpoint the skills the future professional will need to thrive in the AI age. Check out this presentation to understand what ChatGPT is, how it will shape the future of work, and how you can prepare to take advantage.\nGetting into the tech field. what next\nGetting into the tech field. what next\nTessa Mero\nThe document provides career advice for getting into the tech field, including: - Doing projects and internships in college to build a portfolio. - Learning about different roles and technologies through industry research. - Contributing to open source projects to build experience and network. - Developing a personal brand through a website and social media presence. - Networking through events, communities, and finding a mentor. - Practicing interviews through mock interviews and whiteboarding coding questions.\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nLily Ray\n1. Core updates from Google periodically change how its algorithms assess and rank websites and pages. This can impact rankings through shifts in user intent, site quality issues being caught up to, world events influencing queries, and overhauls to search like the E-A-T framework. 2. There are many possible user intents beyond just transactional, navigational and informational. Identifying intent shifts is important during core updates. Sites may need to optimize for new intents through different content types and sections. 3. Responding effectively to core updates requires analyzing \"before and after\" data to understand changes, identifying new intents or page types, and ensuring content matches appropriate intents across video, images, knowledge graphs and more.\nHow to have difficult conversations\nHow to have difficult conversations\nRajiv Jayarajah, MAppComm, ACC\nStop putting off having difficult conversations. Seven practical tips to ensure your next difficult conversation go smoothly.\nIntroduction to Data Science\nIntroduction to Data Science\nChristy Abraham Joy\nA brief introduction to DataScience with explaining of the concepts, algorithms, machine learning, supervised and unsupervised learning, clustering, statistics, data preprocessing, real-world applications etc. It's part of a Data Science Corner Campaign where I will be discussing the fundamentals of DataScience, AIML, Statistics etc.\nTime Management & Productivity - Best Practices\nTime Management & Productivity - Best Practices\nVit Horky\nHere's my presentation on by proven best practices how to manage your work time effectively and how to improve your productivity. It includes practical tips and how to use tools such as Slack, Google Apps, Hubspot, Google Calendar, Gmail and others.\nThe six step guide to practical project management\nThe six step guide to practical project management\nMindGenius\nThe six step guide to practical project management If you think managing projects is too difficult, think again. We’ve stripped back project management processes to the basics – to make it quicker and easier, without sacrificing the vital ingredients for success. “If you’re looking for some real-world guidance, then The Six Step Guide to Practical Project Management will help.” Dr Andrew Makar, Tactical Project Management\nBeginners Guide to TikTok for Search - Rachel Pearson - We are Tilt __ Bright...\nBeginners Guide to TikTok for Search - Rachel Pearson - We are Tilt __ Bright...\nRachelPearson36\nA presentation for absolute beginners who have never touched TikTok and may be a bit scared of it!\nUnlocking the Power of ChatGPT and AI in Testing - A Real-World Look, present...\nUnlocking the Power of ChatGPT and AI in Testing - A Real-World Look, present...\nApplitools\nDuring this webinar, Anand Bagmar demonstrates how AI tools such as ChatGPT can be applied to various stages of the software development life cycle (SDLC) using an eCommerce application case study. Find the on-demand recording and more info at https://applitools.info/b59 Key takeaways: • Learn how to use ChatGPT to add AI power to your testing and test automation • Understand the limitations of the technology and where human expertise is crucial • Gain insight into different AI-based tools • Adopt AI-based tools to stay relevant and optimize work for developers and testers * ChatGPT and OpenAI belong to OpenAI, L.L.C.\n12 Ways to Increase Your Influence at Work\n12 Ways to Increase Your Influence at Work\nGetSmarter\nTo succeed in your career, you need a strategy for sending out ripples of influence. Here are 12 ways you can start doing just that.\nChatGPT webinar slides\nChatGPT webinar slides\nAlireza Esmikhani\nThe document discusses various AI tools from OpenAI like GPT-3 and DALL-E 2, as well as ChatGPT. It explores how search engines are using AI and things to consider around AI-generated content. Potential SEO uses of ChatGPT are also presented, such as generating content at scale, conducting topic research, and automating basic coding tasks. The document encourages further reading on using ChatGPT for SEO purposes.\nMore than Just Lines on a Map: Best Practices for U.S Bike Routes\nMore than Just Lines on a Map: Best Practices for U.S Bike Routes\nProject for Public Spaces & National Center for Biking and Walking\nMore than Just Lines on a Map: Best Practices for U.S Bike Routes This session highlights best practices and lessons learned for U.S. Bike Route System designation, as well as how and why these routes should be integrated into bicycle planning at the local and regional level. Presenters: Presenter: Kevin Luecke Toole Design Group Co-Presenter: Virginia Sullivan Adventure Cycling Association\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nAI Trends in Creative Operations 2024 by Artwork Flow.pdf\nmarketingartwork\nSkeleton Culture Code\nSkeleton Culture Code\nSkeleton Technologies\nPEPSICO Presentation to CAGNY Conference Feb 2024\nPEPSICO Presentation to CAGNY Conference Feb 2024\nNeil Kimberley\nContent Methodology: A Best Practices Report (Webinar)\nContent Methodology: A Best Practices Report (Webinar)\ncontently\nHow to Prepare For a Successful Job Search for 2024\nHow to Prepare For a Successful Job Search for 2024\nAlbert Qian\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nSocial Media Marketing Trends 2024 // The Global Indie Insights\nKurio // The Social Media Age(ncy)\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nTrends In Paid Search: Navigating The Digital Landscape In 2024\nSearch Engine Journal\n5 Public speaking tips from TED - Visualized summary\n5 Public speaking tips from TED - Visualized summary\nSpeakerHub\nChatGPT and the Future of Work - Clark Boyd\nChatGPT and the Future of Work - Clark Boyd\nClark Boyd\nGetting into the tech field. what next\nGetting into the tech field. what next\nTessa Mero\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nGoogle's Just Not That Into You: Understanding Core Updates & Search Intent\nLily Ray\nHow to have difficult conversations\nHow to have difficult conversations\nRajiv Jayarajah, MAppComm, ACC\nIntroduction to Data Science\nIntroduction to Data Science\nChristy Abraham Joy\nTime Management & Productivity - Best Practices\nTime Management & Productivity - Best Practices\nVit Horky\nThe six step guide to practical project management\nThe six step guide to practical project management\nMindGenius\nBeginners Guide to TikTok for Search - Rachel Pearson - We are Tilt __ Bright...\nBeginners Guide to TikTok for Search - Rachel Pearson - We are Tilt __ Bright...\nRachelPearson36\nUnlocking the Power of ChatGPT and AI in Testing - A Real-World Look, present...\nUnlocking the Power of ChatGPT and AI in Testing - A Real-World Look, present...\nApplitools\n12 Ways to Increase Your Influence at Work\n12 Ways to Increase Your Influence at Work\nGetSmarter\nChatGPT webinar slides\nChatGPT webinar slides\nAlireza Esmikhani\nMore than Just Lines on a Map: Best Practices for U.S Bike Routes\nMore than Just Lines on a Map: Best Practices for U.S Bike Routes\nProject for Public Spaces & National Center for Biking and Walking\neduction in afghanistan and mal try to overcome\n1.\n华 中 师\n范 大 学 College of Education 2023 年毕业班 博士论文答辩 Pre- defense PPT On TEACHERS’ ROLE IN DEVELOPMENT OF CURRICULUM ON ELEMENTARY LEVEL IN AFGHANISTAN Student Mal Abdul Latif Supervisor Prof, Dr. Yao, Linqun 15-March -2023\n2.\nMajor Topics •Dissertation Organization •Introduction\nto the Topic •Summary of the Background/Literature •Research Design and Research Questions •Findings and Results •Recommendations •Acknowledgments •Any Comments or Questions 5-2\n3.\nDissertation Organization The research\nproject is going to divide into Six chapters as Follow: Chapter one /introductory chapter : is an introductory chapter to the study. It provides some key introductory statements, the discussion on research background, discusses Problem statement, Purpose and Objective of the Study, Key research Questions .. Chapter Two/Literature Review: This chapter presents the Country brief profile, Education system of Afghanistan, brief history of education in Afghanistan. Theoretical Framework and Conceptual Framework, Review of the relevant Literature, through reviewing related literature. Chapter Three/ The Research Design And Methodology: This chapter provides Introduction, Research Questions, Research aims, Research Paradigm Research Methodology that are employed in the research project and for standing the researcher within the interpretive paradigm using qualitative research method, Under the Research design topic, mixed approach, qualitative and data quantitative measures are elaborated. Population and Sample Selection The researcher also describes the area of study schools and discusses how the sample will be selected, Instrumentation 06/02/25 5-3\n4.\nDissertation Organization •Chapter Four/Findings\nAnd Results: presented, descriptive, Background of participants and study site, It has also present the of observation(quantitative) and Interviews (qualitative) data results under different and numerous relevant topics of curriculum development process of elementary level education in Afghanistan. The main problems in curriculum planning process for elementary level education in Afghanistan, challenges faced in terms of implementing the curriculum in classroom and major problems in curriculum development process for elementary level education in Afghanistan are comprehensively explained with containing different features and tables. Correlation of the participants based on the age group, teaching experiences and qualification. The main thematic areas chosen to show Correlation of participant characteristics and main thematic areas are analyzed through different sub-topics. • suggestions of participants on curriculum development process ,teaching experience of teachers, Correlations analysis between teachers’ suggestion on curriculum development process and qualification of teachers, Correlations analysis between problems in curriculum development process and Teaching Experience The findings were also linked and compared with literatures and literature review. 06/02/25 5-4\n5.\nDissertation Organization • Chapter\nFive/Discussion: This chapter has covers the discussion of qualitative data and is organized around three main themes identified during the data analysis: i) teachers’ role in planning, content and selection method of curriculum of elementary level education in Afghanistan; ii) Key elements regarding evaluation, implementation and development process of curriculum of elementary level education in Afghanistan; iii) Causes of impeding to planning , development process and implementation of curriculum of elementary level education in Afghanistan. Furthermore, some key quotations from the study is also presented. Experiences and insides of the researcher is also presented in chapter five. • Chapter Six/Summary, Conclusions And Recommendations: This chapter has presented, Introduction, Summary of Findings and Conclusion, gives brief and key recommendations on, the systematic and academic Development of curriculum to all the stockholders of education in Afghanistan. Further in this chapter, research components are reconsidered, Teachers’ role in curriculum planning stage, Teacher’s role in curriculum content and methods selection stage, Teachers’ role in curriculum implementation stage and Teachers’ role in curriculum evaluation stage are comparatively discussed and elaborated. Relation and consequences of research with other research studies are elaborated under the research consequences in the study tittle. 06/02/25 5-5\n6.\nChapter one /introductory\nchapter ( Key Points) Teachers’ Role In Development Of National Curriculum On Elementary Level In Afghanistan Why this research / Research Problem Teachers’ participation in curriculum is a global issues Afghanistan's’ education system has affected by war in many ways. Curriculum instructive and inclusive document is also affected. The teachers’ as key stakeholder of education and curriculum development are mostly ignored of curriculum development process and mostly play only role as curriculum implementer. No any academic and systematic research available on Teachers’ role in development of curriculum on elementary level in Afghanistan My experiences in field of education always observing different no standardize curriculum To contribute and explore new knowledge on teachers’ role in C.D process PhD candidate, of relevant DEPT. I have tried to conduct a research study to find out new information on teachers’ role, the obstacles forward them, their views, suggestion and ….. 5-6\n7.\nChapter Two/Literature Review\n( key Points) Before to conduct the field research, I have read and review too much relevant literature, globally, regionally and on national level. My findings from literatures show that: Constructivist ground Theory is a practical guide through qualitative analysis” (Schram, 2006). Symbolic interactionism is recognized as an interpretive methodology supported by pragmatism as the basis of the theoretical perspective (Blumer 1969) and (Mead 1932) The conceptual framework organizes the key concepts in the study in order to define the focus and direction for the study. The key concepts are derived from reviewing the related topics and phrases existing in literature, and from the findings of the literature theories (Grant & Osanloo, 2014). The paradigm is an interpretive or constructionist paradigm seeks to understand human behavior and social contexts by understanding the meanings actors give to their actions, goals, roles, identities, and all aspects of the world they experience. The assumption is that these meanings will be varied and will develop differently in different contexts (Cresswell, 2018). Therefore, the psychological and social worlds being investigated are not assumed to be straightforwardly predictable and governed by general laws of cause and effect (Howitt, 2016). 5-7\n8.\nChapter Two/Literature Review\n( key Points) On global level particularly, in developed and in fast developing countries, teachers, are mostly involved in all (planning, contents and method development, implementation and evaluation) stages of curriculum. On international level specifically USA, China, Canada, Australia and Japan having standardized education system and inclusive curriculum development process. China has launched a unique Curriculum Reform which involves 474,000 schools, 10 million teachers, and 200 million students (China Education and Research Network, 2011). In USA, Canada, Australia and Japan have given outstanding (more than 80%) role to teachers’ in curriculum development process. in the regional countries of Afghanistan (Turkey, Pakistan and Azerbaijan), 55% of surveyed teachers in Turkey confirmed that they did not actively involved in curriculum development process. around 92 % of Teachers in Pakistan reported that they are ignored in curriculum reforming and development process, they told “they are only the implementers of Curriculum, our views are not considering as a key force of education” (Ali, S. H 2009). During (1919-1922) King Amanullah Khan founded the ministry of education and the ministry has created a joint team of Indian, Turkish and Afghan education professionals and re- designed and developed a comprehensive curriculum for schools. The curriculum was emphasizing on: In the elementary school pupils studied Islamic studies, local languages (Dari and Pashtu), mathematics, geography, and calligraphy. 06/02/25 5-8\n9.\nChapter Three/ The\nResearch Design And Methodology( Key points) • For conducting of this research study, mixed research design approach (qualitative and quantitative) was selected but mainly the study is qualitative. Interprtivist Ground theory was adjudged to the research • Two data collection tools (Structured class observation and semi-structure interview were used for data collection. 60 teachers’ 30 females and 30 were interviewed and their classes were observed form four main and region of the country • The structured class observation(qualitative) data was analyzed by SPSS and the semi- structure interview (quantitative data) was analyzed by qualitative data analysis software Nvivo. • The selection and sampling was purposive sampling. Mostly all ethical issues were considered. • The study also had some limitation such: time, resources and sample size, security, ban on girls’ education and ban female working in Afghanistan. 06/02/25 5-9\n10.\nResearch Questions • I.\nWhat is elementary schools Teachers’ role in Curriculum development in Afghanistan? • II. How do the elementary schools’ teachers see their role in Curriculum development process in Afghanistan? • III. What are main challenges of development Curriculum process in Afghanistan on elementary level? • IV. Are the Afghan elementary schools’ teachers willing to participate in the Curriculum development process? • V. What are the main causes of low or no involvement of Afghan teachers in curriculum development process? • VI. Can teachers carry out school-based implementation of national curriculum according to students' needs? 06/02/25 5-10\n11.\nFindings and Results(qualitative\ndata analysis result) A: The structured class observation (qualitative data analysis result) •27.7 % of observed classes had Large class (more than 25 students) per class. • 29% of observed teachers didn’t have teaching plan. •24% of observed teachers couldn’t manage class well. •36.6 % of classes physical surroundings were not perfect and didn’t teaching materials. •36.7 % of the teachers couldn’t use class time efficiently. •50% of the teachers couldn’t use appropriate and different teaching methods. •43.4 % of the teachers didn’t praise the students when they performed well. •25.6% of teachers couldn’t use relevant examples to students’ day today life. 06/02/25 5-11\n12.\nFindings and Results(qualitative\ndata analysis result) • 23.3 of teachers couldn’t follow up the instruction that is given in textbook. • 26% of teachers use language and terminology that was not understandable to the students. • 31.7% of teachers didn’t ask and answer questions appropriately. • 43.4 % the teachers didn’t check whether the students understand the taught lesson or not. • 38.4 % the teachers didn’t exhibit enthusiasm for teaching and for the subject. • 25% of teachers were not enough active during teaching in their classes. • 55.7 % of observed classes students were receptive to teachers’. 06/02/25 5-12\n13.\nFindings and Results\n(Qualitative data Analysis Result ) B: Interview Results and Discussions (Qualitative data Analysis of study) Teachers’ role in curriculum planning stage 52(86.7%) teachers responded that they were not involve in curriculum planning process 60(100.0%) raised that the curriculum and its development process have many problems 54(90.0%) participants shown their willingness participate in curriculum planning process 06/02/25 5-13\n14.\nFindings and Results\n(Qualitative data Analysis Result ) Teacher’s role in curriculum content and methods selection stage •51(85.0%) teachers replied that they were not provided any role to be involve choosing course content for curriculum development for elementary school. •49(81.7%) teachers responded that, the related department/officials did not involve them in designing the teaching methods. 06/02/25 5-14\n15.\nFindings and Results\n(Qualitative data Analysis Result ) Teachers’ role in curriculum implementation stage •37(61.7%) participants confirmed that they can carry out school-based implementation of national curriculum according to the requirements of the students. While 23(23.3%) participants can’t carry out school based implementation of national curriculum according to the students’ needs. •58(96.7%) participants told they have freedom in implementing the curriculum in their classroom. •39(65.0%) respondents replied that they can implement the course contents in content within scheduled time. while 21(35.0%) can’t implement within scheduled time. •59(98.3%) of participants are having suggestions to improve teachers’ role in curriculum implementation stage. 06/02/25 5-15\n16.\nFindings and Results\n(Qualitative data Analysis Result Teachers’ role in curriculum Evaluation stage •23(38.3%) responds were engaged in evaluating elements of the curriculum, while 37(61.7%) had not been engaged •97(95.0%) responds were authorized for evaluating their students’ learning outcomes while 03(5.0%) were not authorized. 06/02/25 5-16\n17.\nFindings and Results\n(Qualitative data Analysis Result Correlations and its analysis according to participants’ background •The correlation of age increment is positive, which means if age of the participants increases to maturity of found in healthy group their responses toward curriculum development is interested. •The correlation of Teaching experience is positive, which means if teaching experience of the participant’s increases their responses toward curriculum development is more positive. •The correlation is positive, which means if education or professional qualification of the participant’s is greater; their responses toward curriculum development are more significant. •The results show that the correlation between age group of the study participants and willingness to participate the curriculum development process were significantly different in age groups, 31-40 years are more (40 %) willing to participate in curriculum development process. While lower and higher and age are mostly not willing to participate it have negative correlation. 06/02/25 5-17\n18.\nFindings and Results\n(Qualitative data Analysis Result) Correlations and its analysis according to participants’ background •The correlation of participants’ qualification is positive, which means if well qualification of the participant’s possessed their responses toward willingness of curriculum development is more positive. •Young teachers are more interested to participate in the curriculum development process while the older teachers are not willing to participate curriculum development process. It shows a general logic that the younger people have more dependency on future. There is negative correlation between the suggestion of teachers on curriculum development process score and experience of the participants. •The correlation is negative, which means if experienced of the participant’s increases their suggestions toward curriculum development department is negative. 06/02/25 5-18\n19.\nSome key recommendations •\nThe role of teachers in process of curriculum development for primary school in Afghanistan tends to be very low, teachers as key stockholders their role should be improve. • Teacher participants’ willingness to participate and contribute their experience in curriculum development processes but officials are not giving them the chance to participate for curriculum development in Afghanistan. Thus, responsible bodies like CDC and education officials should utilize their skills and experiences • Lack of commitment and awareness of officials assigned as CDC in MoE, security problems, resource allocation and management problems caused for low or no involvement of Afghan teachers in curriculum development process mentioned by teachers. Hence, the government and other responsible bodies should assign or hire qualified and dedicated professionals, improve security of the country and redistribution of resources and adjustment of financial reallocation with the consideration of teachers’ involvement in the process of curriculum development 06/02/25 5-19\n20.\nSome key recommendations •\nMajority of participants replied that the faced different obstacles on the ground carryout school-based implementation of national curriculum according to students’ needs. For proper implementation of the national curriculum, awareness should be created among teachers by educational officials and curriculum experts to advance their skills and familiarities to the national curriculum so as carryout school-based implementation in line with the needs of students. Besides, there is a need of fulfilment of teaching materials and improvement of classrooms and suitable school environment for teachers and students • Further research is suggested in the area curriculum development to make it more productively by means of expanding and potentially strengthening the data gathering instruments such as standard scales measuring questionnaires by using mixed research approach; and including of other data sources such as more parents, students and other stakeholder participants and taking account of different settings like different levels of education and administrative areas • As observed the young teachers’ were more active and effective, the government and particularly the MoE should invest on the young teachers’, provide them more on-job trainings and other capacity building programs 06/02/25 5-20\n21.\nAcknowledgments There are so\nmany professors, colleagues and friends, I would like to thank them for their valued help and support during my journey of PhD, I believe that, I would not have been able to come to the end of this academic journey without them. First of all, I would like to express my deepest gratitude to my dear supervisor professor Yao, Linqun, PhD for insightful guidance unwavering support, kindness and encouragement throughout every stage of my PhD completion. She didn’t reinvest any support, she provided me too many useful literature, conducted numerous tutorial meetings that assist me in reforming and refining my concepts and enhancing my academic ideas and career. All she has done for me and with me is unforgettable memories of my life and academic career 06/02/25 5-21\n22.\nAcknowledgments I also would\nlike to thank form deep of my heart form the Chines Government and Chinese Scholarship Council (CSC) from the supporting/funding my PhD journey. I am also grateful to Dept. of Curriculum and Teaching Methodology, School of Education, Central China Normal University and the International Office for their all sided support and corporation. I also would to thank all my family members, for their as always, all sided support and patient. Without their encouragement and support the completion of my PhD journey was impossible. My special thanks goes to the Ministry of Higher Education of Islamic Republic of Afghanistan, University of Nangerhar, Faculty of Education and Pashto Language and Literature Department head Professor Alaudin Hesam I Last but not least, my greatest appreciation goes to the 60 teachers who has allocated their values time for conducting the interviews and facilitated to observe their classes. Without them, this research could not have been possible. Thank YOU all, will remember YOU forever! 06/02/25 5-22\n23.\nThanks a lot\nfor your kind Attention •Any Comments or Questions 06/02/25 5-23\nDownload presentation\nYour download has started\nDownload",
+					"highLightEntities": {},
+					"mediaChangeInfo": {
+						"isVideoUpdated": False,
+						"isImageUpdated": False,
+						"isLinkUpdated": False
+					},
+					"hideMessageInUI": False,
+					"senderProfile": {
+						"snType": "WEB",
+						"age": 0,
+						"gender": "OTHER",
+						"snId": "c4d4529db45b5f42b26937b0370afb1b",
+						"screenName": "S SMShakeel",
+						"publisherName": "SlideShare",
+						"following": 0,
+						"followers": 0,
+						"favCount": 0,
+						"statusCount": 0,
+						"profileWorkflowProperties": {
+							"tags": [],
+							"comments": [],
+							"notifyUserIds": [],
+							"partnerProfileLists": [],
+							"clientProfileLists": [],
+							"partnerCustomProperties": {},
+							"clientCustomProperties": {},
+							"spaceCustomProperties": {},
+							"userCustomProperties": {},
+							"clientTags": []
+						},
+						"participationIndex": 0.0,
+						"influencerIndex": 0.0,
+						"spamIndex": 0.0,
+						"accountsFollowedByUser": [],
+						"accountsFollowingUser": [],
+						"accountsUnFollowingUser": [],
+						"accountsUnFollowedByUser": [],
+						"accountsBlockingUser": [],
+						"accountsSuspendingUser": [],
+						"accountsDeactivatingUser": [],
+						"accountsSilencingUser": [],
+						"unMaskedData": {},
+						"restrictedProfile": False
+					},
+					"receiverProfile": {
+						"age": 0,
+						"following": 0,
+						"followers": 0,
+						"favCount": 0,
+						"statusCount": 0,
+						"profileWorkflowProperties": {
+							"tags": [],
+							"comments": [],
+							"notifyUserIds": [],
+							"partnerProfileLists": [],
+							"clientProfileLists": [],
+							"partnerCustomProperties": {},
+							"clientCustomProperties": {},
+							"spaceCustomProperties": {},
+							"userCustomProperties": {},
+							"clientTags": []
+						},
+						"participationIndex": 0.0,
+						"influencerIndex": 0.0,
+						"spamIndex": 0.0,
+						"accountsFollowedByUser": [],
+						"accountsFollowingUser": [],
+						"accountsUnFollowingUser": [],
+						"accountsUnFollowedByUser": [],
+						"accountsBlockingUser": [],
+						"accountsSuspendingUser": [],
+						"accountsDeactivatingUser": [],
+						"accountsSilencingUser": [],
+						"unMaskedData": {},
+						"restrictedProfile": False
+					},
+					"isSenderFollower": False,
+					"createdTime": 1748841573836,
+					"modifiedTime": 1748841573836,
+					"snCreatedTime": 1748839380000,
+					"snCreatedTimeYearMonth": "2025_06",
+					"snModifiedTime": 1748839380000,
+					"snStats": {
+						"conLen": 67409,
+						"erEng": 0,
+						"nF": 0,
+						"reC": 0,
+						"spSc": 0,
+						"titleLen": 47,
+						"ubLen": 0,
+						"wreC": 17927832,
+						"nS": 0,
+						"wImp": 47
+					},
+					"mediaList": [
+						{
+							"type": "PHOTO",
+							"pHash": "pu:92f52d03c7ba3ce4",
+							"picture": "https://cdn.slidesharecdn.com/ss_thumbnails/malfinal-defenceppt-250602044327-b010c593-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+							"source": "https://cdn.slidesharecdn.com/ss_thumbnails/malfinal-defenceppt-250602044327-b010c593-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+							"nsfw": False,
+							"askConsentToRenderImage": False,
+							"mediaTags": [
+								{
+									"cN": "Teacher",
+									"cf": 0.107671954,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_sc_Teacher_https://cdn.slidesharecdn.com/ss_thumbnails/malfinal-defenceppt-250602044327-b010c593-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "Teacher",
+										"eT": "sc"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "sc"
+								},
+								{
+									"cN": "Teacher",
+									"cf": 0.107671954,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_ac_Teacher_https://cdn.slidesharecdn.com/ss_thumbnails/malfinal-defenceppt-250602044327-b010c593-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "Teacher",
+										"eT": "ac"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "ac"
+								},
+								{
+									"cN": "Teacher",
+									"cf": 0.107671954,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_gn_Teacher_https://cdn.slidesharecdn.com/ss_thumbnails/malfinal-defenceppt-250602044327-b010c593-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "Teacher",
+										"eT": "gn"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "gn"
+								},
+								{
+									"cN": "SFW",
+									"cf": 0.9984611,
+									"xn": 0.0,
+									"yn": 0.0,
+									"xx": 0.0,
+									"yx": 0.0,
+									"oIW": "",
+									"oIH": "",
+									"possibleActions": [
+										"INCORRECT",
+										"EDIT_CLASS",
+										"GROUND_TRUTH"
+									],
+									"add": {
+										"bb": "0_0_0_0",
+										"uId": "0_0_0_0_nfr_SFW_https://cdn.slidesharecdn.com/ss_thumbnails/malfinal-defenceppt-250602044327-b010c593-thumbnail.jpg?width=640&amp;height=640&amp;fit=bounds",
+										"cN": "SFW",
+										"eT": "nfr"
+									},
+									"bboxId": "0_0_0_0",
+									"eT": "nfr"
+								}
+							]
+						}
+					],
+					"workflowProperties": {
+						"sentiment": 2,
+						"isSpam": False,
+						"isProfane": False,
+						"read": False
+					},
+					"location": {
+						"text": "United States",
+						"lat": 0.0,
+						"lon": 0.0,
+						"additional": {
+							"country": "United States",
+							"code": "US"
+						}
+					},
+					"language": "en",
+					"conversationId": "b5c3338fd7c3850dbd1b4e1a2fd76592",
+					"parentMsgType": 0,
+					"deleted": False,
+					"archived": False,
+					"brandPost": False,
+					"parentBrandPost": False,
+					"hasBrandComment": False,
+					"hasScheduledComment": False,
+					"hasParentPost": False,
+					"hasApplicationConversation": False,
+					"isStoryMessage": False,
+					"isSharedPost": False,
+					"hasConversation": False,
+					"colorCode": "red",
+					"colorDescription": "0-24 hours range",
+					"messageMasked": False,
+					"messageReadByUser": False,
+					"dataSource": "wh",
+					"additionalInformation": {
+						"dD": {
+							"dA": 94.0,
+							"mozRank": 7.5,
+							"mozSpamScore": 1,
+							"mozExternalLinks": 3156364,
+							"alexaRank": 431,
+							"alexaReach": 1250000000,
+							"alexaPageViews": 59400000,
+							"swGR": 1009,
+							"swR": 13550952,
+							"swTV": 12706109
+						},
+						"spm": "Not Spam",
+						"lstBU": {
+							"ord": [
+								4
+							]
+						},
+						"intel": {
+							"liAssetInfo": {
+								"location": "United States",
+								"assetTitle": "Location Sanity Check",
+								"assetType": "INTEL_LOCATION",
+								"assetId": "650525a0e434d647387f55ae"
+							},
+							"piAssetInfo": {
+								"productBrandName": "Fossil",
+								"assetTitle": "Fossil_Test_30_Jul",
+								"assetType": "COMMERCE_PRODUCT",
+								"assetId": "64c61512f28adc66a39274fe"
+							}
+						},
+						"eS": [
+							{
+								"title": "1Click",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"Google"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"try"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"you"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"You"
+								]
+							},
+							{
+								"title": "san 3d a",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"YOU"
+								]
+							},
+							{
+								"title": "Ent0303",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"Major"
+								]
+							},
+							{
+								"title": "Ent0303",
+								"pol": "neutral",
+								"sc": 1.0,
+								"labels": [
+									"major"
+								]
+							}
+						]
+					},
+					"hasChildren": False,
+					"tagInReplyToMessage": False,
+					"isPinnedOnCase": False,
+					"userActions": [],
+					"detectedSurveyMessage": False,
+					"sourceInfos": [],
+					"videoChatEnabled": False,
+					"unMaskedData": {},
+					"sentToAdvocacy": False,
+					"chatGPTActionsDisabled": False
+				}
+			],
+			"additional": {
+				"queryAdaptTime": 3,
+				"esQueryTime": 68,
+				"queryTime": 88,
+				"responseAdaptTime": 789
+			},
+			"cacheHit": False,
+			"status": "SUCCESS",
+			"hasMore": True,
+		}
+	},
+}
+
+
 from typing import List, Dict, Any, Optional
 from langchain.tools import tool
 import logging
@@ -52,15 +773,12 @@ async def get_sprinklr_data(
         page_size = limit if limit > 0 else 5  # Default to 5 as per api-communication.md
         
         # Generate unique request ID and key
-        request_key = str(uuid.uuid4())
-        request_id = f"v3-{uuid.uuid4()}"
-        current_timestamp = int(time.time() * 1000)
-
-        # Complete headers from api-communication.md
+        request_key = "c85c0d7d-3a2a-4c62-839c-212ff872a188"
+        # Headers as per user prompt
         headers = {
             'accept': 'application/json; charset=utf-8',
-            'accept-language': 'en-GB,en;q=0.8',
-            'baggage': 'sentry-environment=prod0,sentry-release=20.4.1-1f07f2b1ffb783e319e5ec41266d2ddd8edbac67,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=702acdd4d40f423b8f5481bc949fef2d',
+            'accept-language': 'en-GB,en;q=0.7',
+            'baggage': 'sentry-environment=prod0,sentry-release=20.4.1-1f07f2b1ffb783e319e5ec41266d2ddd8edbac67,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=15c26efba5454744b572bca2b68d6a66',
             'content-type': 'application/json',
             'origin': 'https://space-prod0.sprinklr.com',
             'priority': 'u=1, i',
@@ -72,15 +790,16 @@ async def get_sprinklr_data(
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
             'sec-gpc': '1',
-            'sentry-trace': '702acdd4d40f423b8f5481bc949fef2d-8ef01a07c0b35741',
+            'sentry-trace': '15c26efba5454744b572bca2b68d6a66-b51eeb989fed6ca2',
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-            'x-csrf-token': settings.SPRINKLR_CSRF_TOKEN if hasattr(settings, 'SPRINKLR_CSRF_TOKEN') else 'SjFRazB6WE1DcUJ3aEZMM0Q5Qmpy',
+            'x-csrf-token': 'SjFRazB6WE1DcUJ3aEZMM0Q5Qmpy',
             'x-engine': 'LISTENING',
-            'x-request-id': request_id,
-            'x-requested-at': str(current_timestamp),
+            'x-request-id': 'v3-7e78abcd-7622-450e-8fc1-0c51694fd5a1',
+            'x-requested-at': '1748931755684',
             'x-requested-with': 'XMLHttpRequest',
-            'x-user-context': settings.SPRINKLR_USER_CONTEXT if hasattr(settings, 'SPRINKLR_USER_CONTEXT') else 'c_9004_1000004509_1000462136'
+            'x-user-context': 'c_9004_1000004509_1000462136'
         }
+
 
         # Complex request body structure from api-communication.md
         request_body = {
@@ -102,16 +821,9 @@ async def get_sprinklr_data(
                         "size": page_size
                     },
                     "additional": {
-                        "STREAM": "true",
-                        "dashboardId": settings.SPRINKLR_DASHBOARD_ID if hasattr(settings, 'SPRINKLR_DASHBOARD_ID') else "683982764a55c469871693aa",
-                        "widgetId": settings.SPRINKLR_WIDGET_ID if hasattr(settings, 'SPRINKLR_WIDGET_ID') else "683983294a55c4698716b7be",
-                        "browserSessionId": str(uuid.uuid4()),
+                        "STREAM": "True",
                         "engine": "LISTENING",
                         "moduleType": "LISTENING",
-                        "exportInfo": False,
-                        "option": "LAST_30_DAYS",
-                        "chartType": "STREAM",
-                        "dashboardWidget": True
                     }
                 }
             }

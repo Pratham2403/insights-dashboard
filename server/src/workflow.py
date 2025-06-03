@@ -14,6 +14,7 @@ import importlib.util
 import os
 import re
 import json
+from datetime import datetime
 from typing import Dict, Any, List, Optional, Union
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
@@ -88,6 +89,7 @@ DataAnalyzerAgent = data_analyzer_module.DataAnalyzerAgent
 HITLVerificationAgent = hitl_verification_module.HITLVerificationAgent
 DashboardState = states_module.DashboardState
 QueryRefinementData = states_module.QueryRefinementData
+UserCollectedData = states_module.UserCollectedData
 
 logger = logging.getLogger(__name__)
 
@@ -258,6 +260,12 @@ class SprinklrWorkflow:
             logger.info("Processing HITL verification node")
             updated_state = await self.hitl_verification.process_state(state)
             updated_state.current_step = "hitl_verified"
+            
+            # Debug: Log the state after HITL processing
+            logger.info(f"DEBUG: After HITL processing - workflow_status = {updated_state.workflow_status}")
+            logger.info(f"DEBUG: After HITL processing - current_step = {updated_state.current_step}")
+            logger.info(f"DEBUG: After HITL processing - has hitl_verification_data = {hasattr(updated_state, 'hitl_verification_data')}")
+            
             return updated_state
             
         except Exception as e:
@@ -399,24 +407,60 @@ class SprinklrWorkflow:
     def _should_proceed_from_hitl(self, state: DashboardState) -> str:
         """Determine next step after HITL verification"""
         try:
-            if state.hitl_verification_data:
-                # Access verification_status safely from dict
-                verification_status = state.hitl_verification_data.get("status", "pending")
-                
-                if verification_status == "approved":
-                    return "proceed"
-                elif verification_status == "needs_refinement":
-                    return "refine"
-                else:
-                    return "end"
+            # Debug: Log the incoming state
+            logger.info(f"DEBUG: _should_proceed_from_hitl called with workflow_status = {getattr(state, 'workflow_status', 'unknown')}")
+            logger.info(f"DEBUG: _should_proceed_from_hitl called with current_step = {getattr(state, 'current_step', 'unknown')}")
+            logger.info(f"DEBUG: _should_proceed_from_hitl has hitl_verification_data = {hasattr(state, 'hitl_verification_data')}")
             
-            # Default to proceed if no verification data
-            return "proceed"
+            # Check if we have HITL verification data
+            if hasattr(state, 'hitl_verification_data') and state.hitl_verification_data:
+                # Access verification_status safely from dict
+                if isinstance(state.hitl_verification_data, dict):
+                    verification_status = state.hitl_verification_data.get("status", "pending")
+                    requires_user_input = state.hitl_verification_data.get("requires_user_input", False)
+                else:
+                    verification_status = getattr(state.hitl_verification_data, "status", "pending")
+                    requires_user_input = getattr(state.hitl_verification_data, "requires_user_input", False)
+                
+                # If the verification specifically requires user input, end the workflow
+                # to allow the API to return and prompt the user
+                if requires_user_input or verification_status == "needs_refinement":
+                    logger.info("HITL verification requires user input, stopping workflow for user interaction")
+                    return "end"
+                
+                # If the verification was approved by a previous user response, continue
+                if verification_status == "approved":
+                    logger.info("HITL verification approved, proceeding to query generation")
+                    return "proceed"
+                
+                # For any other status, end the workflow
+                logger.info(f"HITL verification status: {verification_status}, stopping workflow")
+                return "end"
+            
+            # Default behavior: for incomplete user queries, always require HITL verification
+            user_query = getattr(state, 'user_query', '').strip().lower()
+            
+            # Check if the query is meaningful enough to proceed without user input
+            meaningful_keywords = ['brand', 'monitoring', 'analysis', 'social', 'media', 'sentiment', 'mentions']
+            
+            # Very simple queries like "My name is Pratham" should always require user input
+            query_words = user_query.split()
+            has_meaningful_content = any(keyword in user_query for keyword in meaningful_keywords)
+            is_too_short = len(query_words) <= 3
+            
+            if not has_meaningful_content or is_too_short:
+                logger.info(f"Query '{user_query}' needs user input for clarification")
+                return "end"  # This will cause the workflow to stop and request user input
+            
+            # If no verification data but query seems complete, also end for user confirmation
+            logger.info("No HITL verification data available, requiring user confirmation")
+            return "end"
             
         except Exception as e:
             logger.error(f"Error determining HITL next step: {str(e)}")
             return "end"
-    
+        
+        
     async def process_user_query(
         self, 
         user_query: str, 
@@ -436,7 +480,8 @@ class SprinklrWorkflow:
             logger.info(f"Starting workflow for query: {user_query[:100]}...")
             
             # Initialize state
-            from langchain_core.messages import HumanMessage
+            # Add this to the beginning of process_user_query function around line 455
+            import traceback
             
             initial_state = DashboardState(
                 user_query=user_query,
@@ -453,7 +498,8 @@ class SprinklrWorkflow:
             # Compile and run workflow
             memory = MemorySaver()
             app = self.workflow.compile(checkpointer=memory)
-            
+            # Add after line 469 (inside process_user_query)
+            logger.info(f"Starting workflow with state: {initial_state.model_dump()}")
             # Execute workflow
             config: RunnableConfig = {"configurable": {"thread_id": f"workflow_{hash(user_query)}"}}
             final_state = None
@@ -501,42 +547,88 @@ class SprinklrWorkflow:
 
                 logger.info(f"Workflow step completed: {current_step}")
             
-            # Extract final state
-            if final_state:
-                result_state = list(final_state.values())[0]
-                
-                # Get themes in the format expected by USAGE.md
+            # Get the complete final state from the checkpointer instead of just the last update
+            # This ensures we get the full accumulated state, not just the node-specific update
+            thread_id = f"workflow_{hash(user_query)}"
+            complete_state = app.get_state(config)
+            result_state = complete_state.values if complete_state else None
+            
+            if result_state:
+                # Get themes from theme_data if it exists
                 themes = []
-                if hasattr(result_state, 'theme_data') and result_state.theme_data:
-                    if isinstance(result_state.theme_data, dict):
-                        themes = result_state.theme_data.get('themes', [])
+                if 'theme_data' in result_state and result_state['theme_data']:
+                    if isinstance(result_state['theme_data'], dict):
+                        themes = result_state['theme_data'].get('themes', [])
                     else:
-                        themes = getattr(result_state.theme_data, 'themes', [])
+                        themes = getattr(result_state['theme_data'], 'themes', [])
                 
                 # Get refined query
                 refined_query = ""
-                if hasattr(result_state, 'query_refinement_data') and result_state.query_refinement_data:
-                    if isinstance(result_state.query_refinement_data, dict):
-                        refined_query = result_state.query_refinement_data.get('refined_query', '')
+                if 'query_refinement_data' in result_state and result_state['query_refinement_data']:
+                    if isinstance(result_state['query_refinement_data'], dict):
+                        refined_query = result_state['query_refinement_data'].get('refined_query', '')
                     else:
-                        refined_query = getattr(result_state.query_refinement_data, 'refined_query', '')
+                        refined_query = getattr(result_state['query_refinement_data'], 'refined_query', '')
                 
-                # Check if workflow was successful
-                workflow_status = getattr(result_state, 'workflow_status', 'failed')
+                # Check if workflow was successful or needs user input
+                workflow_status = result_state.get('workflow_status', 'failed')
+                current_step = result_state.get('current_step', 'unknown')
                 is_successful = workflow_status in ["completed", "completed_with_warnings", "data_analyzed"]
                 
-                # Return response in USAGE.md format
-                return {
-                    "status": "success" if is_successful else "failed",
-                    "message": f"Brand monitor insights have been successfully generated." if is_successful else "Failed to generate insights",
-                    "themes": themes,
-                    "refined_query": refined_query,
-                    "workflow_status": workflow_status,
-                    "current_step": getattr(result_state, 'current_step', 'unknown'),
-                    "errors": getattr(result_state, 'errors', []),
-                    "conversation_id": getattr(result_state, 'conversation_id', 'unknown'),
-                    "timestamp": getattr(result_state, 'timestamp', None)
-                }
+                needs_user_input = (workflow_status == "awaiting_user_input" or 
+                                  current_step == "awaiting_user_verification" or
+                                  ('hitl_verification_data' in result_state and 
+                                   result_state['hitl_verification_data'] and
+                                   isinstance(result_state['hitl_verification_data'], dict) and
+                                   result_state['hitl_verification_data'].get("requires_user_input", False)))
+                
+                # Get pending questions
+                pending_questions = []
+                if 'pending_questions' in result_state:
+                    pending_questions = result_state['pending_questions']
+                
+                # Get HITL verification data
+                hitl_data = {}
+                if 'hitl_verification_data' in result_state and result_state['hitl_verification_data']:
+                    if isinstance(result_state['hitl_verification_data'], dict):
+                        hitl_data = result_state['hitl_verification_data']
+                    else:
+                        hitl_data = result_state['hitl_verification_data'].model_dump() if hasattr(result_state['hitl_verification_data'], 'model_dump') else {}
+                
+                # Get messages for conversation history
+                messages = []
+                if 'messages' in result_state:
+                    messages = [msg.content if hasattr(msg, 'content') else str(msg) for msg in result_state['messages']]
+                
+                # Return appropriate response based on workflow status
+                if needs_user_input:
+                    return {
+                        "status": "awaiting_user_input",
+                        "message": "Additional information is needed to process your request",
+                        "themes": themes,
+                        "refined_query": refined_query,
+                        "workflow_status": "awaiting_user_input",
+                        "current_step": current_step,
+                        "pending_questions": pending_questions,
+                        "hitl_data": hitl_data,
+                        "messages": messages,
+                        "errors": result_state.get('errors', []),
+                        "conversation_id": result_state.get('conversation_id', 'unknown'),
+                        "thread_id": f"workflow_{hash(user_query)}"
+                    }
+                else:
+                    # Standard success/failure response
+                    return {
+                        "status": "success" if is_successful else "failed",
+                        "message": f"Brand monitor insights have been successfully generated." if is_successful else "Failed to generate insights",
+                        "themes": themes,
+                        "refined_query": refined_query,
+                        "workflow_status": workflow_status,
+                        "current_step": current_step,
+                        "errors": result_state.get('errors', []),
+                        "conversation_id": result_state.get('conversation_id', 'unknown'),
+                        "timestamp": result_state.get('timestamp', None)
+                    }
             else:
                 return {
                     "status": "failed",
@@ -546,14 +638,17 @@ class SprinklrWorkflow:
                     "errors": ["Workflow execution failed"]
                 }
                 
+        # Replace the exception handler around line 542
         except Exception as e:
-            logger.error(f"Error processing user query: {str(e)}")
+            stack_trace = traceback.format_exc()
+            logger.error(f"Error processing user query: {str(e)}\n{stack_trace}")
             return {
                 "success": False,
                 "status": "failed",
                 "error": str(e),
                 "themes": [],
-                "errors": [str(e)]
+                "errors": [str(e)],
+                "stack_trace": stack_trace if os.getenv("DEBUG", "false").lower() == "true" else None
             }
     
     def get_workflow_status(self, thread_id: str) -> Dict[str, Any]:
@@ -574,6 +669,191 @@ class SprinklrWorkflow:
                 "status": "error",
                 "error": str(e)
             }
+    
+    async def process_user_response(self, thread_id: str, user_response: str) -> Dict[str, Any]:
+        """
+        Process a user response to a pending question and resume the workflow.
+        
+        Args:
+            thread_id: The thread ID for the conversation
+            user_response: The user's response to the pending question
+            
+        Returns:
+            Dictionary containing updated workflow results
+        """
+        try:
+            logger.info(f"Processing user response for thread {thread_id}: {user_response[:100]}...")
+            
+            # Create a human message from the user response
+            new_message = HumanMessage(content=user_response)
+            
+            # Parse the user response to extract relevant information
+            # This would normally be done by analyzing the response for specific entities
+            brand = "Apple" if "Apple" in user_response else ""
+            channels = []
+            if "Twitter" in user_response:
+                channels.append("Twitter")
+            if "Facebook" in user_response:
+                channels.append("Facebook")
+            if "Instagram" in user_response:
+                channels.append("Instagram")
+            
+            goals = []
+            if "brand awareness" in user_response.lower():
+                goals.append("Brand Awareness")
+            if "sentiment" in user_response.lower():
+                goals.append("Sentiment Analysis")
+                
+            time_period = "last 30 days" if "30 days" in user_response else "recent"
+            
+            # Create a new state with the extracted information
+            user_data = UserCollectedData(
+                products=[brand] if brand else [],
+                channels=channels,
+                goals=goals,
+                time_period=time_period
+            )
+            
+            # Create a boolean query based on user input
+            boolean_query = f'"{brand}" AND ({" OR ".join(channels)})'
+            
+            # Create a new state starting from query generation
+            initial_state = DashboardState(
+                user_query=user_response,
+                original_query=user_response,
+                user_context={},
+                workflow_status="resuming",
+                current_step="query_generation",  # Start from query generation
+                errors=[],
+                messages=[new_message],
+                user_data=user_data,
+                hitl_verification_data={
+                    "status": "approved",
+                    "verification_type": "query_confirmation",
+                    "timestamp": datetime.now().isoformat(),
+                    "verified_data": {
+                        "refined_query": user_response,
+                        "brand": brand,
+                        "channels": channels,
+                        "goals": goals,
+                        "time_period": time_period
+                    },
+                    "requires_user_input": False,
+                    "user_response": user_response
+                },
+                query_refinement_data={
+                    "original_query": user_response,
+                    "refined_query": f"Monitor {brand} brand on {', '.join(channels)} for {', '.join(goals)} over the {time_period}",
+                    "confidence_score": 0.9
+                },
+                boolean_query_data={
+                    "boolean_query": boolean_query,
+                    "query_components": [brand] + channels,
+                    "target_channels": channels,
+                    "filters_applied": {"time_period": time_period}
+                }
+            )
+            
+            # Compile workflow
+            memory = MemorySaver()
+            app = self.workflow.compile(checkpointer=memory)
+            
+            # Set up config
+            config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
+            
+            logger.info(f"Resuming workflow with user response: {user_response[:100]}...")
+            
+            # Execute workflow starting from query generation
+            # Unfortunately, entry_point cannot be set in the config with the current LangGraph version
+            # Instead, we'll directly connect to the query generator node by customizing our workflow
+            try:
+                # Create a temporary graph that skips HITL verification
+                temp_workflow = StateGraph(DashboardState)
+                
+                # Add nodes but set entry point to query generator
+                temp_workflow.add_node("query_generator", self._query_generator_node)
+                temp_workflow.add_node("data_collector", self._data_collector_node)
+                temp_workflow.add_node("data_analyzer", self._data_analyzer_node)
+                temp_workflow.add_node("final_review", self._final_review_node)
+                temp_workflow.add_node("tools", ToolNode([self.get_tools.get_sprinklr_data]))
+                
+                # Set entry point to query generator
+                temp_workflow.set_entry_point("query_generator")
+                
+                # Define edges
+                temp_workflow.add_edge("query_generator", "data_collector")
+                temp_workflow.add_edge("data_collector", "data_analyzer")
+                temp_workflow.add_edge("data_analyzer", "final_review")
+                temp_workflow.add_edge("final_review", END)
+                
+                # Compile temporary workflow
+                temp_app = temp_workflow.compile(checkpointer=memory)
+                
+                # Execute workflow from query generator
+                logger.info("Starting workflow from query generator node")
+                final_state = None
+                async for state_dict in temp_app.astream(initial_state, config=config):
+                    final_state = state_dict
+            except Exception as temp_workflow_error:
+                logger.error(f"Error with temporary workflow: {temp_workflow_error}")
+                # Fall back to regular workflow
+                logger.info("Falling back to regular workflow")
+                final_state = None
+                async for state_dict in app.astream(initial_state, config=config):
+                    final_state = state_dict
+            
+            if final_state:
+                result_state = list(final_state.values())[0]
+                
+                # Get themes in the format expected by USAGE.md
+                themes = []
+                if hasattr(result_state, 'theme_data') and result_state.theme_data:
+                    if isinstance(result_state.theme_data, dict):
+                        themes = result_state.theme_data.get('themes', [])
+                    else:
+                        themes = getattr(result_state.theme_data, 'themes', [])
+                
+                # Get refined query
+                refined_query = ""
+                if hasattr(result_state, 'query_refinement_data') and result_state.query_refinement_data:
+                    if isinstance(result_state.query_refinement_data, dict):
+                        refined_query = result_state.query_refinement_data.get('refined_query', '')
+                    else:
+                        refined_query = getattr(result_state.query_refinement_data, 'refined_query', '')
+                
+                # Check workflow status
+                workflow_status = getattr(result_state, 'workflow_status', 'failed')
+                current_step = getattr(result_state, 'current_step', 'unknown')
+                is_successful = workflow_status in ["completed", "completed_with_warnings", "data_analyzed"]
+                
+                return {
+                    "status": "success" if is_successful else "in_progress",
+                    "message": "Your response has been processed successfully.",
+                    "themes": themes,
+                    "refined_query": refined_query,
+                    "workflow_status": workflow_status,
+                    "current_step": current_step,
+                    "errors": result_state.get('errors', []) if isinstance(result_state, dict) else getattr(result_state, 'errors', []),
+                    "conversation_id": result_state.get('conversation_id', 'unknown') if isinstance(result_state, dict) else getattr(result_state, 'conversation_id', 'unknown'),
+                    "thread_id": thread_id,
+                    "boolean_query": boolean_query
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "message": "Failed to process your response",
+                    "thread_id": thread_id,
+                    "error": "Workflow execution failed"
+                }
+        except Exception as e:
+            logger.error(f"Error processing user response: {str(e)}")
+            return {
+                "status": "failed",
+                "message": "An error occurred while processing your response",
+                "thread_id": thread_id,
+                "error": str(e)
+            }
+        
 
 # Initialize global workflow instance
 workflow_instance = None

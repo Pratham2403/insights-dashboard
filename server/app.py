@@ -159,6 +159,20 @@ def analyze_query():
         except RuntimeError:
             # No running event loop, safe to use asyncio.run()
             result = asyncio.run(wf.process_user_query(user_query, data.get('context', {})))
+        
+        # Check if the workflow is waiting for user input
+        if result.get("workflow_status") == "awaiting_user_input":
+            logger.info(f"Workflow is awaiting user input for query: {user_query[:100]}...")
+            # Return a status indicating user input is needed
+            return jsonify({
+                "status": "awaiting_user_input",
+                "message": "Additional information is needed to process your request",
+                "workflow_status": "awaiting_user_input",
+                "conversation_id": result.get("conversation_id", "unknown"),
+                "current_step": result.get("current_step", "awaiting_user_verification"),
+                "pending_questions": result.get("pending_questions", []),
+                "thread_id": result.get("thread_id", f"workflow_{hash(user_query)}")
+            }), 200
 
         logger.info(f"Analysis successful for query: {user_query[:100]}...")
         return jsonify(result), 200
@@ -210,6 +224,58 @@ def validate_themes():
     except Exception as e:
         logger.error(f"Error during theme validation: {e}", exc_info=True)
         return jsonify({"error": "An error occurred during theme validation", "details": str(e)}), 500
+
+@app.route('/api/respond', methods=['POST'])
+def respond_to_query():
+    """
+    Endpoint to handle user responses to pending questions.
+    
+    Expected JSON payload:
+    {
+        "thread_id": "workflow_12345", 
+        "response": "User's response to the pending question",
+        "conversation_id": "optional-conversation-id"
+    }
+    """
+    logger.info("Respond endpoint '/api/respond' accessed.")
+    data = request.get_json()
+    if not data or 'response' not in data:
+        logger.warning("Respond endpoint: Missing 'response' in request data.")
+        return jsonify({"error": "Missing 'response' in request data"}), 400
+    
+    thread_id = data.get('thread_id')
+    if not thread_id:
+        logger.warning("Respond endpoint: Missing 'thread_id' in request data.")
+        return jsonify({"error": "Missing 'thread_id' in request data"}), 400
+        
+    user_response = data['response']
+    logger.info(f"Received response for thread {thread_id}: {user_response[:100]}...")
+    
+    try:
+        wf = get_workflow()
+        
+        # Use asyncio to call the async method
+        import asyncio
+        
+        # Check if we're already in an async context
+        try:
+            loop = asyncio.get_running_loop()
+            # If we get here, we're in an async context, so we can't use asyncio.run()
+            # We need to create a new thread for this
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, wf.process_user_response(thread_id, user_response))
+                result = future.result()
+        except RuntimeError:
+            # No running event loop, safe to use asyncio.run()
+            result = asyncio.run(wf.process_user_response(thread_id, user_response))
+        
+        logger.info(f"Response processed successfully for thread {thread_id}")
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Error processing response for thread {thread_id}: {e}", exc_info=True)
+        return jsonify({"error": "An error occurred while processing your response", "details": str(e)}), 500
 
 @app.errorhandler(404)
 def not_found(error):

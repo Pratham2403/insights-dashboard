@@ -372,28 +372,47 @@ class HITLVerificationAgent:
                 else:
                     verification_data["refined_query"] = getattr(updated_state.query_refinement_data, "refined_query", verification_data["refined_query"])
             
-            # In a real implementation, this would wait for user input
-            # For now, simulate automatic approval
+            # Instead of automatic approval, set status to pending and indicate user input is needed
             verification_result = {
-                "status": "approved",
+                "status": "needs_refinement",  # Changed from "approved" to "needs_refinement"
                 "verification_type": "query_confirmation",
                 "timestamp": datetime.now().isoformat(),
-                "verified_data": verification_data
+                "verified_data": verification_data,
+                "requires_user_input": True,  # Explicitly indicate user input is needed
+                "message": "Please confirm if this query is correct or provide additional information."
             }
             
             # Update the state with verification results
             updated_state.hitl_verification_data = verification_result
-            updated_state.current_step = "hitl_verified"
-            updated_state.workflow_status = "in_progress"
+            updated_state.current_step = "awaiting_user_verification"  
+            updated_state.workflow_status = "awaiting_user_input"  
             
-            # Add a message for the next stage
-            updated_state.add_message(AIMessage(content=f"Query verified: {verification_data['refined_query']}"))
+            # Add a message for the next stage with more context about what we need
+            message_content = f"""
+Please verify this query before proceeding: "{verification_data['refined_query']}"
+
+I need more information to process your request effectively. Please provide:
+1. What brands or products would you like to monitor?
+2. Which social media channels are important to you (e.g., Twitter, Facebook, Instagram)?
+3. What is your goal with this monitoring (e.g., brand awareness, competitive analysis)?
+4. What time period would you like to analyze?
+
+This information is essential for generating a boolean keyword query to fetch relevant data from the API.
+"""
+            updated_state.add_message(AIMessage(content=message_content))
+            
+            # Add a pending question to the state
+            if hasattr(updated_state, 'add_pending_question'):
+                updated_state.add_pending_question(message_content)
+            elif hasattr(updated_state, 'pending_questions'):
+                updated_state.pending_questions.append(message_content)
             
             return updated_state
             
         except Exception as e:
             logger.error(f"Error processing state: {str(e)}")
             raise
+
 def create_hitl_verification_agent(llm) -> HITLVerificationAgent:
     """
     Factory function to create a HITL Verification Agent.

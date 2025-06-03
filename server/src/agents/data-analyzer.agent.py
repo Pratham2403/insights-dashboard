@@ -83,655 +83,292 @@ The Exact Themes and their boolean keyword queries will depend on the data recei
 
 import logging
 import json
-from typing import Dict, Any, List, Optional, Tuple
-import asyncio
-from collections import Counter, defaultdict
-from datetime import datetime, timedelta
-import re
-from langchain_core.messages import HumanMessage, AIMessage
-from pydantic import BaseModel, Field
-import numpy as np
-
 import importlib.util
-import sys
 import os
+from typing import Dict, Any, List, Optional
+from datetime import datetime
 
-# Import modules with dots in filenames
+logger = logging.getLogger(__name__)
+
 def import_module_from_file(filepath, module_name):
+    """Helper function to import modules with dots in filenames"""
     spec = importlib.util.spec_from_file_location(module_name, filepath)
+    if spec is None:
+        raise ImportError(f"Could not load spec for module {module_name} from {filepath}")
     module = importlib.util.module_from_spec(spec)
+    if spec.loader is None:
+        raise ImportError(f"Spec loader is None for module {module_name} from {filepath}")
     spec.loader.exec_module(module)
     return module
 
-# Get the path to setup files
-setup_path = os.path.join(os.path.dirname(__file__), '..', 'setup')
-rag_path = os.path.join(os.path.dirname(__file__), '..', 'rag')
-helpers_path = os.path.join(os.path.dirname(__file__), '..', 'helpers')
-
-# Import the required classes
-llm_module = import_module_from_file(os.path.join(setup_path, 'llm.setup.py'), 'llm_setup')
-classification_module = import_module_from_file(os.path.join(setup_path, 'classification_model.setup.py'), 'classification_setup')
-filters_module = import_module_from_file(os.path.join(rag_path, 'filters.rag.py'), 'filters_rag')
-prompts_module = import_module_from_file(os.path.join(helpers_path, 'prompts.helper.py'), 'prompts_helper')
-states_module = import_module_from_file(os.path.join(helpers_path, 'states.py'), 'states')
-
-LLMSetup = llm_module.LLMSetup
-ClassificationModelSetup = classification_module.ClassificationModelSetup
-FiltersRAG = filters_module.FiltersRAG
-DashboardState = states_module.DashboardState
-ThemeData = states_module.ThemeData
-
-# Configure logging
-logger = logging.getLogger(__name__)
-
-class DataAnalysisRequest(BaseModel):
-    """Request model for data analysis"""
-    data: List[Dict[str, Any]] = Field(..., description="Raw data from Sprinklr API")
-    refined_query: str = Field(..., description="Refined user query for context")
-    user_context: Dict[str, Any] = Field(..., description="User collected data and preferences")
-    analysis_depth: str = Field(default="medium", description="Depth of analysis: light, medium, deep")
-
-class ThemeCluster(BaseModel):
-    """Model representing a theme cluster"""
-    theme_id: str = Field(..., description="Unique identifier for the theme")
-    name: str = Field(..., description="Human-readable theme name")
-    description: str = Field(..., description="Detailed theme description")
-    keywords: List[str] = Field(default_factory=list, description="Key terms associated with the theme")
-    data_points: List[Dict[str, Any]] = Field(default_factory=list, description="Data points belonging to this theme")
-    confidence: float = Field(default=0.0, description="Confidence score for theme accuracy")
-    boolean_query: Optional[str] = Field(None, description="Boolean query for this theme")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional theme metadata")
-
 class DataAnalyzerAgent:
     """
-    Data Analyzer Agent for processing and categorizing Sprinklr API data into themes.
+    Data Analyzer Agent for processing and categorizing fetched data into themes.
     
-    This agent analyzes large datasets (2000-4000 objects) and categorizes them into
-    meaningful themes with associated boolean queries for efficient data retrieval.
+    This agent analyzes the data received from the API and categorizes it into
+    meaningful themes with descriptions and boolean queries for each theme.
     """
     
-    def __init__(self):
-        """Initialize the Data Analyzer Agent"""
-        self.llm_setup = LLMSetup()
-        self.classification_setup = ClassificationModelSetup()
-        self.filters_rag = FiltersRAG()
-        self.prompts_module = prompts_module
-        
-        # Initialize models
-        self.llm = self.llm_setup.get_agent_llm("data_analyzer")
-        self.classifier = None  # Will be initialized when needed
-        
-        # Initialize query generator for theme queries
-        # Import QueryGeneratorAgent
-        query_generator_module = import_module_from_file(
-            os.path.join(os.path.dirname(__file__), 'query-generator.agent.py'), 
-            'query_generator'
-        )
-        QueryGeneratorAgent = query_generator_module.QueryGeneratorAgent
-        self.query_generator = QueryGeneratorAgent()
-        
-        # Analysis configuration
-        self.max_themes = 10
-        self.min_cluster_size = 5
-        self.similarity_threshold = 0.7
-        
-        logger.info("DataAnalyzerAgent initialized successfully")
-    
-    async def analyze_data(self, request: DataAnalysisRequest) -> Dict[str, Any]:
+    def __init__(self, llm=None):
         """
-        Analyze data and categorize into themes.
+        Initialize the Data Analyzer Agent.
         
         Args:
-            request: DataAnalysisRequest containing data and context
+            llm: Language model instance (optional, can use classification models instead)
+        """
+        self.llm = llm
+        self.agent_name = "data_analyzer"
+        
+        # Initialize theme categories for classification
+        self.theme_categories = {
+            "brand_mentions": {
+                "description": "Posts that mention the brand name directly",
+                "keywords": ["brand", "company", "product", "service"]
+            },
+            "sentiment_analysis": {
+                "description": "Posts expressing opinions or emotions about the brand",
+                "keywords": ["good", "bad", "excellent", "terrible", "love", "hate"]
+            },
+            "product_features": {
+                "description": "Discussions about specific product features or capabilities",
+                "keywords": ["feature", "functionality", "specs", "performance"]
+            },
+            "customer_service": {
+                "description": "Posts related to customer support or service experiences",
+                "keywords": ["support", "help", "service", "customer", "issue"]
+            },
+            "competitor_comparison": {
+                "description": "Posts comparing the brand with competitors",
+                "keywords": ["vs", "versus", "compared", "better", "worse"]
+            }
+        }
+    
+    def analyze_data(self, data: List[Dict[str, Any]], refined_query: str = "") -> Dict[str, Any]:
+        """
+        Analyze and categorize data into themes.
+        
+        Args:
+            data: List of data objects to analyze
+            refined_query: The refined user query for context
             
         Returns:
-            Dict containing categorized themes and analysis results
+            Dictionary containing categorized themes with metadata
         """
         try:
-            logger.info(f"Starting data analysis for {len(request.data)} data points")
+            logger.info(f"Analyzing {len(data)} data points")
             
-            # Preprocess the data
-            preprocessed_data = await self._preprocess_data(request.data)
-            
-            # Get analysis method based on data size and depth
-            analysis_method = self._determine_analysis_method(len(request.data), request.analysis_depth)
-            
-            # Perform theme categorization
-            themes = await self._categorize_into_themes(
-                preprocessed_data, 
-                request.refined_query, 
-                request.user_context,
-                analysis_method
-            )
-            
-            # Generate boolean queries for each theme
-            themes_with_queries = await self._generate_theme_queries(themes, request.user_context)
-            
-            # Validate and optimize themes
-            optimized_themes = await self._optimize_themes(themes_with_queries, request.data)
-            
-            # Generate analysis summary
-            analysis_summary = await self._generate_analysis_summary(optimized_themes, request)
-            
-            return {
-                "success": True,
-                "themes": [theme.dict() for theme in optimized_themes],
-                "analysis_summary": analysis_summary,
-                "total_data_points": len(request.data),
-                "themes_count": len(optimized_themes),
-                "analysis_method": analysis_method,
-                "processing_time": datetime.now().isoformat()
-            }
-            
-        except Exception as e:
-            logger.error(f"Error in data analysis: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "fallback_themes": await self._generate_fallback_themes(request.data, request.refined_query)
-            }
-    
-    async def _preprocess_data(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Preprocess raw data for analysis"""
-        try:
-            processed_data = []
-            
-            for idx, item in enumerate(data):
-                processed_item = {
-                    "id": item.get("id", f"item_{idx}"),
-                    "content": self._clean_text(item.get("content", "")),
-                    "channel": item.get("channel", "unknown"),
-                    "date": self._parse_date(item.get("date")),
-                    "original_data": item,
-                    "processed_tokens": self._extract_tokens(item.get("content", "")),
-                    "metadata": {
-                        "word_count": len(item.get("content", "").split()),
-                        "has_hashtags": "#" in item.get("content", ""),
-                        "has_mentions": "@" in item.get("content", ""),
-                        "language": item.get("language", "unknown")
-                    }
+            if not data:
+                logger.warning("No data provided for analysis")
+                return {
+                    "themes": [],
+                    "analysis_summary": "No data available for analysis",
+                    "total_data_points": 0
                 }
-                processed_data.append(processed_item)
             
-            logger.info(f"Preprocessed {len(processed_data)} data points")
-            return processed_data
+            # Categorize data into themes
+            themes = self._categorize_data_into_themes(data, refined_query)
             
-        except Exception as e:
-            logger.error(f"Error preprocessing data: {str(e)}")
-            return data  # Return original data if preprocessing fails
-    
-    def _determine_analysis_method(self, data_size: int, analysis_depth: str) -> str:
-        """Determine the best analysis method based on data size and requirements"""
-        if data_size < 100:
-            return "llm_direct"
-        elif data_size < 1000:
-            return "llm_with_clustering" if analysis_depth == "deep" else "hybrid"
-        else:
-            return "clustering_with_llm_validation"
-    
-    async def _categorize_into_themes(
-        self, 
-        data: List[Dict[str, Any]], 
-        refined_query: str, 
-        user_context: Dict[str, Any],
-        method: str
-    ) -> List[ThemeCluster]:
-        """Categorize data into themes using the specified method"""
-        try:
-            if method == "llm_direct":
-                return await self._llm_direct_categorization(data, refined_query, user_context)
-            elif method == "hybrid":
-                return await self._hybrid_categorization(data, refined_query, user_context)
-            else:  # clustering_with_llm_validation
-                return await self._clustering_with_llm_validation(data, refined_query, user_context)
-                
-        except Exception as e:
-            logger.error(f"Error in theme categorization: {str(e)}")
-            return await self._fallback_categorization(data, refined_query)
-    
-    async def _llm_direct_categorization(
-        self, 
-        data: List[Dict[str, Any]], 
-        refined_query: str, 
-        user_context: Dict[str, Any]
-    ) -> List[ThemeCluster]:
-        """Use LLM directly for theme categorization (small datasets)"""
-        try:
-            # Get RAG context for themes
-            rag_context = await self._get_theme_rag_context(refined_query)
-            
-            # Prepare data sample for LLM
-            data_sample = data[:50]  # Limit for LLM processing
-            
-            system_prompt = self.prompts_module.DATA_ANALYZER_SYSTEM_PROMPT
-            
-            user_message = f"""
-            Analyze and categorize the following data into themes:
-            
-            User Query Context: {refined_query}
-            User Preferences: {user_context}
-            
-            Available Theme Examples: {rag_context.get('example_themes', [])}
-            
-            Data to Analyze: {json.dumps(data_sample, indent=2)}
-            
-            Please categorize this data into meaningful themes and provide:
-            1. Theme name and description
-            2. Associated keywords
-            3. Data points for each theme
-            4. Confidence score
-            """
-            
-            messages = [
-                HumanMessage(content=system_prompt),
-                HumanMessage(content=user_message)
-            ]
-            
-            response = await self.llm.ainvoke(messages)
-            
-            # Handle both string and message object responses
-            if hasattr(response, 'content'):
-                response_content = response.content
-            else:
-                response_content = str(response)
-            
-            # Parse LLM response into themes
-            themes = self._parse_llm_themes_response(response_content, data)
-            
-            return themes
-            
-        except Exception as e:
-            logger.error(f"Error in LLM direct categorization: {str(e)}")
-            return await self._fallback_categorization(data, refined_query)
-    
-    async def _clustering_with_llm_validation(
-        self, 
-        data: List[Dict[str, Any]], 
-        refined_query: str, 
-        user_context: Dict[str, Any]
-    ) -> List[ThemeCluster]:
-        """Use clustering for initial grouping, then LLM for validation and naming"""
-        try:
-            # Simple channel-based clustering for demo
-            channel_groups = defaultdict(list)
-            
-            for item in data:
-                channel = item.get("channel", "unknown")
-                channel_groups[channel].append(item)
-            
-            themes = []
-            for i, (channel, items) in enumerate(channel_groups.items()):
-                if len(items) >= self.min_cluster_size:
-                    # Extract keywords from content
-                    keywords = self._extract_common_keywords(items)
-                    
-                    theme = ThemeCluster(
-                        theme_id=f"theme_{i+1}",
-                        name=f"{channel.title()} Content",
-                        description=f"Content and mentions from {channel} channel",
-                        keywords=keywords,
-                        data_points=items,
-                        confidence=0.8,
-                    )
-                    themes.append(theme)
-            
-            return themes
-            
-        except Exception as e:
-            logger.error(f"Error in clustering with LLM validation: {str(e)}")
-            return await self._fallback_categorization(data, refined_query)
-    
-    async def _hybrid_categorization(
-        self, 
-        data: List[Dict[str, Any]], 
-        refined_query: str, 
-        user_context: Dict[str, Any]
-    ) -> List[ThemeCluster]:
-        """Hybrid approach combining multiple methods"""
-        try:
-            # Start with rule-based categorization
-            rule_based_themes = await self._rule_based_categorization(data, refined_query)
-            
-            # For demo, just return rule-based themes
-            return rule_based_themes
-            
-        except Exception as e:
-            logger.error(f"Error in hybrid categorization: {str(e)}")
-            return await self._fallback_categorization(data, refined_query)
-    
-    async def _rule_based_categorization(self, data: List[Dict[str, Any]], refined_query: str) -> List[ThemeCluster]:
-        """Rule-based categorization using patterns and keywords"""
-        try:
-            themes = []
-            
-            # Group by channel
-            channel_groups = defaultdict(list)
-            for item in data:
-                channel = item.get("channel", "unknown")
-                channel_groups[channel].append(item)
-            
-            # Group by content patterns (sentiment analysis)
-            sentiment_groups = {"positive": [], "negative": [], "neutral": []}
-            for item in data:
-                content = item.get("content", "").lower()
-                if any(word in content for word in ["good", "great", "amazing", "love", "excellent"]):
-                    sentiment_groups["positive"].append(item)
-                elif any(word in content for word in ["bad", "terrible", "hate", "awful", "worst"]):
-                    sentiment_groups["negative"].append(item)
-                else:
-                    sentiment_groups["neutral"].append(item)
-            
-            # Create themes from channels
-            for i, (channel, items) in enumerate(channel_groups.items()):
-                if len(items) >= self.min_cluster_size:
-                    keywords = self._extract_common_keywords(items)
-                    theme = ThemeCluster(
-                        theme_id=f"channel_theme_{i+1}",
-                        name=f"{channel.title()} Mentions",
-                        description=f"All mentions and content from {channel}",
-                        keywords=[channel] + keywords,
-                        data_points=items,
-                        confidence=0.7
-                    )
-                    themes.append(theme)
-            
-            # Create themes from sentiment
-            for i, (sentiment, items) in enumerate(sentiment_groups.items()):
-                if len(items) >= self.min_cluster_size:
-                    keywords = self._extract_common_keywords(items)
-                    theme = ThemeCluster(
-                        theme_id=f"sentiment_theme_{i+1}",
-                        name=f"{sentiment.title()} Sentiment",
-                        description=f"Content with {sentiment} sentiment",
-                        keywords=[sentiment] + keywords,
-                        data_points=items,
-                        confidence=0.6
-                    )
-                    themes.append(theme)
-            
-            return themes
-            
-        except Exception as e:
-            logger.error(f"Error in rule-based categorization: {str(e)}")
-            return []
-    
-    async def _generate_theme_queries(
-        self, 
-        themes: List[ThemeCluster], 
-        user_context: Dict[str, Any]
-    ) -> List[ThemeCluster]:
-        """Generate boolean queries for each theme"""
-        try:
-            updated_themes = []
-            
+            # Generate theme metadata
             for theme in themes:
-                try:
-                    # Prepare theme data for query generation
-                    theme_data = {
-                        "name": theme.name,
-                        "description": theme.description,
-                        "keywords": theme.keywords,
-                        "data_sample": theme.data_points[:10]  # Sample for context
+                theme["boolean_query"] = self._generate_theme_boolean_query(theme, refined_query)
+                theme["relevance_score"] = self._calculate_relevance_score(theme, refined_query)
+            
+            # Sort themes by relevance
+            themes.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
+            
+            # Create analysis summary
+            analysis_summary = f"Analyzed {len(data)} data points and identified {len(themes)} themes"
+            
+            result = {
+                "themes": themes[:10],  # Return top 10 themes
+                "analysis_summary": analysis_summary,
+                "total_data_points": len(data),
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            logger.info(f"Analysis completed successfully with {len(themes)} themes identified")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error analyzing data: {str(e)}")
+            return {
+                "themes": [],
+                "analysis_summary": f"Analysis failed: {str(e)}",
+                "total_data_points": len(data) if data else 0,
+                "error": str(e)
+            }
+    
+    def _categorize_data_into_themes(self, data: List[Dict[str, Any]], refined_query: str) -> List[Dict[str, Any]]:
+        """Categorize data into themes using keyword-based classification."""
+        try:
+            themes = []
+            
+            # Group data by content similarity
+            content_groups = self._group_by_content_similarity(data)
+            
+            for group_name, group_data in content_groups.items():
+                if len(group_data) >= 2:  # Only create themes with at least 2 data points
+                    theme = {
+                        "name": group_name,
+                        "description": f"Posts related to {group_name.lower().replace('_', ' ')}",
+                        "data_count": len(group_data),
+                        "sample_data": group_data[:3],  # Include sample data
+                        "keywords": self._extract_keywords_from_group(group_data)
                     }
-                    
-                    # Generate query using QueryGeneratorAgent
-                    query_result = await self.query_generator.generate_theme_query(theme_data, user_context)
-                    
-                    if query_result["success"]:
-                        theme.boolean_query = query_result["boolean_query"]
-                        theme.metadata["query_confidence"] = query_result.get("theme_confidence", 0.8)
-                    else:
-                        # Fallback query generation
-                        theme.boolean_query = self._generate_simple_theme_query(theme)
-                        theme.metadata["query_confidence"] = 0.5
-                        
-                    updated_themes.append(theme)
-                    
-                except Exception as e:
-                    logger.error(f"Error generating query for theme {theme.name}: {str(e)}")
-                    theme.boolean_query = self._generate_simple_theme_query(theme)
-                    theme.metadata["query_confidence"] = 0.3
-                    updated_themes.append(theme)
+                    themes.append(theme)
             
-            return updated_themes
+            # If no natural groupings found, create basic themes
+            if not themes and data:
+                themes = self._create_basic_themes(data)
             
-        except Exception as e:
-            logger.error(f"Error generating theme queries: {str(e)}")
-            return themes  # Return themes without queries
-    
-    async def _optimize_themes(
-        self, 
-        themes: List[ThemeCluster], 
-        original_data: List[Dict[str, Any]]
-    ) -> List[ThemeCluster]:
-        """Optimize themes by merging similar ones and removing low-quality themes"""
-        try:
-            # Remove themes with too few data points
-            filtered_themes = [theme for theme in themes if len(theme.data_points) >= self.min_cluster_size]
-            
-            # Sort by confidence and data point count
-            optimized_themes = sorted(
-                filtered_themes, 
-                key=lambda x: (x.confidence, len(x.data_points)), 
-                reverse=True
-            )
-            
-            # Limit to max themes
-            final_themes = optimized_themes[:self.max_themes]
-            
-            logger.info(f"Optimized themes: {len(themes)} -> {len(final_themes)}")
-            return final_themes
-            
-        except Exception as e:
-            logger.error(f"Error optimizing themes: {str(e)}")
             return themes
-    
-    # Helper methods
-    def _clean_text(self, text: str) -> str:
-        """Clean and normalize text content"""
-        if not text:
-            return ""
-        
-        # Remove extra whitespace and special characters
-        cleaned = re.sub(r'\s+', ' ', text)
-        cleaned = re.sub(r'[^\w\s#@.,!?-]', '', cleaned)
-        return cleaned.strip()
-    
-    def _parse_date(self, date_str: str) -> str:
-        """Parse and normalize date strings"""
-        if not date_str:
-            return datetime.now().isoformat()
-        
-        try:
-            # Try common date formats
-            for fmt in ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y', '%m/%d/%Y']:
-                try:
-                    parsed_date = datetime.strptime(str(date_str), fmt)
-                    return parsed_date.isoformat()
-                except ValueError:
-                    continue
             
-            # If no format matches, return as is
-            return str(date_str)
+        except Exception as e:
+            logger.error(f"Error categorizing data: {str(e)}")
+            return self._create_fallback_themes(data)
+    
+    def _group_by_content_similarity(self, data: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+        """Group data by content similarity using keyword matching."""
+        groups = {}
+        
+        for item in data:
+            content = str(item.get("content", "")).lower()
             
-        except Exception:
-            return datetime.now().isoformat()
+            # Find best matching theme category
+            best_category = None
+            best_score = 0
+            
+            for category, config in self.theme_categories.items():
+                score = sum(1 for keyword in config["keywords"] if keyword in content)
+                if score > best_score:
+                    best_score = score
+                    best_category = category
+            
+            # Use best category or create "general" category
+            group_name = best_category if best_category else "general_mentions"
+            
+            if group_name not in groups:
+                groups[group_name] = []
+            groups[group_name].append(item)
+        
+        return groups
     
-    def _extract_tokens(self, text: str) -> List[str]:
-        """Extract meaningful tokens from text"""
-        if not text:
-            return []
+    def _extract_keywords_from_group(self, group_data: List[Dict[str, Any]]) -> List[str]:
+        """Extract common keywords from a group of data."""
+        word_counts = {}
         
-        # Simple tokenization
-        tokens = re.findall(r'\b\w+\b', text.lower())
-        
-        # Filter out common stop words
-        stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were'}
-        meaningful_tokens = [token for token in tokens if token not in stop_words and len(token) > 2]
-        
-        return meaningful_tokens[:20]  # Limit tokens
-    
-    def _extract_common_keywords(self, items: List[Dict[str, Any]]) -> List[str]:
-        """Extract common keywords from a list of items"""
-        all_tokens = []
-        for item in items:
-            tokens = self._extract_tokens(item.get("content", ""))
-            all_tokens.extend(tokens)
-        
-        # Count frequency
-        token_counts = Counter(all_tokens)
+        for item in group_data:
+            content = str(item.get("content", "")).lower()
+            words = content.split()
+            
+            for word in words:
+                if len(word) > 3:  # Only consider words longer than 3 characters
+                    word_counts[word] = word_counts.get(word, 0) + 1
         
         # Return top keywords
-        return [token for token, count in token_counts.most_common(5)]
+        sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
+        return [word for word, count in sorted_words[:5]]
     
-    def _generate_simple_theme_query(self, theme: ThemeCluster) -> str:
-        """Generate a simple boolean query for a theme"""
-        keywords = theme.keywords[:5]  # Use top 5 keywords
-        
-        if len(keywords) > 1:
-            return " OR ".join(f'"{keyword}"' for keyword in keywords)
-        elif len(keywords) == 1:
-            return f'"{keywords[0]}"'
-        else:
-            return f'"{theme.name}"'
-    
-    async def _get_theme_rag_context(self, refined_query: str) -> Dict[str, Any]:
-        """Get RAG context for theme examples"""
+    def _generate_theme_boolean_query(self, theme: Dict[str, Any], refined_query: str) -> str:
+        """Generate a boolean query for a specific theme."""
         try:
-            search_terms = refined_query.split()[:10]
-            example_themes = await self.filters_rag.get_example_themes(search_terms)
-            return {"example_themes": example_themes}
+            keywords = theme.get("keywords", [])
+            theme_name = theme.get("name", "")
+            
+            # Build boolean query from keywords
+            if keywords:
+                keyword_query = " OR ".join([f'"{keyword}"' for keyword in keywords[:3]])
+                return f"({keyword_query})"
+            else:
+                # Fallback to theme name
+                return f'"{theme_name.replace("_", " ")}"'
+                
         except Exception as e:
-            logger.error(f"Error getting theme RAG context: {str(e)}")
-            return {"example_themes": []}
+            logger.error(f"Error generating boolean query for theme: {str(e)}")
+            return f'"{theme.get("name", "general")}"'
     
-    def _parse_llm_themes_response(self, response_content: str, data: List[Dict[str, Any]]) -> List[ThemeCluster]:
-        """Parse LLM response into ThemeCluster objects"""
+    def _calculate_relevance_score(self, theme: Dict[str, Any], refined_query: str) -> float:
+        """Calculate relevance score for a theme."""
         try:
-            themes = []
-            theme_blocks = response_content.split('---')
+            base_score = theme.get("data_count", 0) * 0.1  # Base score from data count
             
-            for i, block in enumerate(theme_blocks):
-                if len(block.strip()) < 10:
-                    continue
-                
-                # Extract theme information (simplified)
-                lines = block.strip().split('\n')
-                name = f"Theme {i+1}"
-                description = "Auto-generated theme"
-                keywords = []
-                
-                for line in lines:
-                    if 'name:' in line.lower() or 'theme:' in line.lower():
-                        name = line.split(':', 1)[1].strip()
-                    elif 'description:' in line.lower():
-                        description = line.split(':', 1)[1].strip()
-                    elif 'keywords:' in line.lower():
-                        keywords = [kw.strip() for kw in line.split(':', 1)[1].split(',')]
-                
-                # Assign some data points (simplified assignment)
-                theme_data_points = data[i*len(data)//max(len(theme_blocks), 1):(i+1)*len(data)//max(len(theme_blocks), 1)]
-                
-                theme = ThemeCluster(
-                    theme_id=f"theme_{i+1}",
-                    name=name,
-                    description=description,
-                    keywords=keywords,
-                    data_points=theme_data_points,
-                    confidence=0.7
-                )
-                themes.append(theme)
+            # Bonus for themes with more keywords
+            keyword_bonus = len(theme.get("keywords", [])) * 0.05
             
-            return themes
+            # Bonus if theme name appears in refined query
+            if refined_query and theme.get("name", "").lower() in refined_query.lower():
+                query_bonus = 0.3
+            else:
+                query_bonus = 0
+            
+            return min(base_score + keyword_bonus + query_bonus, 1.0)
             
         except Exception as e:
-            logger.error(f"Error parsing LLM themes response: {str(e)}")
-            # Return simple fallback themes instead of calling async function
-            return [ThemeCluster(
-                theme_id="fallback_theme",
-                name="Fallback Theme", 
-                description="Simple fallback categorization",
-                keywords=[],
-                data_points=data[:100],  # Limit data points
-                confidence=0.3
-            )]
+            logger.error(f"Error calculating relevance score: {str(e)}")
+            return 0.5
     
-    async def _fallback_categorization(self, data: List[Dict[str, Any]], refined_query: str) -> List[ThemeCluster]:
-        """Fallback categorization method"""
-        try:
-            # Simple channel-based categorization
-            channel_groups = defaultdict(list)
-            
-            for item in data:
-                channel = item.get("channel", "unknown")
-                channel_groups[channel].append(item)
-            
-            themes = []
-            for i, (channel, items) in enumerate(channel_groups.items()):
-                theme = ThemeCluster(
-                    theme_id=f"fallback_theme_{i+1}",
-                    name=f"{channel.title()} Content",
-                    description=f"Content from {channel} channel",
-                    keywords=[channel],
-                    data_points=items,
-                    confidence=0.5
-                )
-                themes.append(theme)
-            
-            return themes
-            
-        except Exception as e:
-            logger.error(f"Error in fallback categorization: {str(e)}")
-            return []
-    
-    async def _generate_fallback_themes(self, data: List[Dict[str, Any]], refined_query: str) -> List[Dict[str, Any]]:
-        """Generate fallback themes in case of failure"""
-        try:
-            themes = await self._fallback_categorization(data, refined_query)
-            return [theme.dict() for theme in themes]
-        except Exception as e:
-            logger.error(f"Error generating fallback themes: {str(e)}")
-            return []
-    
-    async def _generate_analysis_summary(self, themes: List[ThemeCluster], request: DataAnalysisRequest) -> Dict[str, Any]:
-        """Generate analysis summary"""
-        try:
-            total_categorized = sum(len(theme.data_points) for theme in themes)
-            coverage = (total_categorized / len(request.data)) * 100 if request.data else 0
-            
-            # Convert numpy types to Python native types to avoid serialization issues
-            avg_confidence = 0
-            if themes:
-                confidences = [theme.confidence for theme in themes]
-                avg_confidence = float(sum(confidences) / len(confidences))
-            
-            return {
-                "total_themes": len(themes),
-                "data_coverage": f"{coverage:.1f}%",
-                "categorized_points": total_categorized,
-                "uncategorized_points": len(request.data) - total_categorized,
-                "average_theme_confidence": avg_confidence,
-                "analysis_method": "multi-method",
-                "processing_status": "completed"
+    def _create_basic_themes(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Create basic themes when no clear categorization is found."""
+        themes = [
+            {
+                "name": "Brand Mentions",
+                "description": "General mentions of the brand or products",
+                "data_count": len(data),
+                "keywords": ["brand", "product", "service"],
+                "sample_data": data[:3]
             }
-            
-        except Exception as e:
-            logger.error(f"Error generating analysis summary: {str(e)}")
-            return {"processing_status": "completed_with_errors"}
+        ]
+        
+        # Add channel-based themes if channel data is available
+        channels = set()
+        for item in data:
+            if "channel" in item:
+                channels.add(item["channel"])
+        
+        for channel in channels:
+            channel_data = [item for item in data if item.get("channel") == channel]
+            if len(channel_data) >= 2:
+                themes.append({
+                    "name": f"{channel} Mentions",
+                    "description": f"Mentions from {channel}",
+                    "data_count": len(channel_data),
+                    "keywords": [channel.lower()],
+                    "sample_data": channel_data[:3]
+                })
+        
+        return themes
     
-    # State management for LangGraph integration
-    async def process_state(self, state: DashboardState) -> DashboardState:
-        """Process the dashboard state for data analysis"""
+    def _create_fallback_themes(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Create fallback themes when analysis fails."""
+        return [
+            {
+                "name": "General Content",
+                "description": "All available content",
+                "data_count": len(data),
+                "keywords": ["content", "post", "mention"],
+                "sample_data": data[:3] if data else [],
+                "relevance_score": 0.5
+            }
+        ]
+
+    async def process_state(self, state) -> Any:
+        """
+        Process the dashboard state for data analysis.
+        
+        This method analyzes the fetched data and categorizes it into themes.
+        """
         try:
             logger.info("Processing state for data analysis")
             
-            # Check if we have data to analyze
-            if not hasattr(state, 'fetched_data') or not state.fetched_data:
+            # Get fetched data from state
+            fetched_data = getattr(state, 'fetched_data', [])
+            if not fetched_data:
+                logger.warning("No fetched data available for analysis")
                 state.errors.append("No data available for analysis")
                 state.workflow_status = "data_analysis_failed"
                 return state
             
-            # Get refined query and user context
+            # Get refined query for context
             refined_query = ""
             if hasattr(state, 'query_refinement_data') and state.query_refinement_data:
                 if isinstance(state.query_refinement_data, dict):
@@ -739,53 +376,49 @@ class DataAnalyzerAgent:
                 else:
                     refined_query = getattr(state.query_refinement_data, 'refined_query', '')
             
-            user_context = {}
-            if hasattr(state, 'user_collected_data') and state.user_collected_data:
-                if isinstance(state.user_collected_data, dict):
-                    user_context = state.user_collected_data
+            # Analyze the data
+            analysis_result = self.analyze_data(fetched_data, refined_query)
+            
+            # Update state with analysis results
+            if hasattr(state, 'theme_data'):
+                state.theme_data = analysis_result
+            
+            if hasattr(state, 'identified_themes'):
+                # Convert themes to ThemeData objects if needed
+                themes = analysis_result.get('themes', [])
+                state.identified_themes = themes
+            
+            # Update workflow status
+            if hasattr(state, 'workflow_status'):
+                if analysis_result.get('themes'):
+                    state.workflow_status = "data_analyzed"
                 else:
-                    user_context = getattr(state.user_collected_data, 'to_dict', lambda: {})()
+                    state.workflow_status = "data_analysis_completed_no_themes"
             
-            # Create analysis request
-            request = DataAnalysisRequest(
-                data=state.fetched_data,
-                refined_query=refined_query or state.user_query,
-                user_context=user_context
-            )
+            if hasattr(state, 'current_stage'):
+                state.current_stage = "analyzing"
             
-            # Perform analysis
-            result = await self.analyze_data(request)
-            
-            # Update state with proper structure for USAGE.md
-            if result.get("success", False):
-                # Create theme data in the format expected by USAGE.md
-                themes_list = []
-                for theme in result.get("themes", []):
-                    theme_item = {
-                        "theme_name": theme.get("name", "Unknown Theme"),
-                        "description": theme.get("description", "No description available"),
-                        "boolean_query": theme.get("boolean_query", f'"{theme.get("name", "unknown")}"')
-                    }
-                    themes_list.append(theme_item)
-                
-                state.theme_data = {
-                    "themes": themes_list,
-                    "analysis_summary": result.get("analysis_summary", {}),
-                    "total_themes": len(themes_list),
-                    "processing_method": result.get("analysis_method", "hybrid")
-                }
-                state.workflow_status = "data_analyzed"
-                logger.info(f"Data analysis completed with {len(themes_list)} themes")
-            else:
-                state.errors.append(f"Data analysis failed: {result.get('error', 'Unknown error')}")
-                state.workflow_status = "data_analysis_failed"
-                logger.error("Data analysis failed")
-            
+            logger.info(f"Data analysis completed with {len(analysis_result.get('themes', []))} themes")
             return state
             
         except Exception as e:
             logger.error(f"Error processing state: {str(e)}")
-            state.errors.append(f"Data analysis error: {str(e)}")
-            state.workflow_status = "data_analysis_failed"
+            # Add error to state if it has errors attribute
+            if hasattr(state, 'errors'):
+                state.errors.append(f"Data analysis error: {str(e)}")
+            if hasattr(state, 'workflow_status'):
+                state.workflow_status = "data_analysis_failed"
             return state
+
+def create_data_analyzer_agent(llm=None) -> DataAnalyzerAgent:
+    """
+    Factory function to create a Data Analyzer Agent.
     
+    Args:
+        llm: Language model instance (optional)
+        
+    Returns:
+        Configured DataAnalyzerAgent
+    """
+    return DataAnalyzerAgent(llm)
+
