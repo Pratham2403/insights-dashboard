@@ -28,22 +28,6 @@ settings = settings_module.settings
 
 logger = logging.getLogger(__name__)
 
-class GetTools:
-    """
-    Collection of tools for fetching data from various sources including Sprinklr API.
-    
-    This class provides methods to fetch social media data, mentions, and other
-    relevant information for analysis and theme generation.
-    """
-    
-    def __init__(self):
-        """Initialize the GetTools with configuration"""
-        self.api_timeout = 60
-        self.max_retries = 3
-        
-        logger.info("GetTools initialized")
-
-
 @tool
 async def get_sprinklr_data(
     query: str, 
@@ -197,7 +181,7 @@ class GetTools:
     
     def __init__(self):
         """Initialize the GetTools with configuration"""
-        self.api_timeout = 60
+        self.api_timeout = 90
         self.max_retries = 3
         
         # Reference to the standalone tool function
