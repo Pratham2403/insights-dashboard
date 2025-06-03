@@ -88,25 +88,54 @@ def get_status():
     }
     return create_success_response(status_info, "API operational")
 
-@app.route('/api/analyze', methods=['POST'])
-@handle_exceptions("Error analyzing query")
-def analyze_query():
-    """Main endpoint to analyze user queries and generate themes."""
-    log_endpoint_access("analyze_query")
+@app.route('/api/process', methods=['POST'])
+@handle_exceptions("Error processing request")
+def process_query():
+    """
+    Unified endpoint to handle both query analysis and user responses.
     
-    # Validate request data
-    validation_error = validate_request_data(['query'])
+    For new query analysis:
+        - Requires 'query' parameter
+        - Optional 'context' parameter
+    
+    For responding to existing conversation:
+        - Requires 'thread_id' and 'query' parameters
+    """
+    log_endpoint_access("process_query")
+    
+    data = request.get_json()
+    if not data:
+        return create_error_response(
+            "No JSON data provided", 
+            "Invalid request: Missing JSON data",
+            400
+        )
+    
+    # Validate that 'query' field is always present
+    validation_error = validate_request_data(['query'], data)
     if validation_error:
         return validation_error
     
-    data = request.get_json()
     user_query = data['query']
-    logger.info(f"Received query for analysis: {user_query[:100]}...")
+    thread_id = data.get('thread_id')
+    
+    if thread_id:
+        # Handle user response to existing conversation
+        logger.info(f"Received response for thread {thread_id}: {user_query[:100]}...")
+        
+        wf = get_workflow()
+        result = wf.respond_to_user(thread_id, user_query)
+        logger.info(f"Response processed successfully for thread {thread_id}")
+        return create_success_response(result, "Response processed successfully")
+    
+    else:
+        # Handle new query analysis
+        logger.info(f"Received query for analysis: {user_query[:100]}...")
 
-    wf = get_workflow()
-    result = wf.analyze(user_query, data.get('context', {}))
-    logger.info(f"Analysis successful for query: {user_query[:100]}...")
-    return create_success_response(result, "Query analyzed successfully")
+        wf = get_workflow()
+        result = wf.analyze(user_query, data.get('context', {}))
+        logger.info(f"Analysis successful for query: {user_query[:100]}...")
+        return create_success_response(result, "Query analyzed successfully")
 
 @app.route('/api/workflow/status/<thread_id>', methods=['GET'])
 @handle_exceptions("Error getting workflow status")
@@ -144,27 +173,6 @@ def validate_themes():
     validation_result = wf.validate_themes(themes_to_validate)
     logger.info("Theme validation successful.")
     return create_success_response(validation_result, "Themes validated successfully")
-
-@app.route('/api/respond', methods=['POST'])
-@handle_exceptions("Error processing response")
-def respond_to_query():
-    """Endpoint to handle user responses to pending questions."""
-    log_endpoint_access("respond_to_query")
-    
-    # Validate request data
-    validation_error = validate_request_data(['response', 'thread_id'])
-    if validation_error:
-        return validation_error
-    
-    data = request.get_json()
-    thread_id = data['thread_id']
-    user_response = data['response']
-    logger.info(f"Received response for thread {thread_id}: {user_response[:100]}...")
-    
-    wf = get_workflow()
-    result = wf.respond_to_user(thread_id, user_response)
-    logger.info(f"Response processed successfully for thread {thread_id}")
-    return create_success_response(result, "Response processed successfully")
 
 @app.errorhandler(404)
 def not_found(error):
