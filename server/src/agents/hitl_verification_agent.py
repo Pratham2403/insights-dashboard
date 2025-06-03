@@ -48,15 +48,17 @@ The Filters can be more and more specific, which will be decided by the Query Re
 
 """
 
+import json
+import logging
 from typing import Dict, Any, List, Optional, Tuple
 from langchain_core.messages import HumanMessage, AIMessage
-import logging
-import json
 from datetime import datetime
+from src.agents.base.agent_base import LLMAgent, create_agent_factory
+
 
 logger = logging.getLogger(__name__)
 
-class HITLVerificationAgent:
+class HITLVerificationAgent(LLMAgent):
     """
     Human-in-the-Loop Verification Agent for managing user confirmations and data validation.
     
@@ -64,15 +66,14 @@ class HITLVerificationAgent:
     and processes user feedback to ensure data quality and completeness.
     """
     
-    def __init__(self, llm):
+    def __init__(self, llm=None):
         """
         Initialize the HITL Verification Agent.
         
         Args:
             llm: Language model instance
         """
-        self.llm = llm
-        self.agent_name = "hitl_verification"
+        super().__init__("hitl_verification", llm)
         
         # Define verification types and their handling
         self.verification_types = {
@@ -89,6 +90,18 @@ class HITLVerificationAgent:
                 "required_fields": ["themes", "analysis_summary"]
             }
         }
+    
+    async def invoke(self, state) -> Any:
+        """
+        Main agent invocation method - delegates to process_state for backward compatibility.
+        
+        Args:
+            state: Dashboard state to process
+            
+        Returns:
+            Updated state with verification results
+        """
+        return await self.process_state(state)
     
     def create_verification_request(self, verification_type: str, 
                                   data_to_verify: Dict[str, Any]) -> Dict[str, Any]:
@@ -413,14 +426,6 @@ This information is essential for generating a boolean keyword query to fetch re
             logger.error(f"Error processing state: {str(e)}")
             raise
 
-def create_hitl_verification_agent(llm) -> HITLVerificationAgent:
-    """
-    Factory function to create a HITL Verification Agent.
-    
-    Args:
-        llm: Language model instance
-        
-    Returns:
-        Configured HITLVerificationAgent
-    """
-    return HITLVerificationAgent(llm)
+
+# Create factory function using the base helper
+create_hitl_verification_agent = create_agent_factory(HITLVerificationAgent, "hitl_verification")

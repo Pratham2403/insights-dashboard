@@ -93,8 +93,9 @@ logger = logging.getLogger(__name__)
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 from src.utils.files_helper import import_module_from_file
+from src.agents.base.agent_base import LLMAgent, create_agent_factory
 
-class DataAnalyzerAgent:
+class DataAnalyzerAgent(LLMAgent):
     """
     Data Analyzer Agent for processing and categorizing fetched data into themes.
     
@@ -109,8 +110,7 @@ class DataAnalyzerAgent:
         Args:
             llm: Language model instance (optional, can use classification models instead)
         """
-        self.llm = llm
-        self.agent_name = "data_analyzer"
+        super().__init__("data_analyzer", llm)
         
         # Initialize theme categories for classification
         self.theme_categories = {
@@ -135,6 +135,18 @@ class DataAnalyzerAgent:
                 "keywords": ["vs", "versus", "compared", "better", "worse"]
             }
         }
+    
+    async def invoke(self, state) -> Any:
+        """
+        Main entry point for the agent - delegates to process_state.
+        
+        Args:
+            state: The dashboard state to process
+            
+        Returns:
+            Updated state after data analysis processing
+        """
+        return await self.process_state(state)
     
     def analyze_data(self, data: List[Dict[str, Any]], refined_query: str = "") -> Dict[str, Any]:
         """
@@ -403,15 +415,6 @@ class DataAnalyzerAgent:
                 state.workflow_status = "data_analysis_failed"
             return state
 
-def create_data_analyzer_agent(llm=None) -> DataAnalyzerAgent:
-    """
-    Factory function to create a Data Analyzer Agent.
-    
-    Args:
-        llm: Language model instance (optional)
-        
-    Returns:
-        Configured DataAnalyzerAgent
-    """
-    return DataAnalyzerAgent(llm)
+# Factory function for creating DataAnalyzerAgent instances
+create_data_analyzer_agent = create_agent_factory(DataAnalyzerAgent, "data_analyzer")
 

@@ -59,10 +59,11 @@ import json
 import logging
 from typing import Dict, Any, List, Optional, Tuple
 from langchain_core.messages import HumanMessage, AIMessage
+from src.agents.base.agent_base import LLMAgent, create_agent_factory
 
 logger = logging.getLogger(__name__)
 
-class DataCollectorAgent:
+class DataCollectorAgent(LLMAgent):
     """
     Data Collector Agent for gathering complete user information through HITL interactions.
     
@@ -70,15 +71,14 @@ class DataCollectorAgent:
     including products, channels, goals, time periods, and other requirements.
     """
     
-    def __init__(self, llm):
+    def __init__(self, llm=None):
         """
         Initialize the Data Collector Agent.
         
         Args:
             llm: Language model instance
         """
-        self.llm = llm
-        self.agent_name = "data_collector"
+        super().__init__("data_collector", llm)
         
         # Define data collection categories and their requirements
         self.collection_categories = {
@@ -228,18 +228,22 @@ class DataCollectorAgent:
                                 current_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract data from user response and update current data."""
         try:
-            # Use LLM to extract structured data
-            extraction_prompt = self._build_extraction_prompt(response, category)
-            llm_response = self.llm.invoke(extraction_prompt)
-            
-            # Handle both string and message object responses
-            if hasattr(llm_response, 'content'):
-                response_content = llm_response.content
+            # Use LLM to extract structured data if available
+            if self.llm:
+                extraction_prompt = self._build_extraction_prompt(response, category)
+                llm_response = self.llm.invoke(extraction_prompt)
+                
+                # Handle both string and message object responses
+                try:
+                    response_content = getattr(llm_response, 'content', str(llm_response))
+                except:
+                    response_content = str(llm_response)
+                
+                # Parse the extracted data
+                extracted_data = self._parse_extraction_response(response_content, category)
             else:
-                response_content = str(llm_response)
-            
-            # Parse the extracted data
-            extracted_data = self._parse_extraction_response(response_content, category)
+                # Fallback to simple extraction if no LLM
+                return self._simple_extraction(response, category, current_data)
             
             # Update current data
             updated_data = current_data.copy()
@@ -337,6 +341,18 @@ If it's a single value, return just the value.
         missing = self._identify_missing_data(user_data)
         return missing[0] if missing else None
 
+    async def invoke(self, state) -> Any:
+        """
+        Main entry point for the agent - delegates to process_state.
+        
+        Args:
+            state: The dashboard state to process
+            
+        Returns:
+            Updated state after data collection processing
+        """
+        return await self.process_state(state)
+
     async def process_state(self, state) -> Any:
         """
         Process the dashboard state for data collection.
@@ -402,14 +418,5 @@ If it's a single value, return just the value.
             if hasattr(state, 'workflow_status'):
                 state.workflow_status = "data_collection_failed"
             return state
-def create_data_collector_agent(llm) -> DataCollectorAgent:
-    """
-    Factory function to create a Data Collector Agent.
-    
-    Args:
-        llm: Language model instance
-        
-    Returns:
-        Configured DataCollectorAgent
-    """
-    return DataCollectorAgent(llm)
+# Create factory function using base class helper
+create_data_collector_agent = create_agent_factory(DataCollectorAgent, "data_collector")

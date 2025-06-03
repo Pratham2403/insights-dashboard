@@ -26,12 +26,8 @@ import importlib.util
 import os
 
 # Import helper function
-def import_module_from_file(filepath, module_name):
-    """Helper function to import modules with dots in filenames"""
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+from src.utils.files_helper import import_module_from_file
+from src.agents.base.agent_base import LLMAgent, create_agent_factory
 
 # Get paths
 setup_path = os.path.join(os.path.dirname(__file__), '..', 'setup')
@@ -39,9 +35,9 @@ rag_path = os.path.join(os.path.dirname(__file__), '..', 'rag')
 helpers_path = os.path.join(os.path.dirname(__file__), '..', 'helpers')
 
 # Import the required classes
-llm_module = import_module_from_file(os.path.join(setup_path, 'llm.setup.py'), 'llm_setup')
-filters_module = import_module_from_file(os.path.join(rag_path, 'filters.rag.py'), 'filters_rag')
-prompts_module = import_module_from_file(os.path.join(helpers_path, 'prompts.helper.py'), 'prompts_helper')
+llm_module = import_module_from_file(os.path.join(setup_path, 'llm_setup.py'), 'llm_setup')
+filters_module = import_module_from_file(os.path.join(rag_path, 'filters_rag.py'), 'filters_rag')
+prompts_module = import_module_from_file(os.path.join(helpers_path, 'prompts_helper.py'), 'prompts_helper')
 states_module = import_module_from_file(os.path.join(helpers_path, 'states.py'), 'states')
 
 LLMSetup = llm_module.LLMSetup
@@ -59,7 +55,7 @@ class QueryGenerationRequest(BaseModel):
     filters: Optional[Dict[str, Any]] = Field(None, description="Applied filters")
     theme_data: Optional[Dict[str, Any]] = Field(None, description="Theme-specific data for targeted query generation")
 
-class QueryGeneratorAgent:
+class QueryGeneratorAgent(LLMAgent):
     """
     Boolean Keyword Query Generator Agent for creating optimized Sprinklr API queries.
     
@@ -67,13 +63,28 @@ class QueryGeneratorAgent:
     utilizing RAG context from the knowledge base to create effective search queries.
     """
     
-    def __init__(self):
+    def __init__(self, llm=None):
         """Initialize the Query Generator Agent"""
+        super().__init__("query_generator", llm)
         self.llm_setup = LLMSetup()
         self.filters_rag = FiltersRAG()
         self.prompts_module = prompts_module
-        self.llm = self.llm_setup.get_agent_llm("query_generator")
+        # Use the LLM from base class or get a new one
+        if not self.llm:
+            self.llm = self.llm_setup.get_agent_llm("query_generator")
         logger.info("QueryGeneratorAgent initialized successfully")
+
+    async def invoke(self, state) -> Any:
+        """
+        Main entry point for the agent - delegates to process_state.
+        
+        Args:
+            state: The dashboard state to process
+            
+        Returns:
+            Updated state after query generation processing
+        """
+        return await self.process_state(state)
     
     async def generate_query(self, request: QueryGenerationRequest) -> Dict[str, Any]:
         """
@@ -504,3 +515,6 @@ class QueryGeneratorAgent:
             state.errors.append(f"Query generation error: {str(e)}")
             state.workflow_status = "query_generation_failed"
             return state
+
+# Factory function for creating QueryGeneratorAgent instances
+create_query_generator_agent = create_agent_factory(QueryGeneratorAgent, "query_generator")

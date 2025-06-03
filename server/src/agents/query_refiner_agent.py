@@ -34,12 +34,13 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 import sys
 from src.utils.files_helper import import_module_from_file
+from src.agents.base.agent_base import LLMAgent, create_agent_factory
 
 logger = logging.getLogger(__name__)
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 
-class QueryRefinerAgent:
+class QueryRefinerAgent(LLMAgent):
     """
     Query Refiner Agent for analyzing and refining user queries.
     
@@ -47,17 +48,38 @@ class QueryRefinerAgent:
     filters and themes for dashboard generation.
     """
     
-    def __init__(self, llm, rag_system):
+    def __init__(self, llm=None, rag_system=None):
         """
         Initialize the Query Refiner Agent.
         
         Args:
-            llm: Language model instance
+            llm: Language model instance (optional)
             rag_system: RAG system for context retrieval
         """
-        self.llm = llm
+        super().__init__("query_refiner", llm)
         self.rag_system = rag_system
-        self.agent_name = "query_refiner"
+        if not self.rag_system:
+            # Initialize default RAG system if not provided
+            try:
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                rag_path = os.path.join(current_dir, '..', 'rag')
+                filters_module = import_module_from_file(os.path.join(rag_path, 'filters.rag.py'), 'filters_rag')
+                self.rag_system = filters_module.FiltersRAG()
+            except Exception as e:
+                logger.warning(f"Could not initialize RAG system: {e}")
+                self.rag_system = None
+    
+    async def invoke(self, state) -> Any:
+        """
+        Main entry point for the agent - delegates to process_state.
+        
+        Args:
+            state: The dashboard state to process
+            
+        Returns:
+            Updated state after query refinement processing
+        """
+        return await self.process_state(state)
     
     def refine_query(self, user_query: str, additional_context: Optional[Dict] = None) -> Dict[str, Any]:
         """
@@ -71,22 +93,39 @@ class QueryRefinerAgent:
             Refined query data with suggestions
         """
         try:
+            # Initialize LLM if not already set
+            if not self.llm:
+                try:
+                    current_dir = os.path.dirname(os.path.abspath(__file__))
+                    setup_path = os.path.join(current_dir, '..', 'setup')
+                    llm_module = import_module_from_file(os.path.join(setup_path, 'llm_setup.py'), 'llm_setup')
+                    llm_setup = llm_module.LLMSetup()
+                    self.llm = llm_setup.get_agent_llm("query_refiner")
+                except Exception as e:
+                    logger.error(f"Error initializing LLM: {e}")
+                    return self._create_fallback_refinement(user_query)
+            
             # Get RAG context for the query
             rag_context = self._get_rag_context(user_query)
             
             # Build the prompt with context
             prompt = self._build_refinement_prompt(user_query, rag_context, additional_context)
             
-            # Get LLM response
-            response = self.llm.invoke(prompt)
-            
-            # Handle different response types
-            if isinstance(response, str):
-                response_content = response
-            elif hasattr(response, 'content'):
-                response_content = response.content
-            else:
-                response_content = str(response)
+            # Get LLM response with error handling
+            try:
+                response = self.llm.invoke([HumanMessage(content=prompt)])
+                
+                # Handle different response types
+                if isinstance(response, str):
+                    response_content = response
+                elif hasattr(response, 'content'):
+                    response_content = response.content
+                else:
+                    response_content = str(response)
+                    
+            except Exception as e:
+                logger.error(f"Error invoking LLM: {e}")
+                return self._create_fallback_refinement(user_query)
             
             # Parse the response
             refined_data = self._parse_refinement_response(response_content)
@@ -107,18 +146,22 @@ class QueryRefinerAgent:
     def _get_rag_context(self, query: str) -> Dict[str, Any]:
         """Get relevant context from RAG system."""
         try:
-            context = self.rag_system.get_context_for_query(query)
-            return context
+            if self.rag_system and hasattr(self.rag_system, 'get_context_for_query'):
+                context = self.rag_system.get_context_for_query(query)
+                return context
+            else:
+                # Fallback to basic context
+                return {"filters": [], "themes": [], "query": query}
         except Exception as e:
             logger.error(f"Error getting RAG context: {e}")
             return {"filters": [], "themes": [], "query": query}
-    
+
     def _build_refinement_prompt(self, user_query: str, rag_context: Dict, additional_context: Optional[Dict] = None) -> str:
         """Build the refinement prompt with context."""
         try:
             # Import prompts using the helper function
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            prompts_path = os.path.join(current_dir, '..', 'helpers', 'prompts.helper.py')
+            prompts_path = os.path.join(current_dir, '..', 'helpers', 'prompts_helper.py')
             prompts_module = import_module_from_file(prompts_path, 'prompts_helper')
             QUERY_REFINER_SYSTEM_PROMPT = prompts_module.QUERY_REFINER_SYSTEM_PROMPT
         except Exception as e:
@@ -327,15 +370,5 @@ class QueryRefinerAgent:
                 state.workflow_status = "query_refinement_failed"
             return state
 
-def create_query_refiner_agent(llm, rag_system) -> QueryRefinerAgent:
-    """
-    Factory function to create a Query Refiner Agent.
-    
-    Args:
-        llm: Language model instance
-        rag_system: RAG system instance
-        
-    Returns:
-        Configured QueryRefinerAgent
-    """
-    return QueryRefinerAgent(llm, rag_system)
+# Factory function for creating QueryRefinerAgent instances
+create_query_refiner_agent = create_agent_factory(QueryRefinerAgent, "query_refiner")

@@ -31,8 +31,8 @@ rag_path = os.path.join(os.path.dirname(__file__), 'rag')
 tools_path = os.path.join(os.path.dirname(__file__), 'tools')
 
 # Import setup classes
-llm_setup_module = import_module_from_file(os.path.join(setup_path, 'llm.setup.py'), 'llm_setup')
-filters_rag_module = import_module_from_file(os.path.join(rag_path, 'filters.rag.py'), 'filters_rag')
+llm_setup_module = import_module_from_file(os.path.join(setup_path, 'llm_setup.py'), 'llm_setup')
+filters_rag_module = import_module_from_file(os.path.join(rag_path, 'filters_rag.py'), 'filters_rag')
 
 LLMSetup = llm_setup_module.LLMSetup
 FiltersRAG = filters_rag_module.FiltersRAG
@@ -67,16 +67,16 @@ states_module = import_module_from_file(
 
 # Import tools
 get_tool_module = import_module_from_file(
-    os.path.join(tools_path, 'get.tool.py'), 
+    os.path.join(tools_path, 'get_tool.py'), 
     'get_tool'
 )
 
-# Get classes
-QueryRefinerAgent = query_refiner_module.QueryRefinerAgent
-QueryGeneratorAgent = query_generator_module.QueryGeneratorAgent
-DataCollectorAgent = data_collector_module.DataCollectorAgent
-DataAnalyzerAgent = data_analyzer_module.DataAnalyzerAgent
-HITLVerificationAgent = hitl_verification_module.HITLVerificationAgent
+# Import agent factory functions
+create_query_refiner_agent = query_refiner_module.create_query_refiner_agent
+create_query_generator_agent = query_generator_module.create_query_generator_agent
+create_data_collector_agent = data_collector_module.create_data_collector_agent
+create_data_analyzer_agent = data_analyzer_module.create_data_analyzer_agent
+create_hitl_verification_agent = hitl_verification_module.create_hitl_verification_agent
 DashboardState = states_module.DashboardState
 QueryRefinementData = states_module.QueryRefinementData
 UserCollectedData = states_module.UserCollectedData
@@ -127,14 +127,14 @@ class SprinklrWorkflow:
         """Lazy initialize query refiner agent"""
         if self._query_refiner is None:
             llm = self.llm_setup.get_agent_llm("workflow")
-            self._query_refiner = QueryRefinerAgent(llm=llm, rag_system=self.rag_system)
+            self._query_refiner = create_query_refiner_agent(llm=llm, rag_system=self.rag_system)
         return self._query_refiner
     
     @property
     def query_generator(self):
         """Lazy initialize query generator agent"""
         if self._query_generator is None:
-            self._query_generator = QueryGeneratorAgent()
+            self._query_generator = create_query_generator_agent()
         return self._query_generator
     
     @property
@@ -142,14 +142,14 @@ class SprinklrWorkflow:
         """Lazy initialize data collector agent"""
         if self._data_collector is None:
             llm = self.llm_setup.get_agent_llm("workflow")
-            self._data_collector = DataCollectorAgent(llm=llm)
+            self._data_collector = create_data_collector_agent(llm=llm)
         return self._data_collector
     
     @property
     def data_analyzer(self):
         """Lazy initialize data analyzer agent"""
         if self._data_analyzer is None:
-            self._data_analyzer = DataAnalyzerAgent()
+            self._data_analyzer = create_data_analyzer_agent()
         return self._data_analyzer
     
     @property
@@ -157,7 +157,7 @@ class SprinklrWorkflow:
         """Lazy initialize HITL verification agent"""
         if self._hitl_verification is None:
             llm = self.llm_setup.get_agent_llm("workflow")
-            self._hitl_verification = HITLVerificationAgent(llm=llm)
+            self._hitl_verification = create_hitl_verification_agent(llm=llm)
         return self._hitl_verification
     
     @property
@@ -430,17 +430,38 @@ class SprinklrWorkflow:
             # Default behavior: for incomplete user queries, always require HITL verification
             user_query = getattr(state, 'user_query', '').strip().lower()
             
-            # Check if the query is meaningful enough to proceed without user input
-            meaningful_keywords = ['brand', 'monitoring', 'analysis', 'social', 'media', 'sentiment', 'mentions']
-            
-            # Very simple queries like "My name is Pratham" should always require user input
-            query_words = user_query.split()
-            has_meaningful_content = any(keyword in user_query for keyword in meaningful_keywords)
-            is_too_short = len(query_words) <= 3
-            
-            if not has_meaningful_content or is_too_short:
-                logger.info(f"Query '{user_query}' needs user input for clarification")
-                return "end"  # This will cause the workflow to stop and request user input
+            # Use Query Refiner Agent to determine if query is meaningful enough
+            try:
+                # Get dynamic assessment from Query Refiner Agent
+                refinement_analysis = self.query_refiner.refine_query(user_query)
+                
+                # Check if the refinement indicates the query needs more information
+                if hasattr(refinement_analysis, 'get'):
+                    confidence_score = refinement_analysis.get('confidence_score', 0)
+                    missing_info = refinement_analysis.get('missing_information', [])
+                    
+                    # If confidence is low or there's significant missing information, require user input
+                    if confidence_score < 0.5 or len(missing_info) > 3:
+                        logger.info(f"Query '{user_query}' needs user input based on dynamic analysis (confidence: {confidence_score})")
+                        return "end"
+                else:
+                    # Fallback: if we can't analyze dynamically, check basic criteria
+                    query_words = user_query.split()
+                    is_too_short = len(query_words) <= 3
+                    
+                    if is_too_short:
+                        logger.info(f"Query '{user_query}' is too short and needs user input")
+                        return "end"
+                        
+            except Exception as e:
+                logger.warning(f"Could not dynamically analyze query meaningfulness: {e}")
+                # Fallback to simple length check
+                query_words = user_query.split()
+                is_too_short = len(query_words) <= 3
+                
+                if is_too_short:
+                    logger.info(f"Query '{user_query}' needs user input (fallback analysis)")
+                    return "end"
             
             # If no verification data but query seems complete, also end for user confirmation
             logger.info("No HITL verification data available, requiring user confirmation")
@@ -677,37 +698,95 @@ class SprinklrWorkflow:
             # Create a human message from the user response
             new_message = HumanMessage(content=user_response)
             
-            # Parse the user response to extract relevant information
-            # This would normally be done by analyzing the response for specific entities
-            brand = "Apple" if "Apple" in user_response else ""
-            channels = []
-            if "Twitter" in user_response:
-                channels.append("Twitter")
-            if "Facebook" in user_response:
-                channels.append("Facebook")
-            if "Instagram" in user_response:
-                channels.append("Instagram")
+            # Use Query Refiner Agent to analyze and extract information from user response
+            # This will dynamically understand the content instead of hardcoded matching
+            refinement_result = self.query_refiner.refine_query(user_response)
             
-            goals = []
-            if "brand awareness" in user_response.lower():
-                goals.append("Brand Awareness")
-            if "sentiment" in user_response.lower():
-                goals.append("Sentiment Analysis")
-                
-            time_period = "last 30 days" if "30 days" in user_response else "recent"
+            # Use Data Collector Agent to extract structured data dynamically
+            data_collector = self.data_collector
             
-            # Create a new state with the extracted information
+            # Extract information dynamically using the agent's capabilities
+            extracted_data = {}
+            if hasattr(data_collector, '_extract_and_update_data'):
+                # Extract products/brands dynamically
+                extracted_data = data_collector._extract_and_update_data(
+                    user_response, "products", {}
+                )
+                # Extract channels dynamically
+                extracted_data = data_collector._extract_and_update_data(
+                    user_response, "channels", extracted_data
+                )
+                # Extract goals dynamically
+                extracted_data = data_collector._extract_and_update_data(
+                    user_response, "goals", extracted_data
+                )
+                # Extract time period dynamically
+                extracted_data = data_collector._extract_and_update_data(
+                    user_response, "time_period", extracted_data
+                )
+            
+            # Create user data from dynamically extracted information
             user_data = UserCollectedData(
-                products=[brand] if brand else [],
-                channels=channels,
-                goals=goals,
-                time_period=time_period
+                products=extracted_data.get("products", []),
+                channels=extracted_data.get("channels", []),
+                goals=extracted_data.get("goals", []),
+                time_period=extracted_data.get("time_period", "recent")
             )
             
-            # Create a boolean query based on user input
-            boolean_query = f'"{brand}" AND ({" OR ".join(channels)})'
+            # Generate dynamic boolean query using extracted data and refined query
+            products = extracted_data.get("products", [])
+            channels = extracted_data.get("channels", [])
+            goals = extracted_data.get("goals", [])
+            time_period = extracted_data.get("time_period", "recent")
             
-            # Create a new state starting from query generation
+            # Create a sophisticated boolean query based on extracted data
+            query_parts = []
+            if products:
+                # Use any product/brand mentioned
+                product_query = " OR ".join([f'"{product}"' for product in products])
+                query_parts.append(f"({product_query})")
+            
+            if channels:
+                # Include channel filters
+                channel_query = " OR ".join([f'channel:"{channel}"' for channel in channels])
+                query_parts.append(f"({channel_query})")
+            
+            if goals:
+                # Use Query Generator Agent to dynamically create goal keywords
+                goal_keywords = []
+                try:
+                    # Use the query generator to create dynamic goal-related keywords
+                    for goal in goals:
+                        # Let the query generator expand the goal into related keywords
+                        goal_expansion_result = self.query_generator.generate_query({
+                            "user_data": {
+                                "goals": [goal],
+                                "products": products,
+                                "channels": channels
+                            },
+                            "query_type": "goal_expansion"
+                        })
+                        
+                        # Extract keywords from the result or use the goal itself
+                        if hasattr(goal_expansion_result, 'get') and goal_expansion_result.get('keywords'):
+                            goal_keywords.extend(goal_expansion_result['keywords'])
+                        else:
+                            # Fallback: use the goal itself
+                            goal_keywords.append(goal.lower())
+                            
+                except Exception as e:
+                    logger.warning(f"Could not dynamically expand goals, using fallback: {e}")
+                    # Fallback: use goals as-is
+                    goal_keywords = [goal.lower() for goal in goals]
+                
+                if goal_keywords:
+                    goal_query = " OR ".join([f'"{keyword}"' for keyword in goal_keywords])
+                    query_parts.append(f"({goal_query})")
+            
+            # Combine query parts with AND logic
+            boolean_query = " AND ".join(query_parts) if query_parts else f'"{refinement_result.get("refined_query", user_response)}"'
+            
+            # Create a new state starting from query generation with dynamic data
             initial_state = DashboardState(
                 user_query=user_response,
                 original_query=user_response,
@@ -722,8 +801,8 @@ class SprinklrWorkflow:
                     "verification_type": "query_confirmation",
                     "timestamp": datetime.now().isoformat(),
                     "verified_data": {
-                        "refined_query": user_response,
-                        "brand": brand,
+                        "refined_query": refinement_result.get("refined_query", user_response),
+                        "products": products,
                         "channels": channels,
                         "goals": goals,
                         "time_period": time_period
@@ -733,12 +812,12 @@ class SprinklrWorkflow:
                 },
                 query_refinement_data={
                     "original_query": user_response,
-                    "refined_query": f"Monitor {brand} brand on {', '.join(channels)} for {', '.join(goals)} over the {time_period}",
-                    "confidence_score": 0.9
+                    "refined_query": refinement_result.get("refined_query", f"Social media monitoring for: {' and '.join(products) if products else 'brand'} on {', '.join(channels) if channels else 'social media'}"),
+                    "confidence_score": refinement_result.get("confidence_score", 0.8)
                 },
                 boolean_query_data={
                     "boolean_query": boolean_query,
-                    "query_components": [brand] + channels,
+                    "query_components": products + channels + goals,
                     "target_channels": channels,
                     "filters_applied": {"time_period": time_period}
                 }
@@ -818,7 +897,7 @@ class SprinklrWorkflow:
                 
                 return {
                     "status": "success" if is_successful else "in_progress",
-                    "message": "Your response has been processed successfully.",
+                    "message": "Your response has been processed successfully using dynamic extraction.",
                     "themes": themes,
                     "refined_query": refined_query,
                     "workflow_status": workflow_status,
@@ -826,7 +905,13 @@ class SprinklrWorkflow:
                     "errors": result_state.get('errors', []) if isinstance(result_state, dict) else getattr(result_state, 'errors', []),
                     "conversation_id": result_state.get('conversation_id', 'unknown') if isinstance(result_state, dict) else getattr(result_state, 'conversation_id', 'unknown'),
                     "thread_id": thread_id,
-                    "boolean_query": boolean_query
+                    "boolean_query": boolean_query,
+                    "extracted_data": {
+                        "products": products,
+                        "channels": channels,
+                        "goals": goals,
+                        "time_period": time_period
+                    }
                 }
             else:
                 return {
@@ -843,7 +928,201 @@ class SprinklrWorkflow:
                 "thread_id": thread_id,
                 "error": str(e)
             }
+
+    def analyze(self, user_query: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Synchronous wrapper for process_user_query method to support Flask integration.
         
+        Args:
+            user_query: The user's natural language query
+            user_context: Additional context about the user's preferences
+            
+        Returns:
+            Dictionary containing the complete workflow results
+        """
+        import asyncio
+        
+        try:
+            # Handle async execution in synchronous context
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(self.process_user_query(user_query, user_context))
+                return result
+            finally:
+                loop.close()
+        except Exception as e:
+            logger.error(f"Error in analyze method: {str(e)}")
+            return {
+                "status": "failed",
+                "error": str(e),
+                "message": "Failed to analyze the query",
+                "themes": [],
+                "errors": [str(e)]
+            }
+    
+    def get_thread_status(self, thread_id: str) -> Dict[str, Any]:
+        """
+        Synchronous wrapper for get_workflow_status method to support Flask integration.
+        
+        Args:
+            thread_id: The thread ID for the workflow execution
+            
+        Returns:
+            Dictionary containing the workflow status
+        """
+        try:
+            return self.get_workflow_status(thread_id)
+        except Exception as e:
+            logger.error(f"Error getting thread status: {str(e)}")
+            return {
+                "thread_id": thread_id,
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def respond_to_user(self, thread_id: str, user_response: str) -> Dict[str, Any]:
+        """
+        Synchronous wrapper for process_user_response method to support Flask integration.
+        
+        Args:
+            thread_id: The thread ID for the conversation
+            user_response: The user's response to the pending question
+            
+        Returns:
+            Dictionary containing updated workflow results
+        """
+        import asyncio
+        
+        try:
+            # Handle async execution in synchronous context
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(self.process_user_response(thread_id, user_response))
+                return result
+            finally:
+                loop.close()
+        except Exception as e:
+            logger.error(f"Error in respond_to_user method: {str(e)}")
+            return {
+                "status": "failed",
+                "error": str(e),
+                "message": "Failed to process user response",
+                "thread_id": thread_id
+            }
+
+    def validate_themes(self, themes: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Validate and provide feedback on generated themes.
+        
+        Args:
+            themes: List of theme dictionaries to validate
+            
+        Returns:
+            Dictionary containing validation results
+        """
+        try:
+            logger.info(f"Validating {len(themes)} themes")
+            
+            validation_results = {
+                "is_valid": True,
+                "validated_themes": [],
+                "validation_errors": [],
+                "suggestions": []
+            }
+            
+            for i, theme in enumerate(themes):
+                theme_validation = {
+                    "theme_index": i,
+                    "original_theme": theme,
+                    "is_valid": True,
+                    "errors": [],
+                    "suggestions": []
+                }
+                
+                # Check required fields
+                required_fields = ['name', 'description', 'sentiment', 'count']
+                for field in required_fields:
+                    if field not in theme:
+                        theme_validation["is_valid"] = False
+                        theme_validation["errors"].append(f"Missing required field: {field}")
+                        validation_results["is_valid"] = False
+                
+                # Validate sentiment values dynamically
+                if 'sentiment' in theme:
+                    valid_sentiments = self._get_valid_sentiment_values()
+                    if theme['sentiment'].lower() not in valid_sentiments:
+                        theme_validation["is_valid"] = False
+                        theme_validation["errors"].append(f"Invalid sentiment: {theme['sentiment']}. Must be one of {valid_sentiments}")
+                        validation_results["is_valid"] = False
+                
+                # Validate count is numeric
+                if 'count' in theme:
+                    try:
+                        int(theme['count'])
+                    except (ValueError, TypeError):
+                        theme_validation["is_valid"] = False
+                        theme_validation["errors"].append(f"Count must be numeric, got: {theme['count']}")
+                        validation_results["is_valid"] = False
+                
+                # Check for meaningful theme names
+                if 'name' in theme:
+                    if len(theme['name'].strip()) < 3:
+                        theme_validation["suggestions"].append("Theme name should be more descriptive")
+                
+                validation_results["validated_themes"].append(theme_validation)
+                if theme_validation["errors"]:
+                    validation_results["validation_errors"].extend(theme_validation["errors"])
+            
+            logger.info(f"Theme validation completed. Valid: {validation_results['is_valid']}")
+            return validation_results
+            
+        except Exception as e:
+            logger.error(f"Error validating themes: {str(e)}")
+            return {
+                "is_valid": False,
+                "error": str(e),
+                "message": "Failed to validate themes"
+            }
+    
+    def _get_valid_sentiment_values(self) -> List[str]:
+        """
+        Get valid sentiment values dynamically from the Data Analyzer Agent or configuration.
+        
+        Returns:
+            List of valid sentiment values (lowercase)
+        """
+        try:
+            # Try to get sentiment categories from the Data Analyzer Agent
+            if hasattr(self, 'data_analyzer') and self.data_analyzer:
+                # Check if Data Analyzer has sentiment categories
+                if hasattr(self.data_analyzer, 'theme_categories'):
+                    sentiment_categories = self.data_analyzer.theme_categories
+                    if 'sentiment_analysis' in sentiment_categories:
+                        # Extract sentiment values from keywords or use standard values
+                        sentiment_keywords = sentiment_categories['sentiment_analysis'].get('keywords', [])
+                        # Map sentiment keywords to standard sentiment values
+                        detected_sentiments = []
+                        if any(word in sentiment_keywords for word in ['good', 'excellent', 'love', 'amazing', 'great']):
+                            detected_sentiments.append('positive')
+                        if any(word in sentiment_keywords for word in ['bad', 'terrible', 'hate', 'awful', 'poor']):
+                            detected_sentiments.append('negative')
+                        if any(word in sentiment_keywords for word in ['neutral', 'okay', 'average']):
+                            detected_sentiments.append('neutral')
+                        
+                        if detected_sentiments:
+                            # Always include all three standard sentiment values
+                            return ['positive', 'negative', 'neutral']
+            
+            # Fallback to standard sentiment values if no dynamic detection
+            logger.info("Using fallback sentiment values: positive, negative, neutral")
+            return ['positive', 'negative', 'neutral']
+            
+        except Exception as e:
+            logger.error(f"Error getting dynamic sentiment values: {str(e)}")
+            # Return safe fallback values
+            return ['positive', 'negative', 'neutral']
 
 # Initialize global workflow instance
 workflow_instance = None
