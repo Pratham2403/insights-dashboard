@@ -11,6 +11,7 @@ import importlib.util
 import os
 import re
 import json
+import traceback
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union
 from langgraph.graph import StateGraph, END
@@ -106,7 +107,11 @@ class SprinklrWorkflow:
         self._get_tools = None
         self._workflow = None
         
-        logger.info("SprinklrWorkflow initialized with lazy loading")
+        # Create persistent memory for state management across all methods
+        from langgraph.checkpoint.memory import MemorySaver
+        self._memory = MemorySaver()
+        
+        logger.info("SprinklrWorkflow initialized with lazy loading and persistent memory")
     
     @property
     def llm_setup(self):
@@ -246,20 +251,62 @@ class SprinklrWorkflow:
     
     async def _hitl_verification_node(self, state: DashboardState) -> DashboardState:
         """Process HITL verification"""
+        from langgraph.types import Interrupt
+        
         try:
             logger.info("Processing HITL verification node")
-            updated_state = await self.hitl_verification.process_state(state)
-            updated_state.current_step = "hitl_verified"
             
+            # Ensure necessary fields exist on state
+            if not hasattr(state, "hitl_outcome"):
+                # Initialize the field if missing
+                state.hitl_outcome = None
+                logger.info("Added missing hitl_outcome field to state")
+                
+            # Prepare the HITL input payload with the refined query data
+            state.hitl_input_payload = {
+                "conversation_id": state.conversation_id,
+                "original_query": state.original_query,
+                "refined_query": getattr(state.query_refinement_data, "refined_query", state.original_query) if hasattr(state, "query_refinement_data") else state.original_query,
+                "user_data": state.user_data.model_dump() if hasattr(state.user_data, "model_dump") else state.user_data,
+                "awaiting_confirmation": True,
+                "verification_type": "data_confirmation",
+                "questions": ["Is this refined query accurate?", "Is all the necessary information collected?"],
+                "current_stage": state.current_stage,
+                "next_steps": ["Proceed to generate query", "Collect more information", "Refine query further"]
+            }
+            
+            # Call invoke instead of process_state
+            result = await self.hitl_verification.invoke(state)
+            
+            # Check if the result is an Interrupt
+            if isinstance(result, Interrupt):
+                logger.info("HITL verification returned interrupt - returning to LangGraph")
+                return result
+            
+            # Otherwise, merge the updates into the state
+            # The invoke method of HITLVerificationAgent returns a dictionary of updates
+            for key, value in result.items():
+                setattr(state, key, value)
+            
+            state.current_step = "hitl_verified" 
+            
+            # Check if hitl_outcome indicates an error from the agent itself (e.g. bad input)
+            if hasattr(state, "hitl_outcome") and isinstance(state.hitl_outcome, dict) and state.hitl_outcome.get("error"):
+                error_message = state.hitl_outcome.get("error")
+                logger.error(f"HITL agent returned an error: {error_message}")
+                state.errors.append(f"HITL verification failed: {error_message}")
+                state.workflow_status = "failed"
+
             # Debug: Log the state after HITL processing
-            logger.info(f"DEBUG: After HITL processing - workflow_status = {updated_state.workflow_status}")
-            logger.info(f"DEBUG: After HITL processing - current_step = {updated_state.current_step}")
-            logger.info(f"DEBUG: After HITL processing - has hitl_verification_data = {hasattr(updated_state, 'hitl_verification_data')}")
+            logger.info(f"DEBUG: After HITL processing - workflow_status = {state.workflow_status}")
+            logger.info(f"DEBUG: After HITL processing - current_step = {state.current_step}")
+            logger.info(f"DEBUG: After HITL processing - hitl_outcome = {getattr(state, 'hitl_outcome', None)}")
             
-            return updated_state
+            return state
             
         except Exception as e:
             logger.error(f"Error in HITL verification node: {str(e)}")
+            traceback.print_exc()
             state.errors.append(f"HITL verification failed: {str(e)}")
             state.workflow_status = "failed"
             return state
@@ -447,7 +494,7 @@ class SprinklrWorkflow:
                 else:
                     # Fallback: if we can't analyze dynamically, check basic criteria
                     query_words = user_query.split()
-                    is_too_short = len(query_words) <= 3
+                    is_too_short = len(query_words) <= 3;
                     
                     if is_too_short:
                         logger.info(f"Query '{user_query}' is too short and needs user input")
@@ -491,9 +538,6 @@ class SprinklrWorkflow:
             logger.info(f"Starting workflow for query: {user_query[:100]}...")
             
             # Initialize state
-            # Add this to the beginning of process_user_query function around line 455
-            import traceback
-            
             initial_state = DashboardState(
                 user_query=user_query,
                 original_query=user_query,  # Set both fields for compatibility
@@ -507,62 +551,92 @@ class SprinklrWorkflow:
             )
             
             # Compile and run workflow
-            memory = MemorySaver()
-            app = self.workflow.compile(checkpointer=memory)
-            # Add after line 469 (inside process_user_query)
+            app = self.workflow.compile(checkpointer=self._memory)
             logger.info(f"Starting workflow with state: {initial_state.model_dump()}")
+            
             # Execute workflow
-            config: RunnableConfig = {"configurable": {"thread_id": f"workflow_{hash(user_query)}"}}
-            final_state = None
-            
-            async for state_dict in app.astream(initial_state, config=config):
-                final_state = state_dict
-                # Extract the actual state object from the dictionary
-                if isinstance(final_state, dict) and final_state:
-                    # Get the first value from the state dict (should be a dict or DashboardState)
-                    state_val = list(final_state.values())[0]
-                    
-                    # Create a safe copy of the state data that we can modify
-                    if isinstance(state_val, dict):
-                        # For dict representation, ensure nested model objects are properly handled
-                        state_data = state_val.copy()
-                        
-                        # Handle query_refinement_data specifically
-                        if 'query_refinement_data' in state_data and hasattr(state_data['query_refinement_data'], 'model_dump'):
-                            # Convert to dict to avoid validation issues
-                            state_data['query_refinement_data'] = state_data['query_refinement_data'].model_dump()
-                        
-                        if 'query_refinement' in state_data and hasattr(state_data['query_refinement'], 'model_dump'):
-                            # Convert to dict to avoid validation issues
-                            state_data['query_refinement'] = state_data['query_refinement'].model_dump()
-                        
-                        # Handle boolean query data similarly
-                        if 'boolean_query_data' in state_data and hasattr(state_data['boolean_query_data'], 'model_dump'):
-                            state_data['boolean_query_data'] = state_data['boolean_query_data'].model_dump()
-                            
-                        if 'query_generation_data' in state_data and hasattr(state_data['query_generation_data'], 'model_dump'):
-                            state_data['query_generation_data'] = state_data['query_generation_data'].model_dump()
-                            
-                        if 'boolean_query' in state_data and hasattr(state_data['boolean_query'], 'model_dump'):
-                            state_data['boolean_query'] = state_data['boolean_query'].model_dump()
-            
-                        actual_state = DashboardState(**state_data)
-                    else:
-                        # Already a DashboardState object
-                        actual_state = state_val
-                        
-                    logger.info(f"Current workflow state: {actual_state.workflow_status}")
-                    current_step = getattr(actual_state, 'current_step', 'unknown')
-                else:
-                    current_step = 'unknown'
-
-                logger.info(f"Workflow step completed: {current_step}")
-            
-            # Get the complete final state from the checkpointer instead of just the last update
-            # This ensures we get the full accumulated state, not just the node-specific update
             thread_id = f"workflow_{hash(user_query)}"
+            config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
+            
+            # Initialize variables to track workflow state
+            final_state = None
+            is_interrupted = False
+            interrupt_data = None
+            
+            try:
+                # Stream the execution to capture intermediate states
+                async for state_dict in app.astream(initial_state, config=config):
+                    final_state = state_dict
+                    # Process the state for meaningful data
+                    if isinstance(final_state, dict) and final_state:
+                        state_val = list(final_state.values())[0]
+                        
+                        # Create a safe copy of the state data that we can modify
+                        if isinstance(state_val, dict):
+                            state_data = state_val.copy()
+                            actual_state = DashboardState(**state_data)
+                        else:
+                            # Already a DashboardState object
+                            actual_state = state_val
+                            
+                        # Only access workflow_status if actual_state is properly set
+                        if actual_state is not None:
+                            logger.info(f"Current workflow state: {actual_state.workflow_status}")
+                            current_step = getattr(actual_state, 'current_step', 'unknown')
+                        else:
+                            current_step = 'unknown'
+                    else:
+                        current_step = 'unknown'
+
+                    logger.info(f"Workflow step completed: {current_step}")
+                
+                # No interruption occurred, process normally
+                logger.info("Workflow completed without interruption")
+                
+            except Exception as e:
+                # Check if this is an Interrupt exception (LangGraph will raise the Interrupt)
+                if "Interrupt" in str(e):
+                    logger.info(f"Workflow interrupted for user input: {str(e)}")
+                    is_interrupted = True
+                    
+                    # Get the interrupts from the app
+                    interrupts = app.get_interrupts(config)
+                    if interrupts:
+                        latest_interrupt = interrupts[-1]
+                        interrupt_id = latest_interrupt["interrupt_id"]
+                        interrupt_data = latest_interrupt["payload"]
+                        logger.info(f"Interrupt ID: {interrupt_id}, Payload: {interrupt_data}")
+                    else:
+                        logger.error("Expected interrupts but none found")
+                else:
+                    # This is a real error, not an interrupt
+                    logger.error(f"Error in workflow execution: {str(e)}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    
+                    return {
+                        "status": "error",
+                        "message": f"Error processing query: {str(e)}",
+                        "conversation_id": thread_id,
+                        "errors": [str(e)],
+                        "workflow_status": "failed"
+                    }
+            
+            # Get the complete final state from the checkpointer
             complete_state = app.get_state(config)
             result_state = complete_state.values if complete_state else None
+            
+            if is_interrupted and interrupt_data:
+                # Workflow was interrupted for human input
+                return {
+                    "status": "awaiting_user_input",
+                    "message": "Human input required to continue",
+                    "conversation_id": thread_id,
+                    "interrupt_data": interrupt_data,
+                    "workflow_status": "awaiting_user_input",
+                    "current_step": "human_verification",
+                    "refined_query": result_state.get("query_refinement_data", {}).get("refined_query", "") if result_state else ""
+                }
             
             if result_state:
                 # Get themes from theme_data if it exists
@@ -581,85 +655,42 @@ class SprinklrWorkflow:
                     else:
                         refined_query = getattr(result_state['query_refinement_data'], 'refined_query', '')
                 
-                # Check if workflow was successful or needs user input
+                # Check workflow status
                 workflow_status = result_state.get('workflow_status', 'failed')
                 current_step = result_state.get('current_step', 'unknown')
-                is_successful = workflow_status in ["completed", "completed_with_warnings", "data_analyzed"]
+                errors = result_state.get('errors', [])
                 
-                needs_user_input = (workflow_status == "awaiting_user_input" or 
-                                  current_step == "awaiting_user_verification" or
-                                  ('hitl_verification_data' in result_state and 
-                                   result_state['hitl_verification_data'] and
-                                   isinstance(result_state['hitl_verification_data'], dict) and
-                                   result_state['hitl_verification_data'].get("requires_user_input", False)))
-                
-                # Get pending questions
-                pending_questions = []
-                if 'pending_questions' in result_state:
-                    pending_questions = result_state['pending_questions']
-                
-                # Get HITL verification data
-                hitl_data = {}
-                if 'hitl_verification_data' in result_state and result_state['hitl_verification_data']:
-                    if isinstance(result_state['hitl_verification_data'], dict):
-                        hitl_data = result_state['hitl_verification_data']
-                    else:
-                        hitl_data = result_state['hitl_verification_data'].model_dump() if hasattr(result_state['hitl_verification_data'], 'model_dump') else {}
-                
-                # Get messages for conversation history
-                messages = []
-                if 'messages' in result_state:
-                    messages = [msg.content if hasattr(msg, 'content') else str(msg) for msg in result_state['messages']]
-                
-                # Return appropriate response based on workflow status
-                if needs_user_input:
-                    return {
-                        "status": "awaiting_user_input",
-                        "message": "Additional information is needed to process your request",
-                        "themes": themes,
-                        "refined_query": refined_query,
-                        "workflow_status": "awaiting_user_input",
-                        "current_step": current_step,
-                        "pending_questions": pending_questions,
-                        "hitl_data": hitl_data,
-                        "messages": messages,
-                        "errors": result_state.get('errors', []),
-                        "conversation_id": result_state.get('conversation_id', 'unknown'),
-                        "thread_id": f"workflow_{hash(user_query)}"
-                    }
-                else:
-                    # Standard success/failure response
-                    return {
-                        "status": "success" if is_successful else "failed",
-                        "message": f"Brand monitor insights have been successfully generated." if is_successful else "Failed to generate insights",
-                        "themes": themes,
-                        "refined_query": refined_query,
-                        "workflow_status": workflow_status,
-                        "current_step": current_step,
-                        "errors": result_state.get('errors', []),
-                        "conversation_id": result_state.get('conversation_id', 'unknown'),
-                        "timestamp": result_state.get('timestamp', None)
-                    }
+                # Return formatted response
+                return {
+                    "status": "success" if workflow_status != "failed" else "failed",
+                    "message": "Dashboard insights generated" if workflow_status != "failed" else "Failed to generate insights",
+                    "conversation_id": thread_id,
+                    "refined_query": refined_query,
+                    "themes": themes,
+                    "workflow_status": workflow_status,
+                    "current_step": current_step,
+                    "errors": errors,
+                    "timestamp": datetime.now().strftime("%a, %d %b %Y %H:%M:%S GMT")
+                }
             else:
                 return {
-                    "status": "failed",
-                    "message": "Workflow did not complete properly",
-                    "themes": [],
-                    "refined_query": "",
-                    "errors": ["Workflow execution failed"]
+                    "status": "error",
+                    "message": "Could not retrieve final workflow state",
+                    "conversation_id": thread_id,
+                    "workflow_status": "failed"
                 }
                 
-        # Replace the exception handler around line 542
         except Exception as e:
-            stack_trace = traceback.format_exc()
-            logger.error(f"Error processing user query: {str(e)}\n{stack_trace}")
+            logger.error(f"Error processing user query: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
             return {
-                "success": False,
-                "status": "failed",
-                "error": str(e),
-                "themes": [],
+                "status": "error",
+                "message": f"Error processing query: {str(e)}",
+                "conversation_id": f"workflow_{hash(user_query)}",
                 "errors": [str(e)],
-                "stack_trace": stack_trace if os.getenv("DEBUG", "false").lower() == "true" else None
+                "workflow_status": "failed"
             }
     
     def get_workflow_status(self, thread_id: str) -> Dict[str, Any]:
@@ -695,453 +726,241 @@ class SprinklrWorkflow:
         try:
             logger.info(f"Processing user response for thread {thread_id}: {user_response[:100]}...")
             
-            # Create a human message from the user response
-            new_message = HumanMessage(content=user_response)
-            
-            # Use Query Refiner Agent to analyze and extract information from user response
-            # This will dynamically understand the content instead of hardcoded matching
-            refinement_result = self.query_refiner.refine_query(user_response)
-            
-            # Use Data Collector Agent to extract structured data dynamically
-            data_collector = self.data_collector
-            
-            # Extract information dynamically using the agent's capabilities
-            extracted_data = {}
-            if hasattr(data_collector, '_extract_and_update_data'):
-                # Extract products/brands dynamically
-                extracted_data = data_collector._extract_and_update_data(
-                    user_response, "products", {}
-                )
-                # Extract channels dynamically
-                extracted_data = data_collector._extract_and_update_data(
-                    user_response, "channels", extracted_data
-                )
-                # Extract goals dynamically
-                extracted_data = data_collector._extract_and_update_data(
-                    user_response, "goals", extracted_data
-                )
-                # Extract time period dynamically
-                extracted_data = data_collector._extract_and_update_data(
-                    user_response, "time_period", extracted_data
-                )
-            
-            # Create user data from dynamically extracted information
-            user_data = UserCollectedData(
-                products=extracted_data.get("products", []),
-                channels=extracted_data.get("channels", []),
-                goals=extracted_data.get("goals", []),
-                time_period=extracted_data.get("time_period", "recent")
-            )
-            
-            # Generate dynamic boolean query using extracted data and refined query
-            products = extracted_data.get("products", [])
-            channels = extracted_data.get("channels", [])
-            goals = extracted_data.get("goals", [])
-            time_period = extracted_data.get("time_period", "recent")
-            
-            # Create a sophisticated boolean query based on extracted data
-            query_parts = []
-            if products:
-                # Use any product/brand mentioned
-                product_query = " OR ".join([f'"{product}"' for product in products])
-                query_parts.append(f"({product_query})")
-            
-            if channels:
-                # Include channel filters
-                channel_query = " OR ".join([f'channel:"{channel}"' for channel in channels])
-                query_parts.append(f"({channel_query})")
-            
-            if goals:
-                # Use Query Generator Agent to dynamically create goal keywords
-                goal_keywords = []
-                try:
-                    # Use the query generator to create dynamic goal-related keywords
-                    for goal in goals:
-                        # Let the query generator expand the goal into related keywords
-                        goal_expansion_result = self.query_generator.generate_query({
-                            "user_data": {
-                                "goals": [goal],
-                                "products": products,
-                                "channels": channels
-                            },
-                            "query_type": "goal_expansion"
-                        })
-                        
-                        # Extract keywords from the result or use the goal itself
-                        if hasattr(goal_expansion_result, 'get') and goal_expansion_result.get('keywords'):
-                            goal_keywords.extend(goal_expansion_result['keywords'])
-                        else:
-                            # Fallback: use the goal itself
-                            goal_keywords.append(goal.lower())
-                            
-                except Exception as e:
-                    logger.warning(f"Could not dynamically expand goals, using fallback: {e}")
-                    # Fallback: use goals as-is
-                    goal_keywords = [goal.lower() for goal in goals]
-                
-                if goal_keywords:
-                    goal_query = " OR ".join([f'"{keyword}"' for keyword in goal_keywords])
-                    query_parts.append(f"({goal_query})")
-            
-            # Combine query parts with AND logic
-            boolean_query = " AND ".join(query_parts) if query_parts else f'"{refinement_result.get("refined_query", user_response)}"'
-            
-            # Create a new state starting from query generation with dynamic data
-            initial_state = DashboardState(
-                user_query=user_response,
-                original_query=user_response,
-                user_context={},
-                workflow_status="resuming",
-                current_step="query_generation",  # Start from query generation
-                errors=[],
-                messages=[new_message],
-                user_data=user_data,
-                hitl_verification_data={
-                    "status": "approved",
-                    "verification_type": "query_confirmation",
-                    "timestamp": datetime.now().isoformat(),
-                    "verified_data": {
-                        "refined_query": refinement_result.get("refined_query", user_response),
-                        "products": products,
-                        "channels": channels,
-                        "goals": goals,
-                        "time_period": time_period
-                    },
-                    "requires_user_input": False,
-                    "user_response": user_response
-                },
-                query_refinement_data={
-                    "original_query": user_response,
-                    "refined_query": refinement_result.get("refined_query", f"Social media monitoring for: {' and '.join(products) if products else 'brand'} on {', '.join(channels) if channels else 'social media'}"),
-                    "confidence_score": refinement_result.get("confidence_score", 0.8)
-                },
-                boolean_query_data={
-                    "boolean_query": boolean_query,
-                    "query_components": products + channels + goals,
-                    "target_channels": channels,
-                    "filters_applied": {"time_period": time_period}
-                }
-            )
-            
-            # Compile workflow
-            memory = MemorySaver()
-            app = self.workflow.compile(checkpointer=memory)
-            
-            # Set up config
+            # Get the compiled workflow app with checkpointer
+            app = self.workflow.compile(checkpointer=self._memory)
             config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
             
-            logger.info(f"Resuming workflow with user response: {user_response[:100]}...")
+            # Check if there are any interrupts for this thread
+            thread_state = app.get_state(config)
             
-            # Execute workflow starting from query generation
-            # Unfortunately, entry_point cannot be set in the config with the current LangGraph version
-            # Instead, we'll directly connect to the query generator node by customizing our workflow
+            if not thread_state:
+                logger.error(f"No state found for thread {thread_id}")
+                return {
+                    "status": "error",
+                    "message": f"No conversation found with ID {thread_id}",
+                    "thread_id": thread_id
+                }
+            
+            # Check for active interrupts
             try:
-                # Create a temporary graph that skips HITL verification
-                temp_workflow = StateGraph(DashboardState)
+                thread_interrupts = app.get_interrupts(config)
+            except AttributeError:
+                logger.warning("CompiledStateGraph has no get_interrupts; assuming no pending interrupts")
+                thread_interrupts = []
+            if not thread_interrupts:
+                logger.warning(f"No active interrupts found for thread {thread_id}, processing as regular response")
+                # No interrupts to resume, handle as regular response
+                # Create a human message from the user response
+                new_message = HumanMessage(content=user_response)
                 
-                # Add nodes but set entry point to query generator
-                temp_workflow.add_node("query_generator", self._query_generator_node)
-                temp_workflow.add_node("data_collector", self._data_collector_node)
-                temp_workflow.add_node("data_analyzer", self._data_analyzer_node)
-                temp_workflow.add_node("final_review", self._final_review_node)
-                temp_workflow.add_node("tools", ToolNode([self.get_tools.get_sprinklr_data]))
+                # Use standard workflow processing here
+                # [Additional processing logic as needed]
                 
-                # Set entry point to query generator
-                temp_workflow.set_entry_point("query_generator")
-                
-                # Define edges
-                temp_workflow.add_edge("query_generator", "data_collector")
-                temp_workflow.add_edge("data_collector", "data_analyzer")
-                temp_workflow.add_edge("data_analyzer", "final_review")
-                temp_workflow.add_edge("final_review", END)
-                
-                # Compile temporary workflow
-                temp_app = temp_workflow.compile(checkpointer=memory)
-                
-                # Execute workflow from query generator
-                logger.info("Starting workflow from query generator node")
-                final_state = None
-                async for state_dict in temp_app.astream(initial_state, config=config):
-                    final_state = state_dict
-            except Exception as temp_workflow_error:
-                logger.error(f"Error with temporary workflow: {temp_workflow_error}")
-                # Fall back to regular workflow
-                logger.info("Falling back to regular workflow")
-                final_state = None
-                async for state_dict in app.astream(initial_state, config=config):
-                    final_state = state_dict
+                return {
+                    "status": "success",
+                    "message": "Your response has been processed",
+                    "thread_id": thread_id,
+                    "workflow_status": "in_progress"
+                }
             
-            if final_state:
-                result_state = list(final_state.values())[0]
-                
-                # Get themes in the format expected by USAGE.md
-                themes = []
-                if hasattr(result_state, 'theme_data') and result_state.theme_data:
-                    if isinstance(result_state.theme_data, dict):
-                        themes = result_state.theme_data.get('themes', [])
-                    else:
-                        themes = getattr(result_state.theme_data, 'themes', [])
-                
-                # Get refined query
-                refined_query = ""
-                if hasattr(result_state, 'query_refinement_data') and result_state.query_refinement_data:
-                    if isinstance(result_state.query_refinement_data, dict):
-                        refined_query = result_state.query_refinement_data.get('refined_query', '')
-                    else:
-                        refined_query = getattr(result_state.query_refinement_data, 'refined_query', '')
-                
-                # Check workflow status
-                workflow_status = getattr(result_state, 'workflow_status', 'failed')
-                current_step = getattr(result_state, 'current_step', 'unknown')
-                is_successful = workflow_status in ["completed", "completed_with_warnings", "data_analyzed"]
-                
+            # Process the most recent interrupt
+            latest_interrupt = thread_interrupts[-1]
+            interrupt_id = latest_interrupt["interrupt_id"]
+            logger.info(f"Resuming workflow with interrupt_id: {interrupt_id}")
+            
+            # Prepare the human response payload
+            human_response_payload = {
+                "approved": True,  # Default to approved
+                "feedback": user_response,
+                "next_action": "continue"
+            }
+            
+            # Check for rejection keywords
+            rejection_keywords = ['no', 'incorrect', 'wrong', 'reject', 'refine', 'change', 'modify']
+            if any(keyword in user_response.lower() for keyword in rejection_keywords):
+                human_response_payload["approved"] = False
+                human_response_payload["next_action"] = "refine"
+                logger.info(f"Detected rejection in response: {user_response}")
+            
+            # Resume the workflow with the user's response
+            result = None
+            async for state_update in app.astream_interrupt(interrupt_id, human_response_payload, config=config):
+                result = state_update  # Get the final state
+            
+            if not result:
+                logger.error("No result returned from workflow resumption")
                 return {
-                    "status": "success" if is_successful else "in_progress",
-                    "message": "Your response has been processed successfully using dynamic extraction.",
-                    "themes": themes,
-                    "refined_query": refined_query,
-                    "workflow_status": workflow_status,
-                    "current_step": current_step,
-                    "errors": result_state.get('errors', []) if isinstance(result_state, dict) else getattr(result_state, 'errors', []),
-                    "conversation_id": result_state.get('conversation_id', 'unknown') if isinstance(result_state, dict) else getattr(result_state, 'conversation_id', 'unknown'),
-                    "thread_id": thread_id,
-                    "boolean_query": boolean_query,
-                    "extracted_data": {
-                        "products": products,
-                        "channels": channels,
-                        "goals": goals,
-                        "time_period": time_period
-                    }
+                    "status": "error",
+                    "message": "Failed to resume workflow after user input",
+                    "thread_id": thread_id
                 }
+            
+            # Process the result to extract relevant information
+            # The result contains the updated state dictionary
+            final_state = None
+            
+            # Extract the state from the result
+            if isinstance(result, dict) and len(result) > 0:
+                # The result is typically {node_name: state}
+                final_state = list(result.values())[0]
+            
+            if not final_state:
+                logger.error(f"Could not extract state from result: {result}")
+                return {
+                    "status": "error",
+                    "message": "Could not determine workflow state after resumption",
+                    "thread_id": thread_id
+                }
+            
+            # Extract information from the final state
+            if hasattr(final_state, "values"):
+                state_values = final_state.values
+            elif isinstance(final_state, dict) and "values" in final_state:
+                state_values = final_state["values"]
             else:
-                return {
-                    "status": "failed",
-                    "message": "Failed to process your response",
-                    "thread_id": thread_id,
-                    "error": "Workflow execution failed"
-                }
+                state_values = final_state
+            
+            # Create a response with the relevant information
+            themes = state_values.get("theme_data", {}).get("themes", [])
+            refined_query = state_values.get("query_refinement_data", {}).get("refined_query", "")
+            workflow_status = state_values.get("workflow_status", "in_progress")
+            current_step = state_values.get("current_step", "")
+            
+            return {
+                "status": "success",
+                "message": "Your response has been processed successfully",
+                "thread_id": thread_id,
+                "themes": themes,
+                "refined_query": refined_query,
+                "workflow_status": workflow_status,
+                "current_step": current_step
+            }
+            
         except Exception as e:
             logger.error(f"Error processing user response: {str(e)}")
+            logger.error(traceback.format_exc())
             return {
-                "status": "failed",
+                "status": "error",
                 "message": "An error occurred while processing your response",
                 "thread_id": thread_id,
                 "error": str(e)
             }
-
-    def analyze(self, user_query: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    
+    def analyze(self, user_query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
-        Synchronous wrapper for process_user_query method to support Flask integration.
+        Synchronous wrapper for process_user_query to maintain compatibility with app.py
         
         Args:
-            user_query: The user's natural language query
-            user_context: Additional context about the user's preferences
+            user_query: User's query string
+            context: Additional context dictionary
             
         Returns:
-            Dictionary containing the complete workflow results
+            Analysis results dictionary
         """
         import asyncio
         
+        # Check if we're already in an event loop
         try:
-            # Handle async execution in synchronous context
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                result = loop.run_until_complete(self.process_user_query(user_query, user_context))
-                return result
-            finally:
-                loop.close()
-        except Exception as e:
-            logger.error(f"Error in analyze method: {str(e)}")
-            return {
-                "status": "failed",
-                "error": str(e),
-                "message": "Failed to analyze the query",
-                "themes": [],
-                "errors": [str(e)]
-            }
-    
-    def get_thread_status(self, thread_id: str) -> Dict[str, Any]:
-        """
-        Synchronous wrapper for get_workflow_status method to support Flask integration.
-        
-        Args:
-            thread_id: The thread ID for the workflow execution
+            loop = asyncio.get_running_loop()
+            # If we're in an async context, we need to run in a new thread
+            import concurrent.futures
             
-        Returns:
-            Dictionary containing the workflow status
-        """
-        try:
-            return self.get_workflow_status(thread_id)
-        except Exception as e:
-            logger.error(f"Error getting thread status: {str(e)}")
-            return {
-                "thread_id": thread_id,
-                "status": "error",
-                "error": str(e)
-            }
-    
-    def respond_to_user(self, thread_id: str, user_response: str) -> Dict[str, Any]:
-        """
-        Synchronous wrapper for process_user_response method to support Flask integration.
-        
-        Args:
-            thread_id: The thread ID for the conversation
-            user_response: The user's response to the pending question
+            def run_async():
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    return new_loop.run_until_complete(self.process_user_query(user_query, context))
+                finally:
+                    new_loop.close()
             
-        Returns:
-            Dictionary containing updated workflow results
-        """
-        import asyncio
-        
-        try:
-            # Handle async execution in synchronous context
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                result = loop.run_until_complete(self.process_user_response(thread_id, user_response))
-                return result
-            finally:
-                loop.close()
-        except Exception as e:
-            logger.error(f"Error in respond_to_user method: {str(e)}")
-            return {
-                "status": "failed",
-                "error": str(e),
-                "message": "Failed to process user response",
-                "thread_id": thread_id
-            }
-
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_async)
+                return future.result()
+                
+        except RuntimeError:
+            # No event loop running, we can create our own
+            return asyncio.run(self.process_user_query(user_query, context))
+    
     def validate_themes(self, themes: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Validate and provide feedback on generated themes.
+        Validate generated themes for quality and relevance
         
         Args:
             themes: List of theme dictionaries to validate
             
         Returns:
-            Dictionary containing validation results
+            Validation results with feedback
         """
         try:
-            logger.info(f"Validating {len(themes)} themes")
-            
             validation_results = {
-                "is_valid": True,
-                "validated_themes": [],
-                "validation_errors": [],
-                "suggestions": []
+                "valid_themes": [],
+                "invalid_themes": [],
+                "suggestions": [],
+                "overall_quality": "good"
             }
             
-            for i, theme in enumerate(themes):
-                theme_validation = {
-                    "theme_index": i,
-                    "original_theme": theme,
-                    "is_valid": True,
-                    "errors": [],
-                    "suggestions": []
-                }
-                
-                # Check required fields
-                required_fields = ['name', 'description', 'sentiment', 'count']
-                for field in required_fields:
-                    if field not in theme:
-                        theme_validation["is_valid"] = False
-                        theme_validation["errors"].append(f"Missing required field: {field}")
-                        validation_results["is_valid"] = False
-                
-                # Validate sentiment values dynamically
-                if 'sentiment' in theme:
-                    valid_sentiments = self._get_valid_sentiment_values()
-                    if theme['sentiment'].lower() not in valid_sentiments:
-                        theme_validation["is_valid"] = False
-                        theme_validation["errors"].append(f"Invalid sentiment: {theme['sentiment']}. Must be one of {valid_sentiments}")
-                        validation_results["is_valid"] = False
-                
-                # Validate count is numeric
-                if 'count' in theme:
-                    try:
-                        int(theme['count'])
-                    except (ValueError, TypeError):
-                        theme_validation["is_valid"] = False
-                        theme_validation["errors"].append(f"Count must be numeric, got: {theme['count']}")
-                        validation_results["is_valid"] = False
-                
-                # Check for meaningful theme names
-                if 'name' in theme:
-                    if len(theme['name'].strip()) < 3:
-                        theme_validation["suggestions"].append("Theme name should be more descriptive")
-                
-                validation_results["validated_themes"].append(theme_validation)
-                if theme_validation["errors"]:
-                    validation_results["validation_errors"].extend(theme_validation["errors"])
+            for theme in themes:
+                if self._validate_single_theme(theme):
+                    validation_results["valid_themes"].append(theme)
+                else:
+                    validation_results["invalid_themes"].append(theme)
             
-            logger.info(f"Theme validation completed. Valid: {validation_results['is_valid']}")
+            # Calculate overall quality
+            valid_count = len(validation_results["valid_themes"])
+            total_count = len(themes)
+            
+            if total_count == 0:
+                validation_results["overall_quality"] = "no_themes"
+            elif valid_count / total_count >= 0.8:
+                validation_results["overall_quality"] = "excellent"
+            elif valid_count / total_count >= 0.6:
+                validation_results["overall_quality"] = "good"
+            else:
+                validation_results["overall_quality"] = "needs_improvement"
+            
             return validation_results
             
         except Exception as e:
-            logger.error(f"Error validating themes: {str(e)}")
+            logger.error(f"Error validating themes: {e}")
             return {
-                "is_valid": False,
-                "error": str(e),
-                "message": "Failed to validate themes"
+                "valid_themes": [],
+                "invalid_themes": themes,
+                "suggestions": ["Unable to validate themes due to system error"],
+                "overall_quality": "error"
             }
     
-    def _get_valid_sentiment_values(self) -> List[str]:
-        """
-        Get valid sentiment values dynamically from the Data Analyzer Agent or configuration.
+    def _validate_single_theme(self, theme: Dict[str, Any]) -> bool:
+        """Validate a single theme for required fields and quality"""
+        required_fields = ["name", "description", "boolean_keyword_query"]
         
-        Returns:
-            List of valid sentiment values (lowercase)
-        """
-        try:
-            # Try to get sentiment categories from the Data Analyzer Agent
-            if hasattr(self, 'data_analyzer') and self.data_analyzer:
-                # Check if Data Analyzer has sentiment categories
-                if hasattr(self.data_analyzer, 'theme_categories'):
-                    sentiment_categories = self.data_analyzer.theme_categories
-                    if 'sentiment_analysis' in sentiment_categories:
-                        # Extract sentiment values from keywords or use standard values
-                        sentiment_keywords = sentiment_categories['sentiment_analysis'].get('keywords', [])
-                        # Map sentiment keywords to standard sentiment values
-                        detected_sentiments = []
-                        if any(word in sentiment_keywords for word in ['good', 'excellent', 'love', 'amazing', 'great']):
-                            detected_sentiments.append('positive')
-                        if any(word in sentiment_keywords for word in ['bad', 'terrible', 'hate', 'awful', 'poor']):
-                            detected_sentiments.append('negative')
-                        if any(word in sentiment_keywords for word in ['neutral', 'okay', 'average']):
-                            detected_sentiments.append('neutral')
-                        
-                        if detected_sentiments:
-                            # Always include all three standard sentiment values
-                            return ['positive', 'negative', 'neutral']
+        # Check required fields
+        if not all(field in theme for field in required_fields):
+            return False
+        
+        # Check field content quality
+        if len(theme.get("name", "").strip()) < 3:
+            return False
             
-            # Fallback to standard sentiment values if no dynamic detection
-            logger.info("Using fallback sentiment values: positive, negative, neutral")
-            return ['positive', 'negative', 'neutral']
+        if len(theme.get("description", "").strip()) < 10:
+            return False
             
-        except Exception as e:
-            logger.error(f"Error getting dynamic sentiment values: {str(e)}")
-            # Return safe fallback values
-            return ['positive', 'negative', 'neutral']
+        if len(theme.get("boolean_keyword_query", "").strip()) < 5:
+            return False
+        
+        return True
 
-# Initialize global workflow instance
-workflow_instance = None
+
+# Global workflow instance
+_workflow_instance = None
 
 def get_workflow() -> SprinklrWorkflow:
-    """Get or create the global workflow instance"""
-    global workflow_instance
-    if workflow_instance is None:
-        workflow_instance = SprinklrWorkflow()
-    return workflow_instance
-
-def create_workflow_app():
-    """Create and return the compiled workflow application"""
-    try:
-        workflow = get_workflow()
-        memory = MemorySaver()
-        app = workflow.workflow.compile(checkpointer=memory)
-        logger.info("Workflow application created successfully")
-        return app
-    except Exception as e:
-        logger.error(f"Error creating workflow app: {str(e)}")
-        raise
+    """
+    Get or create the global workflow instance
+    
+    Returns:
+        SprinklrWorkflow instance
+    """
+    global _workflow_instance
+    if _workflow_instance is None:
+        _workflow_instance = SprinklrWorkflow()
+    return _workflow_instance

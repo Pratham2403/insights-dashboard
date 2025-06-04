@@ -355,39 +355,86 @@ If it's a single value, return just the value.
 
     async def process_state(self, state) -> Any:
         """
-        Process the dashboard state for data collection.
+        Process the dashboard state for data collection with dynamic extraction.
         
-        This method analyzes the current state and determines what additional
-        information needs to be collected from the user.
+        This method analyzes the refined query and extracts relevant data dynamically
+        from the knowledge base, then determines what additional information is needed.
         """
         try:
-            logger.info("Processing state for data collection")
+            logger.info("Processing state for dynamic data collection")
             
-            # Get current user data from state
-            current_data = {}
-            if hasattr(state, 'user_data') and state.user_data:
-                current_data = state.user_data.to_dict()
-            elif hasattr(state, 'user_collected_data') and state.user_collected_data:
-                current_data = state.user_collected_data.to_dict()
+            # Initialize or get existing user data
+            if not hasattr(state, 'user_data') or not state.user_data:
+                from src.helpers.states import UserCollectedData
+                state.user_data = UserCollectedData()
             
-            # Get refined query data if available
-            refined_query_data = {}
+            # Check if this is a user response to existing conversation
+            current_user_input = getattr(state, 'current_user_input', '')
+            is_user_response = bool(current_user_input)
+            
+            # Check if this looks like a confirmation response (don't extract data from it)
+            is_confirmation = False
+            if is_user_response:
+                confirmation_keywords = [
+                    'perfect', 'exactly', 'correct', 'yes', 'proceed', 'looks good',
+                    'that looks perfect', 'captures exactly', 'right', 'accurate'
+                ]
+                is_confirmation = any(keyword in current_user_input.lower() for keyword in confirmation_keywords)
+            
+            # Get refined query information (original query, not user responses)
+            refined_query = ""
             if hasattr(state, 'query_refinement_data') and state.query_refinement_data:
-                refined_query_data = {
-                    "refined_query": state.query_refinement_data.refined_query,
-                    "suggested_filters": state.query_refinement_data.suggested_filters,
-                    "missing_information": state.query_refinement_data.missing_information
-                }
-            elif hasattr(state, 'query_refinement') and state.query_refinement:
-                refined_query_data = {
-                    "refined_query": state.query_refinement.refined_query,
-                    "suggested_filters": state.query_refinement.suggested_filters,
-                    "missing_information": state.query_refinement.missing_information
-                }
+                if isinstance(state.query_refinement_data, dict):
+                    refined_query = state.query_refinement_data.get('refined_query', '')
+                else:
+                    refined_query = getattr(state.query_refinement_data, 'refined_query', '')
+            elif hasattr(state, 'user_query') and not is_user_response:
+                refined_query = state.user_query
             
-            # Identify missing data and generate questions
-            if not self.is_data_complete(current_data):
-                question, category = self.collect_missing_data(refined_query_data, current_data)
+            # Handle confirmation responses - use refined query context, not the confirmation message
+            if is_user_response and is_confirmation and refined_query:
+                logger.info("User confirmed refined query - extracting data from refined query, not confirmation message")
+                
+                # Extract data from the REFINED QUERY, not the confirmation message
+                if not state.user_data.extracted_data:
+                    extracted_info = await self._extract_dynamic_data(refined_query, state)
+                    state.user_data.extracted_data = extracted_info.get('extracted_data', {})
+                    state.user_data.keywords = extracted_info.get('keywords', [])
+                    state.user_data.applied_filters = extracted_info.get('applied_filters', {})
+                    self._apply_default_values(state.user_data)
+                
+                # Mark as confirmed and ready
+                state.user_data.user_satisfaction = True
+                state.user_data.awaiting_user_confirmation = False
+                state.user_data.user_final_approval = True
+                state.workflow_status = "user_confirmed"
+                state.current_stage = "data_collection_complete"
+                
+                logger.info("Data collection marked as complete after user confirmation")
+                return state
+            
+            # Handle other user responses (additional info, modifications)
+            elif is_user_response and current_user_input:
+                response_handled = await self._handle_user_response(current_user_input, state)
+                if response_handled:
+                    return state
+            
+            # Dynamic data extraction from refined query and knowledge base (only for initial processing)
+            if refined_query and not state.user_data.extracted_data and not is_user_response:
+                extracted_info = await self._extract_dynamic_data(refined_query, state)
+                state.user_data.extracted_data = extracted_info.get('extracted_data', {})
+                state.user_data.keywords = extracted_info.get('keywords', [])
+                state.user_data.applied_filters = extracted_info.get('applied_filters', {})
+                
+                # Set default values based on knowledge base
+                self._apply_default_values(state.user_data)
+            
+            # Check if we need more information from user
+            missing_info = self._identify_missing_critical_info(state.user_data, refined_query)
+            
+            if missing_info and not state.user_data.user_satisfaction:
+                # Generate questions for missing information
+                question = self._generate_clarification_question(missing_info, state.user_data)
                 
                 # Add the question to pending questions
                 if hasattr(state, 'add_pending_question'):
@@ -396,27 +443,494 @@ If it's a single value, return just the value.
                     state.pending_questions.append(question)
                 
                 # Update workflow status
-                if hasattr(state, 'workflow_status'):
-                    state.workflow_status = "awaiting_user_input"
-                if hasattr(state, 'current_stage'):
-                    state.current_stage = "collecting"
+                state.workflow_status = "awaiting_user_input"
+                state.current_stage = "collecting"
+                state.user_data.requires_clarification = True
             else:
-                # Data collection is complete
-                if hasattr(state, 'workflow_status'):
-                    state.workflow_status = "data_collection_complete"
-                if hasattr(state, 'current_stage'):
-                    state.current_stage = "collected"
+                # Data collection is complete or user is satisfied
+                state.workflow_status = "data_collection_ready"
+                state.current_stage = "collected"
+                state.user_data.requires_clarification = False
+                
+                # If user hasn't explicitly indicated satisfaction, ask for confirmation
+                if state.user_data.user_satisfaction is None:
+                    confirmation_msg = self._generate_final_confirmation_request(state.user_data)
+                    if hasattr(state, 'add_pending_question'):
+                        state.add_pending_question(confirmation_msg)
+                    elif hasattr(state, 'pending_questions'):
+                        state.pending_questions.append(confirmation_msg)
+                    
+                    state.workflow_status = "awaiting_final_confirmation"
             
-            logger.info("Data collection processing completed")
+            logger.info(f"Data collection processing completed - status: {state.workflow_status}")
             return state
             
         except Exception as e:
             logger.error(f"Error processing state: {str(e)}")
-            # Add error to state if it has errors attribute
             if hasattr(state, 'errors'):
                 state.errors.append(f"Data collection error: {str(e)}")
             if hasattr(state, 'workflow_status'):
                 state.workflow_status = "data_collection_failed"
             return state
+
+    async def _extract_dynamic_data(self, refined_query: str, state) -> Dict[str, Any]:
+        """
+        Extract data dynamically from refined query using knowledge base context.
+        
+        Args:
+            refined_query: The refined user query
+            state: Current dashboard state
+            
+        Returns:
+            Dictionary containing extracted data, keywords, and filters
+        """
+        try:
+            # Load available filters from knowledge base
+            available_filters = self._load_available_filters()
+            
+            # Use LLM to extract structured information
+            if self.llm:
+                extraction_prompt = f"""
+                You are extracting data from a refined user query for social media monitoring dashboard creation.
+                
+                REFINED USER QUERY: "{refined_query}"
+                
+                AVAILABLE FILTERS FROM SYSTEM: {available_filters}
+                
+                EXTRACTION TASK:
+                Extract all relevant monitoring information from this refined query. This query has already been processed by the Query Refiner Agent and contains enhanced business context.
+                
+                Extract the following categories dynamically:
+                1. **Products/Brands**: Any product names, brand names, company names mentioned
+                2. **Channels**: Social media platforms, news sources (Twitter, Instagram, Facebook, etc.)
+                3. **Goals**: Analysis objectives (sentiment analysis, brand health, competitive analysis, etc.)
+                4. **Timeline**: Time periods, date ranges mentioned
+                5. **Location**: Geographic regions, countries, cities mentioned
+                6. **Sentiment Targets**: Specific sentiment analysis requirements
+                7. **Topics**: Key themes, issues, subjects to monitor
+                8. **Competitors**: Competing brands or products mentioned
+                
+                KEYWORD GENERATION:
+                Create a comprehensive list of search keywords from all extracted entities that would be used for boolean query generation.
+                
+                FILTER MAPPING:
+                Map extracted information to the available system filters wherever possible.
+                
+                DEFAULT ASSUMPTIONS (apply only if not explicitly mentioned):
+                - Time period: "last 30 days"
+                - Channels: ["Twitter", "Instagram"]
+                - Language: ["English"]
+                - Geographic scope: "global"
+                
+                Return ONLY valid JSON in this exact format:
+                {{
+                    "extracted_data": {{
+                        "products": ["list of products/brands found"],
+                        "brands": ["list of brand names found"],
+                        "channels": ["list of social media channels found"],
+                        "goals": ["list of monitoring objectives found"],
+                        "timeline": "time period found or default",
+                        "location": ["geographic locations found or default"],
+                        "sentiment_targets": ["specific sentiment requirements"],
+                        "topics": ["key themes and topics"],
+                        "competitors": ["competing entities mentioned"]
+                    }},
+                    "keywords": ["comprehensive list of search keywords from all extracted data"],
+                    "applied_filters": {{
+                        "source": ["mapped to available source filters"],
+                        "country": ["mapped to available country filters"],
+                        "language": ["mapped to available language filters"]
+                    }}
+                }}
+                """
+                
+                try:
+                    response = await self.safe_llm_invoke([{"role": "user", "content": extraction_prompt}])
+                    if response:
+                        # Try to parse JSON response
+                        import json
+                        import re
+                        
+                        # Clean up response if it contains markdown
+                        clean_response = re.sub(r'```json\n(.*?)\n```', r'\1', response, flags=re.DOTALL)
+                        clean_response = re.sub(r'```\n(.*?)\n```', r'\1', clean_response, flags=re.DOTALL)
+                        
+                        try:
+                            extracted = json.loads(clean_response)
+                            return extracted
+                        except json.JSONDecodeError:
+                            logger.warning("Failed to parse LLM JSON response, using fallback extraction")
+                
+                except Exception as e:
+                    logger.error(f"Error with LLM extraction: {e}")
+            
+            # Fallback extraction method
+            return self._fallback_extraction(refined_query, available_filters)
+            
+        except Exception as e:
+            logger.error(f"Error in dynamic data extraction: {e}")
+            return {
+                "extracted_data": {},
+                "keywords": [],
+                "applied_filters": {}
+            }
+    
+    def _load_available_filters(self) -> Dict[str, Any]:
+        """Load available filters from knowledge base."""
+        try:
+            import json
+            import os
+            
+            # Path to filters knowledge base
+            kb_path = os.path.join(os.path.dirname(__file__), '..', 'knowledge_base', 'filers.json')
+            
+            if os.path.exists(kb_path):
+                with open(kb_path, 'r') as f:
+                    return json.load(f)
+            else:
+                logger.warning("Filters knowledge base not found, using defaults")
+                return {
+                    "filters": {
+                        "source": ["Twitter", "Instagram", "Facebook", "LinkedIn", "YouTube"],
+                        "language": ["English"],
+                        "country": ["India", "USA", "UK"],
+                        "gender": ["Male", "Female"]
+                    }
+                }
+        except Exception as e:
+            logger.error(f"Error loading filters: {e}")
+            return {"filters": {}}
+    
+    def _fallback_extraction(self, query: str, available_filters: Dict[str, Any]) -> Dict[str, Any]:
+        """Fallback extraction method using simple text analysis."""
+        query_lower = query.lower()
+        
+        # Extract basic information
+        extracted_data = {
+            "time_period": "30 days",  # Default
+            "channels": ["Twitter", "Instagram"],  # Default channels
+            "sentiment": "overall"
+        }
+        
+        # Simple keyword extraction
+        keywords = []
+        
+        # Look for brand/product mentions
+        brand_indicators = ["samsung", "google", "apple", "microsoft", "amazon", "facebook", "tesla"]
+        for brand in brand_indicators:
+            if brand in query_lower:
+                keywords.append(brand)
+                if "products" not in extracted_data:
+                    extracted_data["products"] = []
+                extracted_data["products"].append(brand)
+        
+        # Look for monitoring goals
+        if "brand health" in query_lower or "monitoring" in query_lower:
+            extracted_data["goal"] = "brand health monitoring"
+            keywords.extend(["brand", "health", "monitoring"])
+        
+        # Apply default filters
+        filters = available_filters.get("filters", {})
+        applied_filters = {
+            "source": ["Twitter", "Instagram"],
+            "language": ["English"]
+        }
+        
+        return {
+            "extracted_data": extracted_data,
+            "keywords": keywords,
+            "applied_filters": applied_filters
+        }
+    
+    def _apply_default_values(self, user_data):
+        """Apply default values based on complete use cases."""
+        # Set defaults if not already present
+        if not user_data.extracted_data.get("time_period"):
+            user_data.extracted_data["time_period"] = "30 days"
+        
+        if not user_data.extracted_data.get("channels"):
+            user_data.extracted_data["channels"] = ["Twitter", "Instagram"]
+        
+        if not user_data.applied_filters.get("source"):
+            user_data.applied_filters["source"] = ["Twitter", "Instagram"]
+        
+        if not user_data.applied_filters.get("language"):
+            user_data.applied_filters["language"] = ["English"]
+    
+    def _identify_missing_critical_info(self, user_data, refined_query: str) -> List[str]:
+        """Identify critical missing information that needs user input."""
+        missing = []
+        
+        # Check if we have any meaningful keywords or products
+        has_products = bool(user_data.extracted_data.get("products") or user_data.keywords)
+        has_clear_goal = bool(user_data.extracted_data.get("goal"))
+        
+        if not has_products:
+            missing.append("specific products or brands to monitor")
+        
+        if not has_clear_goal and "monitoring" not in refined_query.lower():
+            missing.append("monitoring objective or goal")
+        
+        # Only ask for non-critical missing info if we have the essentials
+        if not missing:
+            if not user_data.extracted_data.get("location"):
+                missing.append("target location or market (optional)")
+        
+        return missing
+    
+    def _generate_clarification_question(self, missing_info: List[str], user_data) -> str:
+        """Generate clarification question for missing information."""
+        if not missing_info:
+            return ""
+        
+        if len(missing_info) == 1:
+            item = missing_info[0]
+            if "products" in item:
+                return "Could you please specify which products or brands you'd like to monitor? For example: 'Samsung Galaxy S25', 'iPhone', etc."
+            elif "goal" in item:
+                return "What is your main objective for this monitoring? For example: 'Brand awareness', 'Customer sentiment analysis', 'Competitive analysis', etc."
+            elif "location" in item:
+                return "Would you like to focus on any specific geographic region or market? (You can skip this if you want global monitoring)"
+        
+        # Multiple missing items
+        questions = []
+        for item in missing_info[:2]:  # Limit to 2 questions at a time
+            if "products" in item:
+                questions.append("- Which specific products or brands should I monitor?")
+            elif "goal" in item:
+                questions.append("- What is your main monitoring objective?")
+        
+        return f"I need a bit more information:\n\n{chr(10).join(questions)}"
+    
+    def _generate_final_confirmation_request(self, user_data) -> str:
+        """Generate final confirmation request with collected data summary."""
+        summary_parts = []
+        
+        if user_data.extracted_data:
+            if user_data.extracted_data.get("products"):
+                summary_parts.append(f"**Products/Brands:** {', '.join(user_data.extracted_data['products'])}")
+            if user_data.extracted_data.get("channels"):
+                summary_parts.append(f"**Channels:** {', '.join(user_data.extracted_data['channels'])}")
+            if user_data.extracted_data.get("time_period"):
+                summary_parts.append(f"**Time Period:** {user_data.extracted_data['time_period']}")
+            if user_data.extracted_data.get("goal"):
+                summary_parts.append(f"**Goal:** {user_data.extracted_data['goal']}")
+        
+        if user_data.keywords:
+            summary_parts.append(f"**Keywords:** {', '.join(user_data.keywords)}")
+        
+        summary = "\n".join(summary_parts) if summary_parts else "Basic monitoring setup"
+        
+        return f"""
+## Data Collection Summary
+
+{summary}
+
+**Are you satisfied with this information and ready to proceed with data generation?**
+
+Please respond with:
+- 'Yes, proceed' to continue
+- 'No, let me refine' to make changes
+        """.strip()
+
+    async def _handle_user_response(self, user_input: str, state) -> bool:
+        """
+        Handle user response - either confirmation or additional information.
+        
+        Args:
+            user_input: User's response/input
+            state: Current dashboard state
+            
+        Returns:
+            True if response was handled, False otherwise
+        """
+        try:
+            user_input_lower = user_input.lower().strip()
+            
+            # Check for confirmation responses
+            confirmation_keywords = [
+                'yes', 'y', 'correct', 'confirm', 'proceed', 'good', 'ok', 'okay', 
+                'perfect', 'looks good', 'that looks perfect', 'exactly', 'right',
+                'accurate', 'go ahead', 'continue', 'approved'
+            ]
+            
+            # Check for rejection/modification responses
+            rejection_keywords = [
+                'no', 'n', 'incorrect', 'wrong', 'change', 'modify', 'different',
+                'not correct', 'not right', 'fix', 'update'
+            ]
+            
+            if any(keyword in user_input_lower for keyword in confirmation_keywords):
+                # User confirmed - mark as satisfied and ready for next stage
+                state.user_data.user_satisfaction = True
+                state.user_data.awaiting_user_confirmation = False
+                state.user_data.user_final_approval = True
+                state.workflow_status = "user_confirmed"
+                state.current_stage = "confirmed"
+                
+                logger.info("User confirmed data collection - ready for query generation")
+                return True
+                
+            elif any(keyword in user_input_lower for keyword in rejection_keywords):
+                # User wants modifications - need to collect more info
+                state.user_data.user_satisfaction = False
+                state.user_data.modification_request = user_input
+                state.workflow_status = "needs_modification"
+                
+                # Generate follow-up questions based on the rejection
+                question = f"I understand you'd like to make changes. Could you please specify what you'd like to modify about the monitoring setup? Current setup: {self._summarize_current_data(state.user_data)}"
+                
+                if hasattr(state, 'add_pending_question'):
+                    state.add_pending_question(question)
+                elif hasattr(state, 'pending_questions'):
+                    state.pending_questions.append(question)
+                
+                logger.info("User requested modifications to data collection")
+                return True
+                
+            else:
+                # User provided additional information - try to extract and incorporate it
+                extracted_additional = await self._extract_additional_info(user_input, state)
+                
+                if extracted_additional:
+                    # Update user data with additional information
+                    self._merge_additional_data(extracted_additional, state.user_data)
+                    
+                    # Check if we still need more information
+                    missing_info = self._identify_missing_critical_info(state.user_data, "")
+                    
+                    if missing_info:
+                        # Still need more info
+                        question = self._generate_clarification_question(missing_info, state.user_data)
+                        if hasattr(state, 'add_pending_question'):
+                            state.add_pending_question(question)
+                        elif hasattr(state, 'pending_questions'):
+                            state.pending_questions.append(question)
+                        
+                        state.workflow_status = "awaiting_user_input"
+                    else:
+                        # All info collected, ask for final confirmation
+                        confirmation_msg = self._generate_final_confirmation_request(state.user_data)
+                        if hasattr(state, 'add_pending_question'):
+                            state.add_pending_question(confirmation_msg)
+                        elif hasattr(state, 'pending_questions'):
+                            state.pending_questions.append(confirmation_msg)
+                        
+                        state.workflow_status = "awaiting_final_confirmation"
+                    
+                    logger.info("Incorporated additional user information")
+                    return True
+                
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error handling user response: {e}")
+            return False
+    
+    def _summarize_current_data(self, user_data) -> str:
+        """Create a summary of currently collected data."""
+        summary_parts = []
+        
+        if user_data.extracted_data.get('products'):
+            summary_parts.append(f"Products: {', '.join(user_data.extracted_data['products'])}")
+        
+        if user_data.extracted_data.get('channels'):
+            summary_parts.append(f"Channels: {', '.join(user_data.extracted_data['channels'])}")
+        
+        if user_data.extracted_data.get('time_period'):
+            summary_parts.append(f"Timeline: {user_data.extracted_data['time_period']}")
+        
+        if user_data.extracted_data.get('goal'):
+            summary_parts.append(f"Goal: {user_data.extracted_data['goal']}")
+        
+        return "; ".join(summary_parts) if summary_parts else "No data collected yet"
+    
+    async def _extract_additional_info(self, user_input: str, state) -> Dict[str, Any]:
+        """Extract additional information from user input."""
+        try:
+            if self.llm:
+                prompt = f"""
+                The user provided additional information: "{user_input}"
+                
+                Extract any relevant monitoring information from this response.
+                Look for:
+                - Products or brand names
+                - Social media channels
+                - Time periods
+                - Goals or objectives
+                - Geographic regions
+                - Any other monitoring parameters
+                
+                Return in JSON format:
+                {{
+                    "products": ["any products mentioned"],
+                    "channels": ["any channels mentioned"],
+                    "time_period": "any time period mentioned",
+                    "goals": ["any goals mentioned"],
+                    "location": ["any locations mentioned"]
+                }}
+                
+                Only include fields with actual information found.
+                """
+                
+                response = await self.safe_llm_invoke([{"role": "user", "content": prompt}])
+                if response:
+                    import json
+                    import re
+                    
+                    # Clean up response
+                    clean_response = re.sub(r'```json\n(.*?)\n```', r'\1', response, flags=re.DOTALL)
+                    clean_response = re.sub(r'```\n(.*?)\n```', r'\1', clean_response, flags=re.DOTALL)
+                    
+                    try:
+                        return json.loads(clean_response)
+                    except json.JSONDecodeError:
+                        pass
+            
+            # Fallback: simple keyword extraction
+            return self._simple_info_extraction(user_input)
+            
+        except Exception as e:
+            logger.error(f"Error extracting additional info: {e}")
+            return {}
+    
+    def _simple_info_extraction(self, text: str) -> Dict[str, Any]:
+        """Simple fallback extraction from text."""
+        text_lower = text.lower()
+        extracted = {}
+        
+        # Look for channel mentions
+        channels = ['twitter', 'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok']
+        found_channels = [ch.title() for ch in channels if ch in text_lower]
+        if found_channels:
+            extracted['channels'] = found_channels
+        
+        # Look for time periods
+        if 'days' in text_lower or 'weeks' in text_lower or 'months' in text_lower:
+            words = text.split()
+            for i, word in enumerate(words):
+                if word.lower() in ['days', 'weeks', 'months'] and i > 0:
+                    try:
+                        num = int(words[i-1])
+                        extracted['time_period'] = f"{num} {word.lower()}"
+                        break
+                    except ValueError:
+                        pass
+        
+        return extracted
+    
+    def _merge_additional_data(self, additional_data: Dict[str, Any], user_data):
+        """Merge additional data into existing user data."""
+        for key, value in additional_data.items():
+            if key in user_data.extracted_data:
+                if isinstance(value, list) and isinstance(user_data.extracted_data[key], list):
+                    # Merge lists, avoiding duplicates
+                    user_data.extracted_data[key].extend([v for v in value if v not in user_data.extracted_data[key]])
+                else:
+                    # Replace with new value
+                    user_data.extracted_data[key] = value
+            else:
+                user_data.extracted_data[key] = value
+
 # Create factory function using base class helper
 create_data_collector_agent = create_agent_factory(DataCollectorAgent, "data_collector")

@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+import asyncio
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -96,7 +97,6 @@ def process_query():
     
     For new query analysis:
         - Requires 'query' parameter
-        - Optional 'context' parameter
     
     For responding to existing conversation:
         - Requires 'thread_id' and 'query' parameters
@@ -121,20 +121,20 @@ def process_query():
     
     if thread_id:
         # Handle user response to existing conversation
-        logger.info(f"Received response for thread {thread_id}: {user_query[:100]}...")
-        
+        logger.info(f"Received response for thread {thread_id}: {user_query}...")
         wf = get_workflow()
-        result = wf.respond_to_user(thread_id, user_query)
+        # Invoke the async process_user_response synchronously
+        result = asyncio.run(wf.process_user_response(thread_id, user_query))
         logger.info(f"Response processed successfully for thread {thread_id}")
         return create_success_response(result, "Response processed successfully")
     
     else:
         # Handle new query analysis
-        logger.info(f"Received query for analysis: {user_query[:100]}...")
+        logger.info(f"Received query for analysis: {user_query}...")
 
         wf = get_workflow()
         result = wf.analyze(user_query, data.get('context', {}))
-        logger.info(f"Analysis successful for query: {user_query[:100]}...")
+        logger.info(f"Analysis successful for query: {user_query}...")
         return create_success_response(result, "Query analyzed successfully")
 
 @app.route('/api/workflow/status/<thread_id>', methods=['GET'])
@@ -142,17 +142,16 @@ def process_query():
 def get_workflow_status(thread_id):
     """Get the status of a specific workflow execution"""
     log_endpoint_access("get_workflow_status", f"thread_id: {thread_id}")
-    
     wf = get_workflow()
-    status = wf.get_thread_status(thread_id)
+    # Retrieve workflow status using the proper method
+    status = wf.get_workflow_status(thread_id)
     if status:
         return create_success_response(status, "Workflow status retrieved successfully")
-    else:
-        return create_error_response(
-            f"No status found for thread_id: {thread_id}",
-            "Status not found for the given thread_id",
-            404
-        )
+    return create_error_response(
+        f"No status found for thread_id: {thread_id}",
+        "Status not found for the given thread_id",
+        404
+    )
 
 @app.route('/api/themes/validate', methods=['POST'])
 @handle_exceptions("Error during theme validation")
@@ -167,7 +166,7 @@ def validate_themes():
     
     data = request.get_json()
     themes_to_validate = data['themes']
-    logger.info(f"Received themes for validation: {str(themes_to_validate)[:200]}...")
+    logger.info(f"Received themes for validation: {str(themes_to_validate)}...")
 
     wf = get_workflow()
     validation_result = wf.validate_themes(themes_to_validate)

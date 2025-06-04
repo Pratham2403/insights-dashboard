@@ -59,7 +59,7 @@ class LLMSetup:
             logger.warning("GOOGLE_API_KEY not found. LLM functionality will be limited.")
         logger.info(f"LLMSetup initialized with model: {self.model}")
 
-    def get_llm(self, temperature: float = 0.7, max_tokens: Optional[int] = None) -> BaseLLM:
+    def get_llm(self, temperature: float = 0.1, max_tokens: Optional[int] = None) -> BaseLLM:
         """
         Get a configured LLM instance.
         
@@ -102,7 +102,7 @@ llm_setup = LLMSetup(api_key=settings.GOOGLE_API_KEY, model=settings.DEFAULT_MOD
 
 def get_llm(agent_type: str = "default") -> BaseLLM:
     """
-    Convenience function to get LLM for agents.
+    Convenience function to get LLM for agents based on type globally.
     
     Args:
         agent_type: Type of agent requesting the LLM

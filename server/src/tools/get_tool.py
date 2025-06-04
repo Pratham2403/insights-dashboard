@@ -51,7 +51,7 @@ async def get_sprinklr_data(
         headers = {
             'accept': 'application/json; charset=utf-8',
             'accept-language': 'en-GB,en;q=0.7',
-            'baggage': 'sentry-environment=prod0,sentry-release=20.4.1-1f07f2b1ffb783e319e5ec41266d2ddd8edbac67,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=15c26efba5454744b572bca2b68d6a66',
+            'baggage': 'sentry-environment=prod0,sentry-release=20.4.1-1f07f2b1ffb783e319e5ec41266d2ddd8edbac67,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=863556c0ff564cee8add06d45aa8e949',
             'content-type': 'application/json',
             'origin': 'https://space-prod0.sprinklr.com',
             'priority': 'u=1, i',
@@ -63,16 +63,14 @@ async def get_sprinklr_data(
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
             'sec-gpc': '1',
-            'sentry-trace': '15c26efba5454744b572bca2b68d6a66-b51eeb989fed6ca2',
-            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-            'x-csrf-token': 'SjFRazB6WE1DcUJ3aEZMM0Q5Qmpy',
             'x-engine': 'LISTENING',
-            'x-request-id': 'v3-7e78abcd-7622-450e-8fc1-0c51694fd5a1',
-            'x-requested-at': '1748931755684',
-            'x-requested-with': 'XMLHttpRequest',
+            'sentry-trace': '863556c0ff564cee8add06d45aa8e949-a1c07f4bc43d8fcb',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+            'x-csrf-token': 'ZWdkZnZBVWVOQnVzcmdlMnJiNURr',
+            'x-request-id': 'space-42c4ba18-614e-4a05-aa89-a16ee932ef1c',
+            'x-requested-at': '1749017924488',
             'x-user-context': 'c_9004_1000004509_1000462136'
         }
-
 
         # Complex request body structure from api-communication.md
         request_body = {
@@ -114,7 +112,7 @@ async def get_sprinklr_data(
                         key, value = cookie.strip().split('=', 1)
                         cookies[key] = value
 
-        logger.info(f"Fetching Sprinklr data for query: {query[:50]}... with page_size: {page_size}")
+        logger.info(f"Fetching Sprinklr data for query: {query}... with page_size: {page_size}")
 
         async with httpx.AsyncClient(timeout=60, cookies=cookies) as client:
             for attempt in range(3):
@@ -138,7 +136,7 @@ async def get_sprinklr_data(
                         return []
 
                 except httpx.HTTPStatusError as e:
-                    logger.error(f"Sprinklr API request failed with status {e.response.status_code}: {e.response.text[:200]}") # Log snippet of error
+                    logger.error(f"Sprinklr API request failed with status {e.response.status_code}: {e.response.text}") # Log snippet of error
                     if attempt == 2:  # max_retries - 1
                         return [] # Return empty list after max retries
                     await asyncio.sleep(2 ** attempt)  # Exponential backoff
@@ -148,7 +146,7 @@ async def get_sprinklr_data(
                         return []
                     await asyncio.sleep(2 ** attempt)
                 except json.JSONDecodeError as e:
-                    logger.error(f"Error decoding Sprinklr API JSON response: {e}. Response text: {response.text[:200]}")
+                    logger.error(f"Error decoding Sprinklr API JSON response: {e}. Response text: {response.text}")
                     return [] # Cannot parse response
                 except Exception as e:
                     logger.error(f"An unexpected error occurred while fetching Sprinklr data: {e}")

@@ -218,20 +218,27 @@ class QueryGeneratorAgent(LLMAgent):
     async def _generate_boolean_query(self, request: QueryGenerationRequest, rag_context: Dict[str, Any]) -> Dict[str, Any]:
         """Generate the main boolean query using LLM"""
         try:
-            # Get the query generation prompt
-            system_prompt = self.prompts_module.QUERY_GENERATOR_SYSTEM_PROMPT
+            # Extract user data components
+            user_data = request.user_data or {}
+            products = user_data.get('products', [])
+            channels = user_data.get('channels', [])
+            keywords = user_data.get('keywords', [])
+            goals = user_data.get('goals', [])
+            timeline = user_data.get('timeline', user_data.get('time_period', ''))
             
-            # Prepare context for the LLM
-            context = {
-                "user_data": request.user_data,
-                "refined_query": request.refined_query,
-                "filters": request.filters or {},
-                "rag_context": rag_context,
-                "query_patterns": rag_context.get("query_patterns", []),
-                "relevant_filters": rag_context.get("relevant_filters", [])
-            }
+            # Format the system prompt with actual values
+            system_prompt = self.prompts_module.QUERY_GENERATOR_SYSTEM_PROMPT.format(
+                keyword_patterns=rag_context.get('query_patterns', []),
+                products=products,
+                channels=channels,
+                keywords=keywords,
+                applied_filters=rag_context.get('relevant_filters', []),
+                goals=goals,
+                timeline=timeline,
+                additional_context=request.refined_query
+            )
             
-            # Create the user message
+            # Create the user message with specific instructions to avoid problematic syntax
             user_message = f"""
             Please generate a boolean keyword query based on the following context:
             
@@ -241,9 +248,11 @@ class QueryGeneratorAgent(LLMAgent):
             
             Available Query Patterns: {rag_context.get('query_patterns', [])}
             
-            Relevant Filters: {rag_context.get('relevant_filters', [])}
+            IMPORTANT: Do NOT use channel-specific syntax like channel:"Twitter". 
+            Instead, use content-based keywords that naturally appear on those platforms.
             
-            Generate a boolean query that will effectively retrieve relevant data from the Sprinklr API.
+            Generate a simple boolean query that will effectively retrieve relevant data from the Sprinklr API.
+            Focus on brand names, product terms, and sentiment keywords rather than platform-specific filters.
             """
             
             # Get response from LLM
@@ -270,7 +279,25 @@ class QueryGeneratorAgent(LLMAgent):
     async def _generate_theme_specific_query(self, request: QueryGenerationRequest, rag_context: Dict[str, Any], theme_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a theme-specific boolean query"""
         try:
-            system_prompt = self.prompts_module.QUERY_GENERATOR_SYSTEM_PROMPT
+            # Extract user data components for theme context
+            user_data = request.user_data or {}
+            products = user_data.get('products', [])
+            channels = user_data.get('channels', [])
+            keywords = theme_data.get('keywords', [])
+            goals = user_data.get('goals', [])
+            timeline = user_data.get('timeline', user_data.get('time_period', ''))
+            
+            # Format the system prompt with theme-specific values
+            system_prompt = self.prompts_module.QUERY_GENERATOR_SYSTEM_PROMPT.format(
+                keyword_patterns=rag_context.get('query_patterns', []),
+                products=products,
+                channels=channels,
+                keywords=keywords,
+                applied_filters=rag_context.get('relevant_filters', []),
+                goals=goals,
+                timeline=timeline,
+                additional_context=f"Theme: {theme_data.get('name')} - {theme_data.get('description')}"
+            )
             
             user_message = f"""
             Generate a boolean keyword query specifically for this theme:
@@ -283,6 +310,9 @@ class QueryGeneratorAgent(LLMAgent):
             User Data: {request.user_data}
             
             Available Query Patterns: {rag_context.get('query_patterns', [])}
+            
+            IMPORTANT: Do NOT use channel-specific syntax like channel:"Twitter". 
+            Use content-based keywords and boolean operators only.
             
             Create a focused boolean query that will retrieve data specifically for this theme.
             """
@@ -359,7 +389,7 @@ class QueryGeneratorAgent(LLMAgent):
         try:
             # This is a simplified parser - in production, you might want more sophisticated parsing
             lines = response_content.strip().split('\n')
-            
+            logger.info(f"Parsing query response: {lines}")
             query = ""
             confidence = 0.8
             estimated_results = "medium"
@@ -413,6 +443,7 @@ class QueryGeneratorAgent(LLMAgent):
             else:
                 components["keywords"].append(word)
         
+
         return components
     
     async def _generate_fallback_query(self, request: QueryGenerationRequest) -> str:
@@ -462,26 +493,44 @@ class QueryGeneratorAgent(LLMAgent):
     
     # State management methods for LangGraph integration
     async def process_state(self, state: DashboardState) -> DashboardState:
-        """Process the dashboard state for query generation"""
+        """Process the dashboard state for query generation using enhanced data collection"""
         try:
-            logger.info("Processing state for query generation")
+            logger.info("Processing state for enhanced query generation")
             
-            # Create request from state
+            # Extract data from enhanced user_data structure
+            user_data_dict = {}
+            keywords = []
+            filters = {}
+            refined_query = ""
+            
+            # Get refined query
+            if hasattr(state, 'query_refinement_data') and state.query_refinement_data:
+                if isinstance(state.query_refinement_data, dict):
+                    refined_query = state.query_refinement_data.get('refined_query', '')
+                else:
+                    refined_query = getattr(state.query_refinement_data, 'refined_query', '')
+            
+            # Get enhanced user data
+            if hasattr(state, 'user_data') and state.user_data:
+                user_data_dict = state.user_data.extracted_data
+                keywords = state.user_data.keywords
+                filters = state.user_data.applied_filters
+            
+            # Create request with enhanced data
             request = QueryGenerationRequest(
-                user_data=state.user_collected_data.data if state.user_collected_data else {},
-                refined_query=state.query_refinement_data.refined_query if state.query_refinement_data else "",
-                filters=state.user_collected_data.filters if state.user_collected_data else None
+                user_data=user_data_dict,
+                refined_query=refined_query,
+                filters=filters
             )
             
-            # Generate the query
-            result = await self.generate_query(request)
+            # Generate the query using keywords and filters
+            result = await self._generate_enhanced_query(request, keywords, filters)
             
             # Update state
             if result["success"]:
                 # Convert query_components from dict to list if needed
                 query_components = result["query_components"]
                 if isinstance(query_components, dict):
-                    # Extract all components from the dict and flatten to a list
                     components_list = []
                     for category, items in query_components.items():
                         if isinstance(items, list):
@@ -491,6 +540,9 @@ class QueryGeneratorAgent(LLMAgent):
                     query_components = components_list
                 elif not isinstance(query_components, list):
                     query_components = [str(query_components)]
+                
+                # Import the required class
+                from src.helpers.states import BooleanQueryData
                 
                 boolean_query_data = BooleanQueryData(
                     boolean_query=result["boolean_query"],
@@ -502,7 +554,8 @@ class QueryGeneratorAgent(LLMAgent):
                 state.query_generation_data = boolean_query_data
                 state.boolean_query_data = boolean_query_data  # Also set legacy field
                 state.workflow_status = "query_generated"
-                logger.info("Boolean query generated successfully")
+                state.current_stage = "querying"
+                logger.info(f"Enhanced boolean query generated successfully: {result['boolean_query']}")
             else:
                 state.errors.append(f"Query generation failed: {result.get('error', 'Unknown error')}")
                 state.workflow_status = "query_generation_failed"
@@ -515,6 +568,181 @@ class QueryGeneratorAgent(LLMAgent):
             state.errors.append(f"Query generation error: {str(e)}")
             state.workflow_status = "query_generation_failed"
             return state
+
+    async def _generate_enhanced_query(self, request: QueryGenerationRequest, keywords: List[str], filters: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate boolean query using enhanced keywords and filters from data collection.
+        
+        Args:
+            request: QueryGenerationRequest
+            keywords: Keywords extracted from user query
+            filters: Applied filters from knowledge base
+            
+        Returns:
+            Dict containing generated query and metadata
+        """
+        try:
+            logger.info(f"Generating enhanced query with keywords: {keywords}, filters: {filters}")
+            
+            # Load keyword query patterns from knowledge base
+            query_patterns = self._load_query_patterns()
+            
+            # Build boolean query components
+            query_parts = []
+            
+            # Add keywords with appropriate boolean logic
+            if keywords:
+                # Group related keywords with OR, different concepts with AND
+                keyword_groups = self._group_keywords(keywords)
+                for group in keyword_groups:
+                    if len(group) > 1:
+                        # Multiple related keywords - use OR
+                        group_query = f"({' OR '.join(group)})"
+                    else:
+                        # Single keyword
+                        group_query = group[0]
+                    query_parts.append(group_query)
+            
+            # Add filter constraints
+            filter_parts = []
+            if filters:
+                for filter_name, filter_values in filters.items():
+                    if isinstance(filter_values, list):
+                        if len(filter_values) > 1:
+                            # Multiple values - use OR
+                            filter_query = f"{filter_name}: ({' OR '.join(filter_values)})"
+                        else:
+                            filter_query = f"{filter_name}: {filter_values[0]}"
+                    else:
+                        filter_query = f"{filter_name}: {filter_values}"
+                    filter_parts.append(filter_query)
+            
+            # Combine all parts with AND
+            all_parts = query_parts + filter_parts
+            
+            if all_parts:
+                boolean_query = " AND ".join(all_parts)
+            else:
+                # Fallback query
+                boolean_query = request.refined_query or "brand monitoring"
+            
+            # Apply query patterns and optimization
+            optimized_query = self._optimize_query_with_patterns(boolean_query, query_patterns)
+            
+            logger.info(f"Generated enhanced boolean query: {optimized_query}")
+            
+            return {
+                "success": True,
+                "boolean_query": optimized_query,
+                "query_components": keywords + list(filters.keys()),
+                "target_channels": filters.get("source", ["Twitter", "Instagram"]),
+                "filters_applied": filters,
+                "keywords_used": keywords,
+                "estimated_results": self._estimate_results(optimized_query)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in enhanced query generation: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "boolean_query": "brand monitoring",  # Fallback
+                "query_components": keywords or ["monitoring"],
+                "target_channels": ["Twitter", "Instagram"],
+                "filters_applied": filters or {}
+            }
+    
+    def _load_query_patterns(self) -> Dict[str, Any]:
+        """Load query patterns from knowledge base."""
+        try:
+            import json
+            import os
+            
+            kb_path = os.path.join(os.path.dirname(__file__), '..', 'knowledge_base', 'keyword_query_patterns.json')
+            
+            if os.path.exists(kb_path):
+                with open(kb_path, 'r') as f:
+                    return json.load(f)
+            else:
+                logger.warning("Query patterns file not found")
+                return {"syntax_keywords": ["AND", "OR", "NOT"], "example_queries": []}
+        except Exception as e:
+            logger.error(f"Error loading query patterns: {e}")
+            return {"syntax_keywords": ["AND", "OR", "NOT"], "example_queries": []}
+    
+    def _group_keywords(self, keywords: List[str]) -> List[List[str]]:
+        """Group related keywords together for OR logic."""
+        # Simple grouping - can be enhanced with semantic similarity
+        groups = []
+        used_keywords = set()
+        
+        for keyword in keywords:
+            if keyword in used_keywords:
+                continue
+                
+            # Find related keywords (simple approach)
+            related = [keyword]
+            used_keywords.add(keyword)
+            
+            # Look for similar keywords (basic string similarity)
+            for other_keyword in keywords:
+                if other_keyword not in used_keywords:
+                    # Simple similarity check
+                    if (len(keyword) > 3 and keyword.lower() in other_keyword.lower()) or \
+                       (len(other_keyword) > 3 and other_keyword.lower() in keyword.lower()):
+                        related.append(other_keyword)
+                        used_keywords.add(other_keyword)
+            
+            groups.append(related)
+        
+        return groups
+    
+    def _optimize_query_with_patterns(self, query: str, patterns: Dict[str, Any]) -> str:
+        """Optimize query using patterns from knowledge base."""
+        try:
+            # Apply NOT logic for common exclusions
+            exclusions = [
+                "case", "cases", "googleplay store", "coupon", "free", "giveaway", 
+                "paypal", "retweet", "sponsored", "promoted", "ads"
+            ]
+            
+            # Add NOT clauses
+            not_clauses = []
+            for exclusion in exclusions[:5]:  # Limit to avoid overly complex queries
+                not_clauses.append(f'NOT "{exclusion}"')
+            
+            if not_clauses:
+                optimized = f"({query}) AND ({' AND '.join(not_clauses)})"
+            else:
+                optimized = query
+            
+            # Ensure proper parentheses
+            if not optimized.startswith('('):
+                optimized = f"({optimized})"
+            
+            return optimized
+            
+        except Exception as e:
+            logger.error(f"Error optimizing query: {e}")
+            return query
+    
+    def _estimate_results(self, query: str) -> int:
+        """Estimate number of results for the query."""
+        # Simple estimation based on query complexity
+        base_estimate = 1000
+        
+        # Reduce estimate for more specific queries
+        if " AND " in query:
+            and_count = query.count(" AND ")
+            base_estimate = max(100, base_estimate // (and_count + 1))
+        
+        # Increase estimate for OR queries
+        if " OR " in query:
+            or_count = query.count(" OR ")
+            base_estimate = min(5000, base_estimate * (or_count + 1))
+        
+        return base_estimate
+
 
 # Factory function for creating QueryGeneratorAgent instances
 create_query_generator_agent = create_agent_factory(QueryGeneratorAgent, "query_generator")

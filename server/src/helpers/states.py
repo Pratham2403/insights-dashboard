@@ -44,9 +44,23 @@ class UserCollectedData(BaseModel):
     Represents the data collected from the user during HITL interactions.
     
     This includes all information gathered through the conversation
-    for dashboard generation.
+    for dashboard generation. Uses dynamic fields to avoid hardcoding.
     """
     
+    # Dynamic data fields - extracted from user query and knowledge base
+    extracted_data: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Keywords extracted from user query and knowledge base
+    keywords: List[str] = Field(default_factory=list)
+    
+    # Applied filters from the available filters in knowledge base
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
+    
+    # User confirmation and satisfaction tracking
+    user_satisfaction: Optional[bool] = None
+    requires_clarification: bool = True
+    
+    # Legacy fields for backward compatibility
     user_persona: Optional[str] = None
     products: List[str] = Field(default_factory=list)
     location: Optional[str] = None
@@ -59,6 +73,12 @@ class UserCollectedData(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
+            "extracted_data": self.extracted_data,
+            "keywords": self.keywords,
+            "applied_filters": self.applied_filters,
+            "user_satisfaction": self.user_satisfaction,
+            "requires_clarification": self.requires_clarification,
+            # Legacy fields
             "user_persona": self.user_persona,
             "products": self.products,
             "location": self.location,
@@ -71,8 +91,13 @@ class UserCollectedData(BaseModel):
     
     def is_complete(self) -> bool:
         """Check if all required data has been collected."""
-        required_fields = ["products", "channels", "goals", "time_period"]
-        return all(getattr(self, field) for field in required_fields)
+        # Check if we have essential extracted data and user is satisfied
+        has_essential_data = (
+            len(self.keywords) > 0 or 
+            len(self.extracted_data) > 0 or
+            (self.products and self.channels)  # Legacy check
+        )
+        return has_essential_data and self.user_satisfaction is True
 
 
 class QueryRefinementData(BaseModel):
@@ -126,10 +151,14 @@ class DashboardState(BaseModel):
     
     # Conversation tracking
     conversation_id: str = Field(default_factory=lambda: str(uuid4()))
-    current_stage: str = "initial"  # initial, collecting, refining, querying, analyzing, complete
+    current_stage: str = "initial"  # initial, refining, collecting, confirming, querying, analyzing, complete
     current_step: str = "initializing"  # For workflow tracking
-    workflow_status: str = "started"  # started, in_progress, completed, failed
+    workflow_status: str = "started"  # started, in_progress, awaiting_user, completed, failed
     timestamp: Optional[datetime] = Field(default_factory=datetime.now)  # Processing timestamp
+    
+    # User satisfaction and confirmation tracking
+    awaiting_user_confirmation: bool = False
+    user_final_approval: Optional[bool] = None
     
     # Error handling
     errors: List[str] = Field(default_factory=list)
@@ -159,6 +188,8 @@ class DashboardState(BaseModel):
     pending_questions: List[str] = Field(default_factory=list)
     user_confirmations: Dict[str, bool] = Field(default_factory=dict)
     hitl_verification_data: Optional[Dict[str, Any]] = None  # HITL verification state
+    hitl_outcome: Optional[Dict[str, Any]] = None  # Added: HITL outcome for the agent response
+    hitl_input_payload: Optional[Dict[str, Any]] = None  # Added: Payload to present to the human
     
     # Context and metadata
     rag_context: Dict[str, Any] = Field(default_factory=dict)

@@ -77,6 +77,7 @@ class EmbeddingSetup:
         """
         try:
             embedding = self.model.encode([query], convert_to_numpy=True)[0]
+            logger.info(f"Generated embedding for query.")
             return embedding
         except Exception as e:
             logger.error(f"Failed to encode query: {e}")
