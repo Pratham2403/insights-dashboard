@@ -1,7 +1,11 @@
 """
-Main application logic and entry point using Flask.
+Modern Sprinklr Insights Dashboard API
 
-Provides API endpoints for health checks, status, and query analysis.
+Clean, modern implementation using latest LangGraph patterns:
+- Modern workflow orchestration
+- Conversation memory management  
+- Human-in-the-loop patterns
+- Built-in error handling
 """
 
 import logging
@@ -15,7 +19,6 @@ from flask_cors import CORS
 
 # Add the src directory to the path for imports
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
-from src.utils.files_helper import import_module_from_file
 from src.utils.api_helpers import (
     create_success_response,
     create_error_response,
@@ -24,10 +27,12 @@ from src.utils.api_helpers import (
     log_endpoint_access
 )
 
-# Import workflow
-workflow_module = import_module_from_file(
-    os.path.join(os.path.dirname(__file__), 'src', 'workflow.py'),
-    'workflow'
+# Import modern workflow
+from src.complete_modern_workflow import (
+    process_dashboard_request,
+    handle_user_feedback,
+    get_workflow_history,
+    ModernSprinklrWorkflow
 )
 
 # Configure logging
@@ -46,27 +51,33 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Global workflow instance
-workflow_instance = None
+# Global modern workflow instance
+modern_workflow_instance = None
 
-def get_workflow():
-    """Get or initialize the workflow instance"""
-    global workflow_instance
-    if workflow_instance is None:
-        logger.info("Initializing workflow instance for the first time.")
-        workflow_instance = workflow_module.get_workflow()
-    return workflow_instance
+def get_modern_workflow():
+    """Get or initialize the modern workflow instance"""
+    global modern_workflow_instance
+    if modern_workflow_instance is None:
+        logger.info("Initializing modern workflow instance for the first time.")
+        modern_workflow_instance = ModernSprinklrWorkflow()
+    return modern_workflow_instance
 
 @app.route('/')
 def index():
     """Home page with basic API information"""
     log_endpoint_access("index")
     data = {
-        "message": "Sprinklr Insights Dashboard API",
-        "version": "1.0",
-        "status": "running"
+        "message": "Sprinklr Insights Dashboard API - Modern Implementation",
+        "version": "2.0.0",
+        "status": "running",
+        "features": [
+            "Modern LangGraph workflow",
+            "Conversation memory management",
+            "Human-in-the-loop verification",
+            "Advanced agent orchestration"
+        ]
     }
-    return create_success_response(data, "API is running")
+    return create_success_response(data, "Modern API is running")
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -79,99 +90,90 @@ def health_check():
 def get_status():
     """Get detailed service status"""
     log_endpoint_access("get_status")
-    wf = get_workflow()
-    # Assuming workflow has a method to get its status or relevant info
-    # For example, wf.get_status() or some properties
+    wf = get_modern_workflow()
     status_info = {
         "workflow_initialized": wf is not None,
-        # Add more relevant status details from the workflow if available
-        # "last_activity": wf.last_activity_timestamp if hasattr(wf, 'last_activity_timestamp') else None
+        "memory_enabled": hasattr(wf, 'memory'),
+        "agents_loaded": len(wf.__dict__) > 0 if wf else 0,
+        "timestamp": datetime.now().isoformat()
     }
-    return create_success_response(status_info, "API operational")
+    return create_success_response(status_info, "Modern API operational")
 
 @app.route('/api/process', methods=['POST'])
-@handle_exceptions("Error processing request")
+@handle_exceptions("Modern processing error")
 def process_query():
     """
-    Unified endpoint to handle both query analysis and user responses.
+    Modern unified endpoint for query processing and conversation management.
     
     For new query analysis:
         - Requires 'query' parameter
+        - Optional 'conversation_id' parameter
     
     For responding to existing conversation:
-        - Requires 'thread_id' and 'query' parameters
+        - Requires 'conversation_id' and 'query' parameters
     """
     log_endpoint_access("process_query")
     
     data = request.get_json()
-    if not data:
-        return create_error_response(
-            "No JSON data provided", 
-            "Invalid request: Missing JSON data",
-            400
-        )
-    
-    # Validate that 'query' field is always present
-    validation_error = validate_request_data(['query'], data)
-    if validation_error:
-        return validation_error
+    if not data or 'query' not in data:
+        return create_error_response("Missing query parameter", "Invalid request", 400)
     
     user_query = data['query']
-    thread_id = data.get('thread_id')
+    conversation_id = data.get('conversation_id')
     
-    if thread_id:
-        # Handle user response to existing conversation
-        logger.info(f"Received response for thread {thread_id}: {user_query}...")
-        wf = get_workflow()
-        # Invoke the async process_user_response synchronously
-        result = asyncio.run(wf.process_user_response(thread_id, user_query))
-        logger.info(f"Response processed successfully for thread {thread_id}")
-        return create_success_response(result, "Response processed successfully")
+    logger.info(f"Processing query: {user_query[:100]}...")
     
-    else:
-        # Handle new query analysis
-        logger.info(f"Received query for analysis: {user_query}...")
-
-        wf = get_workflow()
-        result = wf.analyze(user_query, data.get('context', {}))
-        logger.info(f"Analysis successful for query: {user_query}...")
-        return create_success_response(result, "Query analyzed successfully")
-
-@app.route('/api/workflow/status/<thread_id>', methods=['GET'])
-@handle_exceptions("Error getting workflow status")
-def get_workflow_status(thread_id):
-    """Get the status of a specific workflow execution"""
-    log_endpoint_access("get_workflow_status", f"thread_id: {thread_id}")
-    wf = get_workflow()
-    # Retrieve workflow status using the proper method
-    status = wf.get_workflow_status(thread_id)
-    if status:
-        return create_success_response(status, "Workflow status retrieved successfully")
-    return create_error_response(
-        f"No status found for thread_id: {thread_id}",
-        "Status not found for the given thread_id",
-        404
-    )
-
-@app.route('/api/themes/validate', methods=['POST'])
-@handle_exceptions("Error during theme validation")
-def validate_themes():
-    """Validate and provide feedback on generated themes"""
-    log_endpoint_access("validate_themes")
+    # Use modern workflow for all processing
+    result = asyncio.run(process_dashboard_request(user_query, conversation_id))
     
-    # Validate request data
-    validation_error = validate_request_data(['themes'])
-    if validation_error:
-        return validation_error
+    logger.info("Query processing completed successfully")
+    return create_success_response(result, "Query processed successfully")
+
+@app.route('/api/feedback', methods=['POST'])
+@handle_exceptions("Modern feedback error")
+def handle_feedback():
+    """
+    Modern HITL feedback endpoint using interrupt patterns.
+    
+    Handles human-in-the-loop verification for data collection results.
+    """
+    log_endpoint_access("handle_feedback")
     
     data = request.get_json()
-    themes_to_validate = data['themes']
-    logger.info(f"Received themes for validation: {str(themes_to_validate)}...")
+    if not data or 'conversation_id' not in data or 'feedback' not in data:
+        return create_error_response("Missing required parameters", "Invalid request", 400)
+    
+    conversation_id = data['conversation_id']
+    feedback = data['feedback']
+    
+    logger.info(f"Processing feedback for conversation: {conversation_id}")
+    
+    # Modern feedback handling
+    result = asyncio.run(handle_user_feedback(conversation_id, feedback))
+    
+    logger.info("Feedback processed successfully")
+    return create_success_response(result, "Feedback processed")
 
-    wf = get_workflow()
-    validation_result = wf.validate_themes(themes_to_validate)
-    logger.info("Theme validation successful.")
-    return create_success_response(validation_result, "Themes validated successfully")
+@app.route('/api/history/<conversation_id>', methods=['GET'])
+@handle_exceptions("Modern history error")
+def get_history(conversation_id):
+    """
+    Modern conversation history endpoint using built-in memory.
+    
+    Leverages LangGraph's automatic persistence.
+    """
+    log_endpoint_access("get_history")
+    
+    logger.info(f"Retrieving history for: {conversation_id}")
+    
+    # Modern history retrieval - built-in persistence
+    history = asyncio.run(get_workflow_history(conversation_id))
+    
+    return create_success_response({
+        "conversation_id": conversation_id,
+        "messages": history,
+        "count": len(history)
+    }, "History retrieved")
 
 @app.errorhandler(404)
 def not_found(error):
@@ -185,10 +187,9 @@ def internal_error(error):
     logger.error(f"500 Internal Server Error: {request.url}")
     return create_error_response(str(error), "Internal Server Error", 500)
 
-
 if __name__ == "__main__":
     try:
-        logger.info("Starting Flask development server.")
+        logger.info("Starting Modern Sprinklr Dashboard API...")
         host = os.getenv('HOST', '0.0.0.0')
         port = int(os.getenv('PORT', 8000))
         app.run(host=host, port=port, debug=True)

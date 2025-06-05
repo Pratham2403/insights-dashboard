@@ -97,7 +97,7 @@ class LLMSetup:
 # Import centralized config
 from src.config.settings import settings
 
-llm_setup = LLMSetup(api_key=settings.GOOGLE_API_KEY, model=settings.DEFAULT_MODEL)
+llm_setup = LLMSetup(api_key=settings.GOOGLE_API_KEY, model=settings.DEFAULT_MODEL_NAME)
 
 
 def get_llm(agent_type: str = "default") -> BaseLLM:

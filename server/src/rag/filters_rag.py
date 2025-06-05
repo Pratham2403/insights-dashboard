@@ -100,7 +100,7 @@ class FiltersRAG:
             raise RuntimeError("Vector database not available, cannot load filters data")
             
         try:
-            filters_file = self.knowledge_base_path / "filers.json"
+            filters_file = self.knowledge_base_path / "filters.json"
             
             # For now, create sample filters data since the file is empty
             sample_filters = [
@@ -382,6 +382,22 @@ class FiltersRAG:
             logger.error(f"Failed to search filters: {e}")
             return []
     
+    def search_relevant_filters(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
+        """
+        Search for relevant filters based on query (alias for search_filters).
+        
+        This method provides backward compatibility for existing code that expects
+        search_relevant_filters method name.
+        
+        Args:
+            query: Search query
+            n_results: Number of results to return
+            
+        Returns:
+            List of relevant filter information
+        """
+        return self.search_filters(query, n_results)
+    
     def search_themes(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
         """
         Search for relevant themes based on query.
@@ -409,6 +425,22 @@ class FiltersRAG:
         except Exception as e:
             logger.error(f"Failed to search themes: {e}")
             return []
+    
+    def search_relevant_themes(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+        """
+        Search for relevant themes based on query (alias for search_themes).
+        
+        This method provides backward compatibility for existing code that expects
+        search_relevant_themes method name.
+        
+        Args:
+            query: Search query
+            top_k: Number of results to return (alias for n_results)
+            
+        Returns:
+            List of relevant theme information
+        """
+        return self.search_themes(query, n_results=top_k)
     
     def search_keyword_patterns(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
         """

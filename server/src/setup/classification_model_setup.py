@@ -20,6 +20,9 @@ from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
+# Import lazy loader for performance optimization
+from src.utils.lazy_model_loader import lazy_loader
+
 logger = logging.getLogger(__name__)
 
 class ClassificationModelSetup:
@@ -31,17 +34,47 @@ class ClassificationModelSetup:
     """
     
     def __init__(self):
-        """Initialize the classification model setup"""
+        """Initialize the classification model setup with lazy loading"""
         self.zero_shot_classifier = None
         self.clustering_model = None
         self.vectorizer = None
         self.model_cache = {}
         
-        logger.info("ClassificationModelSetup initialized")
+        # Setup lazy loading for common models
+        self._setup_lazy_loading()
+        
+        logger.info("ClassificationModelSetup initialized with lazy loading")
     
+    def _setup_lazy_loading(self):
+        """Setup lazy loading for classification models."""
+        def load_zero_shot_classifier():
+            logger.info("Loading zero-shot classification model...")
+            return pipeline(
+                "zero-shot-classification",
+                model="facebook/bart-large-mnli",
+                device=-1  # Use CPU for compatibility
+            )
+        
+        def load_clustering_model():
+            logger.info("Loading clustering model...")
+            return KMeans(n_clusters=5, random_state=42, n_init=10)
+        
+        def load_vectorizer():
+            logger.info("Loading TF-IDF vectorizer...")
+            return TfidfVectorizer(
+                max_features=1000,
+                stop_words='english',
+                ngram_range=(1, 2)
+            )
+        
+        # Register all models for lazy loading
+        lazy_loader.register_model("zero_shot_classifier", load_zero_shot_classifier)
+        lazy_loader.register_model("clustering_model", load_clustering_model)
+        lazy_loader.register_model("tfidf_vectorizer", load_vectorizer)
+
     def get_zero_shot_classifier(self, model_name: str = "facebook/bart-large-mnli"):
         """
-        Get or initialize zero-shot classification model.
+        Get or initialize zero-shot classification model using lazy loading.
         
         Args:
             model_name: Hugging Face model name for zero-shot classification
@@ -50,6 +83,13 @@ class ClassificationModelSetup:
             Zero-shot classification pipeline
         """
         try:
+            if model_name == "facebook/bart-large-mnli":
+                # Use lazy loading for the default model
+                classifier = lazy_loader.get_model("zero_shot_classifier")
+                if classifier:
+                    return classifier
+            
+            # Fallback for custom models or if lazy loading fails
             if model_name not in self.model_cache:
                 logger.info(f"Loading zero-shot classifier: {model_name}")
                 self.model_cache[model_name] = pipeline(

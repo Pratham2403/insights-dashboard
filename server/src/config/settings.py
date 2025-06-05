@@ -1,41 +1,102 @@
 """
-Configuration settings for the the Sprinklr Insights Dashboard Application.
-
-This File consists of the all the configuration settings that are required for the application to run.
+Modern Configuration settings for the Sprinklr Insights Dashboard Application.
+Uses Pydantic settings with proper .env file integration.
 """
 
 import os
 from typing import Dict, Optional, Any, List, Union
-from pydantic import Field, field_validator, AnyHttpUrl
+from pathlib import Path
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import time
 
 class Settings(BaseSettings):
     """
-    Provides Configuration Settings for the Sprinklr Insights Dashboard Application.
-    Loaded from the environment variables or a .env file.
+    Modern Configuration Settings for the Sprinklr Insights Dashboard Application.
+    Automatically loaded from environment variables or .env file.
     """
     
-    #Sprinklr API Configuration
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
+    
+    # LLM Configuration (Primary)
+    GOOGLE_API_KEY: str = Field(..., description="Google API key for LLM access")
+    DEFAULT_MODEL_NAME: str = Field(default="gemini-2.0-flash-exp", description="Default LLM model name")
+    TEMPERATURE: float = Field(default=0.1, description="LLM temperature setting")
+    MAX_OUTPUT_TOKENS: int = Field(default=8192, description="Maximum output tokens")
+    
+    # Memory and Persistence Configuration
+    MEMORY_TYPE: str = Field(default="sqlite", description="Memory backend type")
+    MEMORY_PATH: str = Field(default="./conversation_memory", description="Path for memory storage")
+    ENABLE_CONVERSATION_MEMORY: bool = Field(default=True, description="Enable conversation memory")
+    
+    # Knowledge Base Paths
+    KNOWLEDGE_BASE_PATH: str = Field(default="./src/knowledge_base", description="Knowledge base directory")
+    FILTERS_JSON_PATH: str = Field(default="./src/knowledge_base/filters.json", description="Filters JSON file path")
+    USE_CASE_FILE_PATH: str = Field(default="./src/knowledge_base/completeUseCase.txt", description="Use case context file")
+    QUERY_PATTERNS_PATH: str = Field(default="./src/knowledge_base/keyword_query_patterns.json", description="Query patterns file")
+    
+    # Default Query Parameters
+    DEFAULT_DURATION_DAYS: int = Field(default=30, description="Default query duration in days")
+    DEFAULT_SOURCES: List[str] = Field(default=["Twitter", "Instagram"], description="Default social media sources")
+    DEFAULT_LANGUAGE: str = Field(default="English", description="Default language filter")
+    DEFAULT_REGION: str = Field(default="Asia", description="Default region filter")
+    
+    # API Configuration
     SPRINKLR_DATA_API_URL: str = Field(
         default="https://space-prod0.sprinklr.com/ui/rest/reports/query",
+        description="Sprinklr API endpoint"
     )
-    SPRINKLR_COOKIES: Optional[Union[Dict[str, str], str]] = "SPR_STICKINESS=1749017860.131.64.941976|ff16649e665a6c0a657236b8928b9e1b; JSESSIONID=B883E06A11CD0C7EAB72247BF362E691; ajs_anonymous_id=98d0793c-d4c8-41b5-9d50-10c22349f814; user.env.type=ENTERPRISE; connect.token=eyJ2M1Nlc3Npb25VcGRhdGVkIjoidHJ1ZSIsImFjY2Vzc1Rva2VuIjoiZXlKaGJHY2lPaUpTVXpJMU5pSjkuZXlKemRXSWlPaUpCWTJObGMzTWdWRzlyWlc0Z1IyVnVaWEpoZEdWa0lFSjVJRk53Y21sdWEyeHlJaXdpWTJ4cFpXNTBTV1FpT2pFd01EQXdNRFExTURrc0lteHZaMmx1VFdWMGFHOWtJam9pVTBGTlRDSXNJbTkwWVVsa0lqb2lOamd6WkRNeE56UTFObVl5TnpNMk9XUm1aakV4WWpWaUlpd2lhWE56SWpvaVUxQlNTVTVMVEZJaUxDSjBlWEFpT2lKS1YxUWlMQ0oxYzJWeVNXUWlPakV3TURBME5qSXhNellzSW5WMWFXUWlPaUk0TkRFMllUVm1aaTFsTmpkakxUUmhORFV0WWpnMU9TMDJORFE1TmpaaU9ERTVOR1U2TVRjMU5UVTBPVFF4TnpnM09UQTRNeUlzSW1GMVpDSTZJbE5RVWtsT1MweFNJaXdpYm1KbUlqb3hOelE0T0RNNU5qSXhMQ0p6WTI5d1pTSTZXeUpTUlVGRUlpd2lWMUpKVkVVaVhTd2ljMlZ6YzJsdmJsUnBiV1Z2ZFhRaU9qRXdNVEk0TUN3aWNHRnlkRzVsY2tsa0lqbzVNREEwTENKbGVIQWlPakUzTkRreE1EQXdNakVzSW1GMWRHaFVlWEJsSWpvaVUxQlNYMHRGV1Y5UVFWTlRYMHhQUjBsT0lpd2lkRzlyWlc1VWVYQmxJam9pUVVORFJWTlRJaXdpYVdGMElqb3hOelE0T0RRd09ESXhMQ0pxZEdraU9pSnpjSEpwYm10c2NpSXNJbTFwWTNKdlUyVnlkbWxqWlNJNkluTndjaUo5Lkd3enlrdzdWWmVVQXh0UDJ6dW5sSFlvM2dGemcxMnBFbVRXMzExY05kZEJDdmVDc05xUUJybTduRURtZW9MZE5GTEI2YVVKSS1uU1pETGcwa1AwREFQOExYbFQzUm44dWJvRmlPNzEtZDVmc01fNFVOZVU5Mmh6TDc2NFMzSDVIOHNzMVVrQ3FJRFN3bFhFUXd6ZzBNYjBLcGVNaE1felFtMUNmV1pBZUFUVm5oTzRJeTktWlROMzIwa3A2WXJkTmhCR251cDBXM3hfRlJLV0o3czcxNWFMYnQxMTZuNWVSOTh5LVQ5Mk8tMURjTXFIN3MzcC1JX1l3cWdTQW8zNDI2SHdTcG9XaHk3anRaQzMtT3YtVHZCa1c4WWt5eFJ1ZkJ2OHdSRUJsQkxHejh3MFE1cTNzSXZMX2VhaVZpSHg5RnBod3BXcThmekQ0aDZhOXB2MWIxUSJ9.DuQgEHpWKL5/AklMAnZb7MypFzD1KI46EnCOSIFdzEw; connect.sid=s%3AzUrs6sX6oGUg9LbCox7NMy-n5KWB5t-2.T1%2Beeqy6LZ6BjtUBP0qEL93tRyOBAiP8NNFJonWSgj4; SPR_AT=ZWdkZnZBVWVOQnVzcmdlMnJiNURr; sess-exp-time=Thu, 5 Jun 2025 10:26:43 GMT"
-    SPRINKLR_CSRF_TOKEN: Optional[str] = None
-    SPRINKLR_USER_CONTEXT: Optional[str] = None
-    SPRINKLR_DASHBOARD_ID: Optional[str] = None
-    SPRINKLR_WIDGET_ID: Optional[str] = None
+    SPRINKLR_COOKIES: Optional[str] = Field(default=None, description="Sprinklr authentication cookies")
+    SPRINKLR_CSRF_TOKEN: Optional[str] = Field(default=None, description="CSRF token")
     
+    # Workflow Configuration
+    MAX_HITL_ITERATIONS: int = Field(default=3, description="Maximum HITL verification iterations")
+    ENABLE_HITL_VERIFICATION: bool = Field(default=True, description="Enable human-in-the-loop verification")
     
+    # Logging Configuration
+    LOG_LEVEL: str = Field(default="INFO", description="Logging level")
+    ENABLE_DEBUG_LOGGING: bool = Field(default=False, description="Enable debug logging")
     
-    #LLM Configuration
-    GOOGLE_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
-    DEFAULT_MODEL: str = "gemini-2.0-flash"
+    @field_validator("KNOWLEDGE_BASE_PATH", "MEMORY_PATH")
+    @classmethod
+    def validate_paths(cls, v: str) -> str:
+        """Ensure paths exist or can be created"""
+        path = Path(v)
+        path.mkdir(parents=True, exist_ok=True)
+        return str(path)
     
+    @property
+    def filters_json_path(self) -> Path:
+        """Get absolute path to filters JSON file"""
+        return Path(self.FILTERS_JSON_PATH).resolve()
     
-    #Memory Configuration
-    MEMORY_TYPE: str = "file_system"
-    MEMORY_PATH: str = "./conversation_memory"
+    @property
+    def use_case_file_path(self) -> Path:
+        """Get absolute path to use case file"""
+        return Path(self.USE_CASE_FILE_PATH).resolve()
+        
+    @property
+    def memory_config(self) -> Dict[str, Any]:
+        """Get memory configuration dictionary"""
+        return {
+            "type": self.MEMORY_TYPE,
+            "path": self.MEMORY_PATH,
+            "enabled": self.ENABLE_CONVERSATION_MEMORY
+        }
+    
+    @property
+    def llm_config(self) -> Dict[str, Any]:
+        """Get LLM configuration dictionary"""
+        return {
+            "api_key": self.GOOGLE_API_KEY,
+            "model_name": self.DEFAULT_MODEL_NAME,
+            "temperature": self.TEMPERATURE,
+            "max_output_tokens": self.MAX_OUTPUT_TOKENS
+        }
 
-
+# Global settings instance
 settings = Settings()

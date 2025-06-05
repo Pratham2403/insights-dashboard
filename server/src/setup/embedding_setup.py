@@ -17,6 +17,9 @@ from typing import List, Optional, Union
 import numpy as np
 import logging
 
+# Import lazy loader for performance optimization
+from src.utils.lazy_model_loader import lazy_loader
+
 logger = logging.getLogger(__name__)
 
 class EmbeddingSetup:
@@ -29,23 +32,31 @@ class EmbeddingSetup:
     
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         """
-        Initialize the embedding setup.
+        Initialize the embedding setup with lazy loading.
         
         Args:
             model_name: Name of the sentence transformer model to use
         """
         self.model_name = model_name
         self.model = None
-        self._initialize_model()
+        
+        # Register lazy loader instead of immediate initialization
+        self._setup_lazy_loading()
+        logger.info(f"EmbeddingSetup initialized with lazy loading for model: {self.model_name}")
     
-    def _initialize_model(self):
-        """Initialize the embedding model."""
-        try:
-            self.model = SentenceTransformer(self.model_name)
-            logger.info(f"Successfully initialized embedding model: {self.model_name}")
-        except Exception as e:
-            logger.error(f"Failed to initialize embedding model: {e}")
-            raise
+    def _setup_lazy_loading(self):
+        """Setup lazy loading for the embedding model."""
+        def load_model():
+            logger.info(f"Loading SentenceTransformer model: {self.model_name}")
+            return SentenceTransformer(self.model_name)
+        
+        lazy_loader.register_model(f"embedding_{self.model_name}", load_model)
+    
+    def _get_model(self):
+        """Get the model using lazy loading."""
+        if self.model is None:
+            self.model = lazy_loader.get_model(f"embedding_{self.model_name}")
+        return self.model
     
     def encode_documents(self, documents: List[str]) -> np.ndarray:
         """
@@ -58,7 +69,10 @@ class EmbeddingSetup:
             Numpy array of embeddings
         """
         try:
-            embeddings = self.model.encode(documents, convert_to_numpy=True)
+            model = self._get_model()
+            if model is None:
+                raise RuntimeError("Failed to load embedding model")
+            embeddings = model.encode(documents, convert_to_numpy=True)
             logger.info(f"Generated embeddings for {len(documents)} documents")
             return embeddings
         except Exception as e:
@@ -76,7 +90,10 @@ class EmbeddingSetup:
             Numpy array embedding for the query
         """
         try:
-            embedding = self.model.encode([query], convert_to_numpy=True)[0]
+            model = self._get_model()
+            if model is None:
+                raise RuntimeError("Failed to load embedding model")
+            embedding = model.encode([query], convert_to_numpy=True)[0]
             logger.info(f"Generated embedding for query.")
             return embedding
         except Exception as e:
