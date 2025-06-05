@@ -64,11 +64,11 @@ async def get_sprinklr_data(
             'sec-fetch-site': 'same-origin',
             'sec-gpc': '1',
             'x-engine': 'LISTENING',
-            'sentry-trace': '863556c0ff564cee8add06d45aa8e949-a1c07f4bc43d8fcb',
+            'sentry-trace': '8c13e9412ce0480e964964c61fd83050-8145621e7d940360',
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-            'x-csrf-token': 'ZWdkZnZBVWVOQnVzcmdlMnJiNURr',
-            'x-request-id': 'space-42c4ba18-614e-4a05-aa89-a16ee932ef1c',
-            'x-requested-at': '1749017924488',
+            'x-csrf-token': 'SGFWNkNhbDJSVWRlOGkzdjhxSUox',
+            'x-request-id': 'space-cd1ae595-276a-4b53-96d2-e468589c4419',
+            'x-requested-at': '1749112921822',
             'x-user-context': 'c_9004_1000004509_1000462136'
         }
 

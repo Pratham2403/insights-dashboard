@@ -12,12 +12,13 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from src.agents.base.modern_agent_base import ModernLLMAgent
-from src.tools.modern_tools import get_sprinklr_data, process_data
+from src.agents.base.agent_base import LLMAgent
+from src.tools.modern_tools import  process_data
+from src.tools.get_tool import get_sprinklr_data
 
 logger = logging.getLogger(__name__)
 
-class ModernDataCollectorAgent(ModernLLMAgent):
+class DataCollectorAgent(LLMAgent):
     """
     Modern Data Collector using latest LangGraph patterns.
     
@@ -268,7 +269,7 @@ Extract the data requirements for dashboard generation.
 # Modern factory for LangGraph
 def create_modern_data_collector():
     """Create modern data collector for LangGraph integration."""
-    return ModernDataCollectorAgent()
+    return DataCollectorAgent()
 
 
 # Legacy compatibility
@@ -276,7 +277,7 @@ class DataCollectorAgent:
     """Legacy wrapper for backward compatibility."""
     
     def __init__(self, llm=None):
-        self.modern_agent = ModernDataCollectorAgent(llm)
+        self.modern_agent = DataCollectorAgent(llm)
         self.agent_name = "data_collector_agent"
     
     async def invoke(self, state):

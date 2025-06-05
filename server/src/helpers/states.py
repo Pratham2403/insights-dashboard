@@ -15,7 +15,7 @@ from langgraph.graph.message import add_messages
 import operator
 
 
-class ModernDashboardState(TypedDict):
+class DashboardState(TypedDict):
     """
     Modern dashboard state using TypedDict for LangGraph compatibility.
     
@@ -83,7 +83,7 @@ class ModernDashboardState(TypedDict):
     warnings: Optional[List[str]]
 
 
-def create_initial_state(user_query: str, conversation_id: str = None) -> ModernDashboardState:
+def create_initial_state(user_query: str, conversation_id: str = None) -> DashboardState:
     """Create initial state for the workflow."""
     from langchain_core.messages import HumanMessage
     import time
@@ -91,7 +91,7 @@ def create_initial_state(user_query: str, conversation_id: str = None) -> Modern
     if not conversation_id:
         conversation_id = f"conv_{int(time.time())}"
     
-    return ModernDashboardState(
+    return DashboardState(
         messages=[HumanMessage(content=user_query)],
         conversation_id=conversation_id,
         user_query=user_query,

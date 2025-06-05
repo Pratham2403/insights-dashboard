@@ -28,11 +28,11 @@ from src.utils.api_helpers import (
 )
 
 # Import modern workflow
-from src.complete_modern_workflow import (
+from src.workflow import (
     process_dashboard_request,
     handle_user_feedback,
     get_workflow_history,
-    ModernSprinklrWorkflow
+    SprinklrWorkflow
 )
 
 # Configure logging
@@ -59,7 +59,7 @@ def get_modern_workflow():
     global modern_workflow_instance
     if modern_workflow_instance is None:
         logger.info("Initializing modern workflow instance for the first time.")
-        modern_workflow_instance = ModernSprinklrWorkflow()
+        modern_workflow_instance = SprinklrWorkflow()
     return modern_workflow_instance
 
 @app.route('/')

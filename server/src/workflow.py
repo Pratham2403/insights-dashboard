@@ -29,17 +29,17 @@ from langgraph.types import Command, interrupt
 
 # Import our modern components
 from src.config.settings import settings
-from src.helpers.modern_states import ModernDashboardState
+from src.helpers.states import DashboardState
 from src.setup.llm_setup import LLMSetup
-from src.tools.modern_tools import get_sprinklr_data
-from src.agents.modern_query_refiner_agent import ModernQueryRefinerAgent
-from src.agents.modern_data_collector_agent import ModernDataCollectorAgent
-from src.agents.modern_data_analyzer_agent import ModernDataAnalyzerAgent
+from src.tools.get_tool import get_sprinklr_data
+from src.agents.query_refiner_agent import QueryRefinerAgent
+from src.agents.data_collector_agent import DataCollectorAgent
+from src.agents.data_analyzer_agent import DataAnalyzerAgent
 from src.agents.query_generator_agent import create_query_generator_agent
 
 logger = logging.getLogger(__name__)
 
-class ModernSprinklrWorkflow:
+class SprinklrWorkflow:
     """
     Complete Modern LangGraph Workflow Implementation.
     
@@ -66,9 +66,9 @@ class ModernSprinklrWorkflow:
         self.llm = self.llm_setup.get_agent_llm("workflow")
         
         # Initialize agents
-        self.query_refiner = ModernQueryRefinerAgent(self.llm)
-        self.data_collector = ModernDataCollectorAgent(self.llm)
-        self.data_analyzer = ModernDataAnalyzerAgent(self.llm)
+        self.query_refiner = QueryRefinerAgent(self.llm)
+        self.data_collector = DataCollectorAgent(self.llm)
+        self.data_analyzer = DataAnalyzerAgent(self.llm)
         self.query_generator = create_query_generator_agent()
         
         # Setup tools
@@ -87,7 +87,7 @@ class ModernSprinklrWorkflow:
         """Build the complete LangGraph workflow following the architecture"""
         
         # Create state graph
-        workflow = StateGraph(ModernDashboardState)
+        workflow = StateGraph(DashboardState)
         
         # Add nodes following the exact architecture flow
         workflow.add_node("query_refiner", self._query_refiner_node)
@@ -128,7 +128,7 @@ class ModernSprinklrWorkflow:
         
         return compiled_workflow
     
-    async def _query_refiner_node(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def _query_refiner_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 1: Query Refiner Agent
         - Adds defaults like 30-day duration, Twitter/Instagram sources
@@ -168,7 +168,7 @@ class ModernSprinklrWorkflow:
             error_msg = AIMessage(content=f"Error in query refinement: {str(e)}")
             return {"messages": [error_msg]}
     
-    async def _data_collector_node(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def _data_collector_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 2: Data Collector Agent
         - Extracts relevant data from refined query
@@ -223,7 +223,7 @@ class ModernSprinklrWorkflow:
             error_msg = AIMessage(content=f"Error in data collection: {str(e)}")
             return {"messages": [error_msg]}
     
-    async def _hitl_verification_node(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def _hitl_verification_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 3: HITL Verification with interrupt()
         - Presents refined query and collected data to user
@@ -293,7 +293,7 @@ class ModernSprinklrWorkflow:
             "current_stage": "hitl_verification"
         }
     
-    def _should_continue_hitl(self, state: ModernDashboardState) -> str:
+    def _should_continue_hitl(self, state: DashboardState) -> str:
         """
         Determine next step based on HITL feedback
         """
@@ -315,7 +315,7 @@ class ModernSprinklrWorkflow:
             # Default to continue if unclear
             return "continue"
     
-    async def _query_generator_node(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def _query_generator_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 4: Query Generator Agent  
         - Creates Boolean queries using AND/OR/NEAR/NOT operators
@@ -358,7 +358,7 @@ class ModernSprinklrWorkflow:
             error_msg = AIMessage(content=f"Error in query generation: {str(e)}")
             return {"messages": [error_msg]}
     
-    async def _data_analyzer_node(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def _data_analyzer_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 6: Data Analyzer Agent
         - Processes API results
@@ -416,7 +416,7 @@ class ModernSprinklrWorkflow:
             error_msg = AIMessage(content=f"Error in data analysis: {str(e)}")
             return {"messages": [error_msg]}
     
-    async def _tool_execution_node(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def _tool_execution_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 5: Tool Execution Node
         - Executes API calls with Boolean query
@@ -442,7 +442,6 @@ class ModernSprinklrWorkflow:
             }
             
             # Execute the Sprinklr API tool
-            from src.tools.modern_tools import get_sprinklr_data
             
             logger.info(f"Executing API call with query: {boolean_query[:100]}...")
             api_results = await get_sprinklr_data.ainvoke(tool_input)
@@ -631,7 +630,7 @@ class ModernSprinklrWorkflow:
                 conversation_id = f"conv_{int(time.time())}"
             
             # Create initial state
-            from src.helpers.modern_states import create_initial_state
+            from src.helpers.states import create_initial_state
             initial_state = create_initial_state(user_query, conversation_id)
             
             # Create config with thread_id for memory
@@ -904,7 +903,7 @@ class ModernSprinklrWorkflow:
 
 
 # Global workflow instance for Flask integration
-modern_workflow = ModernSprinklrWorkflow()
+modern_workflow = SprinklrWorkflow()
 
 
 # Additional utility functions

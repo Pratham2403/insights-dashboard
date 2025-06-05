@@ -12,12 +12,12 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from src.agents.base.modern_agent_base import ModernLLMAgent
+from src.agents.base.agent_base import LLMAgent
 from src.tools.modern_tools import process_data, validate_data
 
 logger = logging.getLogger(__name__)
 
-class ModernDataAnalyzerAgent(ModernLLMAgent):
+class DataAnalyzerAgent(LLMAgent):
     """
     Modern Data Analyzer using latest LangGraph patterns.
     
@@ -260,7 +260,7 @@ Provide insights as a JSON list of strings."""
 # Modern factory for LangGraph
 def create_modern_data_analyzer():
     """Create modern data analyzer for LangGraph integration."""
-    return ModernDataAnalyzerAgent()
+    return DataAnalyzerAgent()
 
 
 # Legacy compatibility
@@ -268,7 +268,7 @@ class DataAnalyzerAgent:
     """Legacy wrapper for backward compatibility."""
     
     def __init__(self, llm=None):
-        self.modern_agent = ModernDataAnalyzerAgent(llm)
+        self.modern_agent = DataAnalyzerAgent(llm)
         self.agent_name = "data_analyzer_agent"
     
     async def invoke(self, state):

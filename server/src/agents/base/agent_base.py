@@ -10,7 +10,7 @@ from langchain_core.tools import tool
 
 logger = logging.getLogger(__name__)
 
-class ModernBaseAgent(ABC):
+class BaseAgent(ABC):
     """
     Modern base class for all agents using latest LangGraph patterns.
     
@@ -70,7 +70,7 @@ class ModernBaseAgent(ABC):
             return None
 
 
-class ModernLLMAgent(ModernBaseAgent):
+class LLMAgent(BaseAgent):
     """
     Modern LLM agent with built-in patterns for common operations.
     

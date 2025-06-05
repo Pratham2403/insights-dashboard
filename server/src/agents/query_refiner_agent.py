@@ -13,12 +13,12 @@ import logging
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import tool
-from src.agents.base.modern_agent_base import ModernLLMAgent
+from src.agents.base.agent_base import LLMAgent
 from src.rag.filters_rag import FiltersRAG
 
 logger = logging.getLogger(__name__)
 
-class ModernQueryRefinerAgent(ModernLLMAgent):
+class QueryRefinerAgent(LLMAgent):
     """
     Modern Query Refiner using latest LangGraph patterns.
     
@@ -136,7 +136,7 @@ async def refine_user_query(query: str, context: Optional[Dict[str, Any]] = None
     Returns:
         Refined query data
     """
-    agent = ModernQueryRefinerAgent()
+    agent = QueryRefinerAgent()
     state = {"user_query": query}
     if context:
         state["rag_context"] = context
@@ -148,7 +148,7 @@ async def refine_user_query(query: str, context: Optional[Dict[str, Any]] = None
 # Modern factory for LangGraph
 def create_modern_query_refiner():
     """Create modern query refiner for LangGraph integration."""
-    return ModernQueryRefinerAgent()
+    return QueryRefinerAgent()
 
 
 # Legacy compatibility
@@ -156,7 +156,7 @@ class QueryRefinerAgent:
     """Legacy wrapper for backward compatibility."""
     
     def __init__(self, llm=None, rag_system=None):
-        self.modern_agent = ModernQueryRefinerAgent(llm)
+        self.modern_agent = QueryRefinerAgent(llm)
         self.agent_name = "query_refiner_agent"
     
     async def invoke(self, state):

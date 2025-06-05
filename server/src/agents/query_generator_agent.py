@@ -16,13 +16,13 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 
 from langchain_core.messages import SystemMessage, HumanMessage
-from src.agents.base.modern_agent_base import ModernLLMAgent
-from src.helpers.modern_states import ModernDashboardState
+from src.agents.base.agent_base import LLMAgent
+from src.helpers.states import DashboardState
 
 logger = logging.getLogger(__name__)
 
 
-class ModernQueryGeneratorAgent(ModernLLMAgent):
+class ModernQueryGeneratorAgent(LLMAgent):
     """
     Modern Query Generator Agent using latest LangGraph patterns.
     
@@ -44,7 +44,7 @@ class ModernQueryGeneratorAgent(ModernLLMAgent):
             self.logger.warning(f"Could not load query patterns: {e}")
             return {"syntax_keywords": ["AND", "OR", "NOT", "NEAR"], "example_queries": []}
     
-    async def __call__(self, state: ModernDashboardState) -> Dict[str, Any]:
+    async def __call__(self, state: DashboardState) -> Dict[str, Any]:
         """
         Generate Boolean query from refined query, keywords, and filters.
         

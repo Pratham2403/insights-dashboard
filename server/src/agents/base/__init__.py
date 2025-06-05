@@ -2,6 +2,6 @@
 Base agent classes and interfaces.
 """
 
-from .modern_agent_base import ModernBaseAgent, ModernLLMAgent
+from .agent_base import BaseAgent, LLMAgent
 
-__all__ = ['ModernBaseAgent', 'ModernLLMAgent']
+__all__ = ['BaseAgent', 'LLMAgent']
