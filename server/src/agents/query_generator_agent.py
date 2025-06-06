@@ -61,7 +61,6 @@ class QueryGeneratorAgent(LLMAgent):
             refined_query = state.get("refined_query", "")
             keywords = state.get("keywords", [])
             filters = state.get("filters", {})
-            data_requirements = state.get("data_requirements", {})
             
             if not refined_query:
                 logger.warning("No refined query found, using keywords only for Boolean query generation")
@@ -71,7 +70,6 @@ class QueryGeneratorAgent(LLMAgent):
                 refined_query=refined_query,
                 keywords=keywords,
                 filters=filters,
-                extracted_data=data_requirements
             )
             
             if boolean_query:
@@ -97,16 +95,14 @@ class QueryGeneratorAgent(LLMAgent):
             self.logger.error(f"Query generation failed: {e}")
             return {"error": f"Query generation error: {str(e)}"}
     
-    async def _generate_boolean_query(self, refined_query: str, keywords: List[str], 
-                                    filters: List[Dict], extracted_data: Dict) -> Optional[str]:
+    async def _generate_boolean_query(self, refined_query: str, keywords: List[str], filters: List[Dict]) -> Optional[str]:
         """
         Generate Boolean query using LLM with proper syntax.
         
         Args:
             refined_query: User's refined query
-            keywords: List of important keywords
+            keywords: List of keywords
             filters: List of exact filters to apply
-            extracted_data: Extracted products, brands, timeline, location, etc.
             
         Returns:
             Boolean query string or None if generation fails
@@ -115,42 +111,41 @@ class QueryGeneratorAgent(LLMAgent):
             # Create system prompt with examples
             system_prompt = f"""You are a Boolean Query Generator for social media data retrieval.
 
-Your task is to create Boolean queries using AND, OR, NEAR, NOT operators.
+            Your task is to create Boolean queries using Operators : AND, OR, NEAR, NOT, ONEAR operators.
 
-Available Syntax Keywords: {', '.join(self.query_patterns.get('syntax_keywords', []))}
+            Available Syntax Operators : {', '.join(self.query_patterns.get('syntax_keywords', []))}
 
-Example Queries:
-{chr(10).join(self.query_patterns.get('example_queries', []))}
+            Example Queries:
+            {chr(10).join(self.query_patterns.get('example_queries', []))}
 
-Rules:
-1. Use AND for required terms that must appear together
-2. Use OR for alternative terms (brands, products, synonyms)
-3. Use NEAR for terms that should appear close to each other
-4. Use NOT to exclude unwanted content
-5. Use parentheses to group logical operations
-6. Include source filters when specified
-7. Consider sentiment/emotion from the refined query
+            Rules:
+            1. Use AND for required terms that must appear together
+            2. Use OR for alternative terms (brands, products, synonyms)
+            3. Use NEAR for terms that should appear close to each other
+            4. Use NOT to exclude unwanted content
+            5. Use parentheses to group logical operations
+            6. Foe Filters, use exact matches for fields. For Filters the Keyword should be in the format: "field:value" (e.g., "location:USA", "language:English")
+            7. Choose the right operator by considering the sentiment/emotion from the refined query
 
-Generate a Boolean query that captures the user's intent effectively."""
+            Generate a Boolean query that captures the user's intent effectively."""
 
             # Create user prompt with context
             user_prompt = f"""Generate a Boolean query for this request:
 
-Refined Query: {refined_query}
+            Refined Query: {refined_query}
 
-Keywords: {keywords}
+            Keywords: {keywords}
 
-Filters: {json.dumps(filters, indent=2)}
+            Filters: {json.dumps(filters, indent=2)}
 
-Extracted Data: {json.dumps(extracted_data, indent=2)}
 
-Generate a Boolean query that:
-- Includes the most important keywords with proper operators
-- Applies the specified filters
-- Reflects the sentiment/intent from the refined query
-- Uses proper Boolean syntax
+            Generate a Boolean query that:
+            - Includes the keywords with proper operators 
+            - Applies the specified filters in the format.
+            - Reflects the sentiment/intent from the refined query
+            - Uses proper Boolean syntax
 
-Return only the Boolean query string, no explanation needed."""
+            Return only the Boolean query string, no explanation needed."""
 
             messages = [
                 SystemMessage(content=system_prompt),

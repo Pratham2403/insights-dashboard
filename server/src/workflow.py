@@ -35,7 +35,7 @@ from src.tools.get_tool import get_sprinklr_data
 from src.agents.query_refiner_agent import QueryRefinerAgent
 from src.agents.data_collector_agent import DataCollectorAgent
 from src.agents.data_analyzer_agent import DataAnalyzerAgent
-from src.agents.query_generator_agent import create_query_generator_agent
+from src.agents.query_generator_agent import  QueryGeneratorAgent
 from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action
 
 
@@ -71,7 +71,7 @@ class SprinklrWorkflow:
         self.query_refiner = QueryRefinerAgent(self.llm)
         self.data_collector = DataCollectorAgent(self.llm)
         self.data_analyzer = DataAnalyzerAgent(self.llm)
-        self.query_generator = create_query_generator_agent()
+        self.query_generator = QueryGeneratorAgent(self.llm)
         
         # Setup tools
         self.tools = [get_sprinklr_data]
@@ -445,7 +445,6 @@ class SprinklrWorkflow:
                 "refined_query": refined_query,
                 "keywords": keywords,
                 "filters": filters,
-                "data_requirements": data_requirements
             })
             
             boolean_query = boolean_query_result.get("boolean_query", "")

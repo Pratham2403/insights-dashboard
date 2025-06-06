@@ -7,6 +7,8 @@ langgraph                # Directed graphs for LLM application flows
 # ===== LLM Providers =====
 langchain-google-genai   # Google Generative AI integration for LangChain
 sentence-transformers    # Sentence Transformers for semantic similarity and embeddings
+transformers             # Hugging Face Transformers for LLMs
+bertopic                # BERTopic for topic modeling with transformers
 
 # ===== Web Framework & API =====
 fastapi                  # Fast API framework for building REST APIs
