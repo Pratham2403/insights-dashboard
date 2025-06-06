@@ -28,8 +28,6 @@ aiocache                 # Async caching
 # ===== Text Processing & NLP =====
 regex                    # Enhanced regular expression capabilities
 unidecode                # ASCII transliterations of Unicode text
-# transformers             # Hugging Face Transformers for NLP tasks
-# torch                    # PyTorch for deep learning and NLP models
 
 # ===== Elasticsearch Integration =====
 langchain-elasticsearch  # Elasticsearch integration for LangChain
