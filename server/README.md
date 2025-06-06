@@ -77,7 +77,6 @@ gunicorn app:app --workers 4 --bind 0.0.0.0:8000
 | POST   | `/api/process`                     | Submit a new natural-language query         |
 | GET    | `/api/workflow/status/<thread_id>` | Retrieve status of an in-progress workflow  |
 | POST   | `/api/themes/validate`             | Validate or reject generated themes         |
-| POST   | `/api/respond`                     | Respond to pending HITL questions           |
 
 **Example:**
 

@@ -30,7 +30,7 @@ class BaseAgent(ABC):
         self.logger.info(f"Modern {agent_name} agent initialized")
     
     def _get_default_llm(self):
-        """Get default LLM using modern pattern."""
+        """Get default LLM using  pattern."""
         try:
             from ...setup.llm_setup import get_llm
             return get_llm()
@@ -52,7 +52,7 @@ class BaseAgent(ABC):
         pass
 
     async def add_message(self, content: str, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Add AI message to state using modern pattern."""
+        """Add AI message to state using  pattern."""
         message = AIMessage(content=content, name=self.agent_name)
         return {"messages": [message]}
 

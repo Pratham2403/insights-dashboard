@@ -37,25 +37,31 @@ class DataAnalyzerAgent(LLMAgent):
         Returns:
             State updates with analysis results and dashboard config
         """
-        self.logger.info("Modern data analyzer agent invoked")
-        
-        fetched_data = state.get("fetched_data", [])
-        if not fetched_data:
-            return {"error": "No data available for analysis"}
-        
-        # Perform modern analysis
-        analysis_results = await self._analyze_data(fetched_data, state)
-        
-        # Generate dashboard configuration
-        dashboard_config = await self._generate_dashboard_config(analysis_results, state)
-        
-        return {
-            "themes": analysis_results.get("themes", []),
-            "analysis_summary": analysis_results.get("summary", {}),
-            "dashboard_config": dashboard_config,
-            "analysis_status": "completed",
-            "messages": [AIMessage(content="Data analysis completed", name=self.agent_name)]
-        }
+        try:
+            self.logger.info("Modern data analyzer agent invoked")
+            
+            fetched_data = state.get("fetched_data", [])
+            self.logger.info(f"Fetched data type: {type(fetched_data)}, length: {len(fetched_data) if isinstance(fetched_data, (list, dict)) else 'N/A'}")
+            
+            if not fetched_data:
+                return {"error": "No data available for analysis"}
+            
+            # Perform modern analysis
+            analysis_results = await self._analyze_data(fetched_data, state)
+            
+            # Generate dashboard configuration
+            dashboard_config = await self._generate_dashboard_config(analysis_results, state)
+            
+            return {
+                "themes": analysis_results.get("themes", []),
+                "analysis_summary": analysis_results.get("summary", {}),
+                "dashboard_config": dashboard_config,
+                "analysis_status": "completed",
+                "messages": [AIMessage(content="Data analysis completed", name=self.agent_name)]
+            }
+        except Exception as e:
+            self.logger.error(f"Data analyzer error: {e}", exc_info=True)
+            return {"error": f"Analysis failed: {str(e)}"}
     
     async def _analyze_data(self, data: List[Dict[str, Any]], state: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -75,26 +81,41 @@ class DataAnalyzerAgent(LLMAgent):
             sentiment_analysis = await process_data(data, "analyze_sentiment")
             theme_analysis = await process_data(data, "extract_themes")
             
+            self.logger.info(f"Sentiment analysis type: {type(sentiment_analysis)}")
+            self.logger.info(f"Theme analysis type: {type(theme_analysis)}")
+            
             # Enhanced analysis with LLM
             enhanced_insights = await self._get_llm_insights(data, sentiment_analysis, theme_analysis)
+            
+            # Safe access to nested dictionaries
+            theme_keys = []
+            if isinstance(theme_analysis, dict) and "themes" in theme_analysis:
+                theme_keys = list(theme_analysis["themes"].keys())[:5]
+            
+            sentiment_dist = {}
+            if isinstance(sentiment_analysis, dict) and "sentiment_distribution" in sentiment_analysis:
+                sentiment_dist = sentiment_analysis["sentiment_distribution"]
             
             return {
                 "sentiment": sentiment_analysis,
                 "themes": self._format_themes(theme_analysis),
                 "summary": {
                     "total_items": len(data),
-                    "top_themes": list(theme_analysis.get("themes", {}).keys())[:5],
-                    "sentiment_summary": sentiment_analysis.get("sentiment_distribution", {}),
+                    "top_themes": theme_keys,
+                    "sentiment_summary": sentiment_dist,
                     "insights": enhanced_insights
                 }
             }
             
         except Exception as e:
-            self.logger.error(f"Data analysis failed: {e}")
+            self.logger.error(f"Data analysis failed: {e}", exc_info=True)
             return {"error": str(e)}
     
     def _format_themes(self, theme_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Format themes for dashboard consumption."""
+        if not isinstance(theme_analysis, dict):
+            return []
+            
         themes_dict = theme_analysis.get("themes", {})
         total_items = theme_analysis.get("total_items", 1)
         
@@ -124,8 +145,8 @@ Provide insights as a JSON list of strings."""
         
         data_summary = {
             "total_items": len(data),
-            "sentiment_distribution": sentiment.get("sentiment_distribution", {}),
-            "top_themes": list(themes.get("themes", {}).keys())[:5],
+            "sentiment_distribution": sentiment.get("sentiment_distribution", {}) if isinstance(sentiment, dict) else {},
+            "top_themes": list(themes.get("themes", {}).keys())[:5] if isinstance(themes, dict) else [],
             "sample_content": [item.get("content", "")[:100] for item in data[:3]]
         }
         
@@ -257,20 +278,7 @@ Provide insights as a JSON list of strings."""
             return 0.3
 
 
-# Modern factory for LangGraph
-def create_modern_data_analyzer():
-    """Create modern data analyzer for LangGraph integration."""
+# Factory for LangGraph  
+def create_data_analyzer():
+    """Create data analyzer for LangGraph integration."""
     return DataAnalyzerAgent()
-
-
-# Legacy compatibility
-class DataAnalyzerAgent:
-    """Legacy wrapper for backward compatibility."""
-    
-    def __init__(self, llm=None):
-        self.modern_agent = DataAnalyzerAgent(llm)
-        self.agent_name = "data_analyzer_agent"
-    
-    async def invoke(self, state):
-        """Legacy invoke method."""
-        return await self.modern_agent(state)

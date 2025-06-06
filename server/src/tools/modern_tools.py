@@ -20,7 +20,7 @@ from src.utils.files_helper import import_module_from_file
 
 logger = logging.getLogger(__name__)
 
-# Load settings using modern pattern
+# Load settings using  pattern
 current_dir = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(current_dir, '..', 'config')
 settings_module = import_module_from_file(os.path.join(config_path, 'settings.py'), 'settings')
@@ -87,7 +87,7 @@ async def generate_boolean_query(user_input: str, context: Dict[str, Any]) -> Di
     """
     Generate boolean query from user input and context.
     
-    Simplified implementation using modern patterns.
+    Simplified implementation using  patterns.
     """
     try:
         # Extract keywords from user input
@@ -164,7 +164,7 @@ modern_tools = [
 
 
 def get_modern_tools():
-    """Get all modern tools for LangGraph integration."""
+    """Get all  tools for LangGraph integration."""
     return modern_tools
 
 

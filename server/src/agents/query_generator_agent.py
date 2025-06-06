@@ -22,7 +22,7 @@ from src.helpers.states import DashboardState
 logger = logging.getLogger(__name__)
 
 
-class ModernQueryGeneratorAgent(LLMAgent):
+class QueryGeneratorAgent(LLMAgent):
     """
     Modern Query Generator Agent using latest LangGraph patterns.
     
@@ -55,34 +55,43 @@ class ModernQueryGeneratorAgent(LLMAgent):
             State update with boolean_query
         """
         try:
-            self.log_operation("Generating Boolean query")
+            self.logger.info("Generating Boolean query")
             
             # Extract required data from state
             refined_query = state.get("refined_query", "")
             keywords = state.get("keywords", [])
-            filters = state.get("filters", [])
-            extracted_data = state.get("extracted_data", {})
+            filters = state.get("filters", {})
+            data_requirements = state.get("data_requirements", {})
             
             if not refined_query:
-                return {"error": "No refined query available for Boolean query generation"}
+                logger.warning("No refined query found, using keywords only for Boolean query generation")
             
-            # Generate Boolean query
+            # Generate Boolean query with all available data
             boolean_query = await self._generate_boolean_query(
                 refined_query=refined_query,
                 keywords=keywords,
                 filters=filters,
-                extracted_data=extracted_data
+                extracted_data=data_requirements
             )
             
             if boolean_query:
-                self.log_operation("Boolean query generated successfully", boolean_query[:100] + "...")
+                self.logger.info(f"Boolean query generated successfully: {boolean_query[:100]}...")
                 return {
                     "boolean_query": boolean_query,
                     "query_generation_status": "success",
                     "messages": [HumanMessage(content=f"Generated Boolean query: {boolean_query}")]
                 }
             else:
-                return {"error": "Failed to generate Boolean query"}
+                # Fallback to simple boolean query if generation failed
+                if keywords:
+                    fallback_query = " AND ".join([f'"{keyword}"' for keyword in keywords[:5]])
+                    logger.info(f"Using fallback Boolean query: {fallback_query}")
+                    return {
+                        "boolean_query": fallback_query,
+                        "query_generation_status": "fallback",
+                        "messages": [HumanMessage(content=f"Generated fallback Boolean query: {fallback_query}")]
+                    }
+                return {"error": "Failed to generate Boolean query - no keywords available"}
                 
         except Exception as e:
             self.logger.error(f"Query generation failed: {e}")
@@ -169,15 +178,10 @@ Return only the Boolean query string, no explanation needed."""
         except Exception as e:
             self.logger.error(f"Boolean query generation failed: {e}")
             return None
-    
-    async def invoke(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Alternative interface for LangGraph compatibility.
-        """
-        return await self.__call__(input_data)
 
 
-def create_query_generator_agent(llm=None) -> ModernQueryGeneratorAgent:
+
+def create_query_generator_agent(llm=None) -> QueryGeneratorAgent:
     """
     Factory function to create a Modern Query Generator Agent.
     
@@ -185,6 +189,6 @@ def create_query_generator_agent(llm=None) -> ModernQueryGeneratorAgent:
         llm: Language model instance (optional)
         
     Returns:
-        Configured ModernQueryGeneratorAgent instance
+        Configured QueryGeneratorAgent instance
     """
-    return ModernQueryGeneratorAgent(llm=llm)
+    return QueryGeneratorAgent(llm=llm)

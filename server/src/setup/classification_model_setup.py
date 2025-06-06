@@ -270,13 +270,3 @@ class ClassificationModelSetup:
         logger.warning("Using mock classifier - install transformers for real classification")
         return MockClassifier()
     
-    def cleanup(self):
-        """Cleanup loaded models and free memory"""
-        try:
-            self.model_cache.clear()
-            self.zero_shot_classifier = None
-            self.clustering_model = None
-            self.vectorizer = None
-            logger.info("Classification models cleanup completed")
-        except Exception as e:
-            logger.error(f"Error during cleanup: {str(e)}")

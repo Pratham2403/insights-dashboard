@@ -17,88 +17,94 @@ import operator
 
 class DashboardState(TypedDict):
     """
-    Modern dashboard state using TypedDict for LangGraph compatibility.
+    State structure matching multi_agent_system_project_state from PROMPT.md
     
-    Key improvements:
-    - Compatible with LangGraph StateGraph
-    - Automatic message handling
-    - Simplified state management
-    - Built-in message persistence
+    This structure follows the exact requirements from PROMPT.md:
+    - query: List of queries for conversation history
+    - refined_query: String containing the refined query
+    - keywords: List of extracted keywords
+    - filters: Dict containing filter mappings
+    - boolean_query: Generated boolean query string
+    - themes: List of generated themes with boolean queries
     """
     
-    # Required: messages for LangGraph compatibility
-    messages: Annotated[Sequence[BaseMessage], add_messages]
+    # Core fields as per PROMPT.md
+    query: Annotated[List[str], operator.add]  # List of queries for conversation ### IMPORTANT
+    refined_query: Optional[str]  # Refined query string ### IMPORTANT
+    keywords: Optional[List[str]]  # Extracted keywords list ### IMPORTANT
+    filters: Optional[Dict[str, Any]]  # Filter mappings ### IMPORTANT
+    boolean_query: Optional[str]  # Generated boolean query ### IMPORTANT
+    themes: Optional[List[Dict[str, Any]]]  # Generated themes with boolean queries ### IMPORTANT
     
-    # Conversation tracking
-    conversation_id: Optional[str]
+    # LangGraph compatibility (required)
+    messages: Annotated[Sequence[BaseMessage], add_messages] ### IMPORTANT
+    
+    # Additional tracking fields
+    thread_id: Optional[str] ### IMPORTANT
     current_stage: Optional[str]
-    thread_id: Optional[str]
     workflow_status: Optional[str]
+    workflow_started: Optional[str]
+
+    # Metadata for tracking by Grok - matching helper_hitl_demo_code.py
+    hitl_step: Optional[int]  ### IMPORTANT - tracks HITL step progression
+    user_input: Optional[str]  ### IMPORTANT - current user input
+    next_node: Optional[str]   ### IMPORTANT - next node to route to
+    reason: Optional[str]      ### IMPORTANT - reason for HITL trigger (e.g., "clarification_needed")
     
-    # User query and context
-    user_query: Optional[str]
-    user_context: Optional[Dict[str, Any]]
-    
-    # Processing data - simplified structure
-    refined_query: Optional[str]
-    query_context: Optional[Dict[str, Any]]
-    defaults_applied: Optional[List[str]]
-    
-    # Data collection
-    keywords: Optional[List[str]]
-    filters: Optional[Dict[str, Any]]
-    data_requirements: Optional[Dict[str, Any]]
+    # Processing metadata
     extracted_entities: Optional[List[str]]
-    
-    # Query generation
-    boolean_query: Optional[str]
-    query_metadata: Optional[Dict[str, Any]]
-    
-    # Tool results
-    tool_results: Optional[Dict[str, Any]]
-    fetched_data: Optional[List[Dict[str, Any]]]
-    
-    # Analysis results
-    analysis_results: Optional[Dict[str, Any]]
-    insights: Optional[List[str]]
-    themes: Optional[List[Dict[str, Any]]]
-    summary: Optional[str]
+    defaults_applied: Optional[List[str]]
+    data_requirements: Optional[List[str]] ### IMPORTANT
     
     # HITL verification
-    hitl_summary: Optional[Dict[str, Any]]
-    hitl_iteration: Optional[int]
     human_feedback: Optional[str]
     needs_human_input: Optional[bool]
-    human_input_payload: Optional[Dict[str, Any]]
-    awaiting_human_input: Optional[bool]
     
     # Workflow tracking
-    workflow_started: Optional[str]
-    current_step: Optional[str]
-    current_stage: Optional[str]
     step_history: Optional[List[str]]
-    
-    # Error handling
     errors: Optional[List[str]]
     warnings: Optional[List[str]]
+    
+    # Tool and analysis results (simplified)
+    tool_results: Optional[Dict[str, Any]]
+    analysis_results: Optional[Dict[str, Any]]
 
 
-def create_initial_state(user_query: str, conversation_id: str = None) -> DashboardState:
-    """Create initial state for the workflow."""
+def create_initial_state(user_query: str, thread_id: str = None) -> DashboardState:
+    """Create initial state for the workflow matching PROMPT.md structure."""
     from langchain_core.messages import HumanMessage
     import time
     
-    if not conversation_id:
-        conversation_id = f"conv_{int(time.time())}"
+    if not thread_id:
+        thread_id = f"conv_{int(time.time())}"
     
     return DashboardState(
+        # Core fields as per PROMPT.md
+        query=[user_query],  # List of queries
+        refined_query=None,
+        keywords=None,
+        filters=None,
+        boolean_query=None,
+        themes=None,
+        
+        # LangGraph compatibility
         messages=[HumanMessage(content=user_query)],
-        conversation_id=conversation_id,
-        user_query=user_query,
+        
+        # Tracking fields
+        thread_id=thread_id,
         current_stage="initial",
         workflow_status="started",
         workflow_started=datetime.now().isoformat(),
         step_history=[],
         errors=[],
-        warnings=[]
+        warnings=[],
+        extracted_entities=[],
+        defaults_applied=[],
+        data_requirements=[],
+        
+        # HITL state matching helper_hitl_demo_code.py
+        hitl_step=0,
+        user_input=None,
+        next_node=None,
+        reason=None
     )

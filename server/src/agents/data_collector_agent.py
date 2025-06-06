@@ -2,10 +2,10 @@
 Modern Data Collector Agent using latest LangGraph patterns.
 
 Key improvements:
-- Direct integration with modern tools
+- Direct integration with tools
 - Built-in state management with MessagesState
 - Simplified async operations
-- 65% code reduction through modern abstractions
+- 65% code reduction through abstractions
 """
 
 import json
@@ -44,44 +44,48 @@ class DataCollectorAgent(LLMAgent):
         self.logger.info("Modern data collector agent invoked")
         
         # Get refined query from state with multiple fallback options
-        refined_query = state.get("refined_query", "")
-        if not refined_query:
-            # Try alternative state keys
-            refined_query = state.get("user_query", "")
-        if not refined_query and state.get("messages"):
-            # Extract from latest message
-            refined_query = state["messages"][-1].content
+        refined_query = state.get("refined_query", state.get("query")[-1])
             
-        query_context = state.get("query_context", {})
+        query_context = state.get("query")
         
         if not refined_query:
             self.logger.error("No refined query found in state")
-            return await self._request_query_data(state)
         
         # Extract data requirements using LLM
         extracted_data = await self._extract_data_requirements(refined_query, query_context)
         
-        return {
+        # Check if the extracted data is sufficient for query generation
+        # Trigger HITL if data completeness is low or missing critical info
+        data_completeness_score = extracted_data.get('data_completeness_score', 1.0)
+        missing_critical_info = extracted_data.get('missing_critical_info', [])
+        ready_for_query_generation = extracted_data.get('ready_for_query_generation', True)
+        
+        result = {
             "keywords": extracted_data.get("keywords", []),
             "filters": extracted_data.get("filters", {}),
-            "data_requirements": extracted_data.get("data_requirements", {}),
-            "extracted_entities": extracted_data.get("entities", []),
             "messages": [AIMessage(
                 content=f"Data extraction complete: {len(extracted_data.get('keywords', []))} keywords, {len(extracted_data.get('filters', {}))} filter types",
                 name=self.agent_name
             )]
         }
+        
+        # Set reason for HITL if clarification is needed
+        if data_completeness_score < 0.7 or missing_critical_info or not ready_for_query_generation:
+            result["reason"] = "clarification_needed"
+            self.logger.info(f"🔄 Data collection needs clarification - completeness: {data_completeness_score}, missing_info: {len(missing_critical_info)}, ready: {ready_for_query_generation}")
+        
+        return result
     
-    async def _extract_data_requirements(self, refined_query: str, query_context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _extract_data_requirements(self, refined_query: str, query_context: List[str]) -> Dict[str, Any]:
         """
-        Extract keywords, filters, and data requirements from refined query using LLM.
+        Extract keywords, filters from refined query and Query_context using LLM.
         
         Args:
             refined_query: The refined user query
-            query_context: Additional context from query refinement
+            query_context: List Of all the Actual User Queries
             
         Returns:
-            Dictionary with extracted keywords, filters, and data requirements
+            Dictionary with extracted keywords, filters,
         """
         try:
             # Load available filters from filters.json
@@ -93,29 +97,40 @@ class DataCollectorAgent(LLMAgent):
                 available_filters = json.load(f)["filters"]
             
             # Create extraction prompt
-            system_prompt = f"""You are a data extraction specialist. Analyze the user query and extract:
-1. Keywords: Important terms for Boolean search queries
-2. Filters: Applicable filters from the available filter list
-3. Data Requirements: What type of analysis is needed
-4. Entities: Brands, products, locations, etc.
+            system_prompt = f"""You are a data extraction specialist. Analyze the Refined Query and Query List and extract:
+            1. Keywords: Important terms for Boolean search queries
+            2. Filters: Applicable filters from the available filter list
+            3. Data completeness assessment: Evaluate if information is sufficient for query generation
+            4. Missing critical information: Identify what key information is still needed
 
-Available Filters: {json.dumps(available_filters, indent=2)}
+            Available Filters: {json.dumps(available_filters, indent=2)}
 
-IMPORTANT: Respond ONLY with a valid JSON object. No additional text, explanations, or formatting. 
-The JSON must have this exact structure:
-{{
-    "keywords": ["list", "of", "keywords"],
-    "filters": {{"filter_type": ["selected", "values"]}},
-    "data_requirements": {{"analysis_type": "sentiment/mentions/trends", "metrics": ["list"]}},
-    "entities": ["extracted", "entities"]
-}}"""
+            IMPORTANT: Respond ONLY with a valid JSON object. No additional text, explanations, or formatting. 
+            The JSON must have this exact structure:
+            {{
+                "keywords": ["list", "of", "keywords"],
+                "filters": {{"filter_type": ["selected", "values"]}},
+                "data_completeness_score": 0.0-1.0,
+                "missing_critical_info": ["specific missing information needed"],
+                "ready_for_query_generation": true/false,
+                "clarification_questions": ["questions to ask user if info is missing"]
+            }}
+            
+            Assess data_completeness_score based on:
+            - Presence of clear brands/products (0.3 weight)
+            - Specified channels/sources (0.2 weight) 
+            - Defined timeline/period (0.2 weight)
+            - Clear analysis goals (0.2 weight)
+            - Geographic/demographic scope (0.1 weight)
+            
+            Set ready_for_query_generation to false if score < 0.7 or critical info is missing."""
             
             user_prompt = f"""
-Refined Query: {refined_query}
-Query Context: {json.dumps(query_context, indent=2)}
+            Refined Query: {refined_query}
+            Query Context (List of Actual User Queries): {query_context}
 
-Extract the data requirements for dashboard generation.
-"""
+            Extract the Keywords and Filters for dashboard generation.
+            """
             
             messages = [
                 SystemMessage(content=system_prompt),
@@ -181,21 +196,19 @@ Extract the data requirements for dashboard generation.
         return {
             "keywords": keywords[:10],  # Limit to 10 keywords
             "filters": filters,
-            "data_requirements": {"analysis_type": "sentiment", "metrics": ["mentions", "sentiment"]},
-            "entities": entities[:5]  # Limit to 5 entities
+            "data_completeness_score": 0.5,  # Conservative score for fallback
+            "missing_critical_info": ["specific analysis goals", "timeline specification", "target audience details"],
+            "ready_for_query_generation": False,  # Conservative approach for fallback
+            "clarification_questions": [
+                "What specific brands or products would you like to monitor?",
+                "Which social media platforms should we focus on?",
+                "What time period are you interested in?"
+            ]
         }
-    
-    def _extract_query(self, query_data: Any) -> Optional[str]:
-        """Extract boolean query from various data formats."""
-        if isinstance(query_data, str):
-            return query_data
-        elif isinstance(query_data, dict):
-            return query_data.get("boolean_query") or query_data.get("query") or query_data.get("refined_query")
-        return None
     
     async def _collect_data(self, query: str, state: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Collect data using modern tool integration.
+        Collect data using tool integration.
         
         Args:
             query: Boolean query to execute
@@ -211,14 +224,14 @@ Extract the data requirements for dashboard generation.
             
             self.logger.info(f"Collecting data with query: {query[:100]}...")
             
-            # Use modern tool for data collection
+            # Use tool for data collection
             raw_data = await get_sprinklr_data(query=query, filters=filters, limit=limit)
             
             if not raw_data:
                 self.logger.warning("No data returned from Sprinklr API")
                 return []
             
-            # Process data using modern tool
+            # Process data using tool
             processed_data = await process_data(data=raw_data, operation="extract_themes")
             
             self.logger.info(f"Successfully collected {len(raw_data)} items")
@@ -246,40 +259,10 @@ Extract the data requirements for dashboard generation.
         
         # Default limit
         return 10
-    
-    async def _request_query_data(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Request missing query data through HITL."""
-        self.logger.info("No query data found, requesting human input")
-        
-        return {
-            "needs_human_input": True,
-            "human_input_payload": {
-                "type": "missing_query",
-                "message": "No boolean query found. Please provide query refinement data.",
-                "required_fields": ["boolean_query", "filters"],
-                "current_state": {
-                    "user_query": state.get("user_query", ""),
-                    "available_data": list(state.keys())
-                }
-            },
-            "messages": [AIMessage(content="Requesting query data from user", name=self.agent_name)]
-        }
 
 
-# Modern factory for LangGraph
-def create_modern_data_collector():
-    """Create modern data collector for LangGraph integration."""
+
+# Factory for LangGraph
+def create_data_collector():
+    """Create data collector for LangGraph integration."""
     return DataCollectorAgent()
-
-
-# Legacy compatibility
-class DataCollectorAgent:
-    """Legacy wrapper for backward compatibility."""
-    
-    def __init__(self, llm=None):
-        self.modern_agent = DataCollectorAgent(llm)
-        self.agent_name = "data_collector_agent"
-    
-    async def invoke(self, state):
-        """Legacy invoke method."""
-        return await self.modern_agent(state)

@@ -102,25 +102,6 @@ class LazyModelLoader:
     def is_loaded(self, name: str) -> bool:
         """Check if a model is currently loaded."""
         return name in self._models
-    
-    def unload_model(self, name: str):
-        """Unload a specific model to free memory."""
-        if name in self._models:
-            del self._models[name]
-            logger.info(f"Unloaded model: {name}")
-    
-    def clear_all(self):
-        """Clear all loaded models."""
-        self._models.clear()
-        logger.info("Cleared all loaded models")
-    
-    def get_memory_info(self) -> Dict[str, Any]:
-        """Get information about loaded models."""
-        return {
-            "loaded_models": list(self._models.keys()),
-            "registered_loaders": list(self._loaders.keys()),
-            "total_loaded": len(self._models)
-        }
 
 
 def lazy_model(model_name: str):
