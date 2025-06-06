@@ -65,8 +65,7 @@ class DashboardState(TypedDict):
     errors: Optional[List[str]]
     warnings: Optional[List[str]]
     
-    # Tool and analysis results (simplified)
-    tool_results: Optional[Dict[str, Any]]
+    # Analysis results (simplified) - removed tool_results to prevent memory explosion
     analysis_results: Optional[Dict[str, Any]]
 
 

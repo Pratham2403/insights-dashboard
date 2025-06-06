@@ -70,7 +70,7 @@ class SprinklrWorkflow:
         # Initialize agents
         self.query_refiner = QueryRefinerAgent(self.llm)
         self.data_collector = DataCollectorAgent(self.llm)
-        self.data_analyzer = DataAnalyzerAgent(self.llm)
+        self.data_analyzer = DataAnalyzerAgent()  # No LLM needed for BERTopic
         self.query_generator = QueryGeneratorAgent(self.llm)
         
         # Setup tools
@@ -79,6 +79,9 @@ class SprinklrWorkflow:
         
         # Memory management
         self.memory = MemorySaver()
+        
+        # Initialize current hits storage (separate from state to prevent memory explosion)
+        self._current_hits = []
         
         # Build workflow
         self.workflow = self._build_workflow()
@@ -500,6 +503,7 @@ class SprinklrWorkflow:
         Step 5: Tool Execution (ToolNode)
         - Executes the Boolean query via Sprinklr API
         - Returns relevant posts/comments data
+        - IMPORTANT: Does NOT store hits in state to prevent memory explosion
         """
         logger.info("🛠️ Step 5: Tool Execution")
         
@@ -508,7 +512,6 @@ class SprinklrWorkflow:
         
         try:
             boolean_query = state.get("boolean_query", "")
-            filters = state.get("filters", {})
             
             if not boolean_query:
                 logger.error("No Boolean query found for tool execution")
@@ -516,35 +519,34 @@ class SprinklrWorkflow:
                 return {"messages": [error_msg]}
             
             # Execute tool using the Boolean query
+            # Note: get_sprinklr_data expects 'query' parameter, not 'boolean_query'
             tool_input = {
-                "boolean_query": boolean_query,
-                "filters": filters,
-                "max_results": 4000  # As per PROMPT.md requirement
+                "query": boolean_query,
+                "limit": 100  # Default limit for hits
             }
             
             logger.info(f"🛠️ Executing tool with Boolean query: {boolean_query[:100]}...")
             
-            # Simulate tool execution for now (replace with actual tool call)
-            # In production, this would call: await self.tool_node.ainvoke(tool_input)
-            tool_results = {
-                "posts": f"Retrieved data using query: {boolean_query}",
-                "count": 3500,
-                "query_used": boolean_query,
-                "filters_applied": filters
-            }
+            # Execute the get_sprinklr_data tool directly to get hits from Sprinklr API
+            hits = await get_sprinklr_data(query=boolean_query, limit=100)
             
-            state["tool_results"] = tool_results
+            logger.info(f"🛠️ Retrieved {len(hits)} hits from Sprinklr API")
+            
+            # Store hits temporarily in workflow instance (NOT in state)
+            # This prevents memory explosion in LangGraph state
+            self._current_hits = hits
             
             tool_msg = AIMessage(
-                content=f"Tool execution completed: Retrieved {tool_results.get('count', 0)} items"
+                content=f"Tool execution completed: Retrieved {len(hits)} hits from Sprinklr API"
             )
             
             result = {
                 "messages": [tool_msg],
-                "tool_results": tool_results
+                "hits_count": len(hits),  # Store only count, not actual hits
+                "tool_execution_completed": True
             }
             
-            # Log state AFTER processing
+            # Log state AFTER processing (without hits to prevent log explosion)
             self._log_state_debug("TOOL_EXECUTION_AFTER", {**state, **result})
             
             return result
@@ -557,9 +559,9 @@ class SprinklrWorkflow:
     async def _data_analyzer_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 6: Data Analyzer Agent
-        - Processes the retrieved data
-        - Generates insights and analysis
-        - Produces final dashboard results
+        - Gets hits from workflow instance (NOT from state) to prevent memory explosion
+        - Processes hits using BERTopic theme analysis
+        - Updates themes in state and returns final results
         """
         logger.info("📈 Step 6: Data Analyzer Agent")
         
@@ -567,68 +569,43 @@ class SprinklrWorkflow:
         self._log_state_debug("DATA_ANALYZER_BEFORE", state)
         
         try:
-            tool_results = state.get("tool_results", {})
-            keywords = state.get("keywords", [])
-            refined_query = state.get("refined_query", "")
+            # Get hits from workflow instance (NOT from state) to prevent memory explosion
+            hits = getattr(self, '_current_hits', [])
             
-            if not tool_results:
-            #     logger.error("No tool results found for analysis")
-            #     error_msg = AIMessage(content="Error: No data available for analysis")
-            #     return {"messages": [error_msg]}
-            
-            # # Process with data analyzer using correct method
-            # analysis_result = await self.data_analyzer({
-            #     "fetched_data": tool_results,
-            #     "keywords": keywords,
-            #     "refined_query": refined_query,
-            #     "analysis_type": state.get("data_requirements", {}).get("analysis_type", "general")
-            # })
-            
-            # # Handle case where analysis_result could be a list or dict
-            # if isinstance(analysis_result, dict):
-            #     analysis_data = analysis_result.get("analysis", analysis_result)
-            # else:
-            #     analysis_data = analysis_result
-                
-            # state["analysis_results"] = analysis_data
-            # state["workflow_status"] = "completed"
-            # state["completed_at"] = datetime.now().isoformat()
-
-                # ========= =============================#
-                logger.warning("No tool results found for analysis - returning empty data")
+            if not hits:
+                logger.warning("No hits found in workflow instance - returning empty themes")
                 analysis_msg = AIMessage(content="No data available for analysis")
                 return {
                     "messages": [analysis_msg],
-                    "analysis_results": {},
+                    "themes": [],
                     "workflow_status": "completed",
                     "completed_at": datetime.now().isoformat()
                 }
-                # ========= =============================#
-
-            # Safe access to analysis data
-            # summary_text = "Analysis generated successfully"
-            # if isinstance(analysis_data, dict):
-            #     summary_text = analysis_data.get('summary', summary_text)
-
-            #==========================================================#
-            data_count = len(tool_results) if isinstance(tool_results, list) else 1
-            summary_text = f"Analysis generated successfully: {data_count} items processed"
-            #==========================================================#
-
+            
+            # Pass hits and state separately to data analyzer (as per requirement)
+            # The hits are NOT stored in LangGraph state to prevent memory explosion
+            logger.info(f"🔍 Processing {len(hits)} hits with Data Analyzer Agent...")
+            
+            # Call data analyzer with hits and state separately
+            themes_result = await self.data_analyzer.analyze_hits_and_state(
+                hits=hits,     # Hits passed separately (NOT stored in state)
+                state=state    # LangGraph state passed separately
+            )
+            
+            # Extract themes from result
+            themes = themes_result.get("themes", [])
+            
+            # Clear hits from workflow instance to free memory
+            if hasattr(self, '_current_hits'):
+                delattr(self, '_current_hits')
+            
             analysis_msg = AIMessage(
-                content=f"Analysis completed: {summary_text}"
+                content=f"Analysis completed: Generated {len(themes)} themes from {len(hits)} hits"
             )
             
             result = {
                 "messages": [analysis_msg],
-                "analysis_results": {
-                    "fetched_data": tool_results,
-                    "keywords": keywords,
-                    "refined_query": refined_query,
-                    "summary": summary_text,
-                    "data_count": data_count,
-                    "status":"Bypassed for now"
-                },
+                "themes": themes,  # Update themes state as per requirement
                 "workflow_status": "completed",
                 "completed_at": datetime.now().isoformat()
             }
@@ -639,20 +616,18 @@ class SprinklrWorkflow:
             return result
             
         except Exception as e:
-            # logger.error(f"Data Analyzer error: {e}")
-            # error_msg = AIMessage(content=f"Error in data analysis: {str(e)}")
-            # return {"messages": [error_msg]}
-            
-            #==========================================================#
             logger.error(f"Data Analyzer error: {e}")
+            # Clear hits from workflow instance even on error
+            if hasattr(self, '_current_hits'):
+                delattr(self, '_current_hits')
             error_msg = AIMessage(content=f"Error in data analysis: {str(e)}")
             return {
                 "messages": [error_msg],
-                "analysis_results": {},
+                "themes": [],
                 "workflow_status": "error",
-                "completed_at": datetime.now().isoformat()
+                "completed_at": datetime.now().isoformat(),
+                "errors": [str(e)]
             }
-            #==========================================================#
 
     def _serialize_state_for_json(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """

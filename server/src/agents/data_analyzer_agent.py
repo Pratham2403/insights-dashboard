@@ -1,284 +1,207 @@
 """
-Modern Data Analyzer Agent using latest LangGraph patterns.
+BERTopic-based Data Analyzer Agent exactly mimicking demo-helper-data-analyzer-agent.py
 
-Key improvements:
-- Built-in analytics capabilities with modern tools
-- Streamlined theme identification
-- Automatic dashboard configuration generation
-- 75% code reduction through modern patterns
+Key features:
+- Uses BERTopic for theme identification  
+- Uses SentenceTransformers for embeddings
+- Uses transformers for summarization
+- Processes hits separately from LangGraph state
+- Updates themes state as final output
+- Throws errors when dependencies are missing or when analysis fails
 """
-
-import json
 import logging
 from typing import Dict, Any, List, Optional
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from src.agents.base.agent_base import LLMAgent
-from src.tools.modern_tools import process_data, validate_data
+
+from bertopic import BERTopic
+from sentence_transformers import SentenceTransformer
+from transformers import pipeline
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
-class DataAnalyzerAgent(LLMAgent):
+class DataAnalyzerAgent:
     """
-    Modern Data Analyzer using latest LangGraph patterns.
+    BERTopic-based Data Analyzer exactly mimicking demo-helper-data-analyzer-agent.py
     
-    Simplified analytics with built-in intelligence.
+    Processes hits from Sprinklr API and generates themes using BERTopic.
     """
     
-    def __init__(self, llm=None):
-        super().__init__("modern_data_analyzer", llm)
-    
-    async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
+    def __init__(self):
         """
-        Modern data analysis workflow.
+        Initialize BERTopic components exactly matching demo helper.
+        Throws errors if models cannot be initialized.
+        """
+        try:
+            # Initialize embedding model for topic modeling
+            self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+            # Initialize BERTopic with 10 topics
+            self.topic_model = BERTopic(embedding_model=self.embedding_model, nr_topics=10)
+            # Initialize summarization pipeline
+            self.summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+            logger.info("BERTopic models initialized successfully")
+        except Exception as e:
+            error_msg = f"Failed to initialize BERTopic models: {e}"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
+
+    def analyze(self, docs: List[str]) -> List[Dict[str, Any]]:
+        """
+        Main analyze method exactly matching demo helper implementation.
         
         Args:
-            state: Current workflow state with fetched data
+            docs: List of document strings for analysis
             
         Returns:
-            State updates with analysis results and dashboard config
+            List of themes with name and description
+            
+        Raises:
+            ValueError: If insufficient documents provided
+            RuntimeError: If BERTopic analysis fails
         """
-        try:
-            self.logger.info("Modern data analyzer agent invoked")
-            
-            fetched_data = state.get("fetched_data", [])
-            self.logger.info(f"Fetched data type: {type(fetched_data)}, length: {len(fetched_data) if isinstance(fetched_data, (list, dict)) else 'N/A'}")
-            
-            if not fetched_data:
-                return {"error": "No data available for analysis"}
-            
-            # Perform modern analysis
-            analysis_results = await self._analyze_data(fetched_data, state)
-            
-            # Generate dashboard configuration
-            dashboard_config = await self._generate_dashboard_config(analysis_results, state)
-            
-            return {
-                "themes": analysis_results.get("themes", []),
-                "analysis_summary": analysis_results.get("summary", {}),
-                "dashboard_config": dashboard_config,
-                "analysis_status": "completed",
-                "messages": [AIMessage(content="Data analysis completed", name=self.agent_name)]
-            }
-        except Exception as e:
-            self.logger.error(f"Data analyzer error: {e}", exc_info=True)
-            return {"error": f"Analysis failed: {str(e)}"}
-    
-    async def _analyze_data(self, data: List[Dict[str, Any]], state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Perform comprehensive data analysis using modern tools.
+        if not docs:
+            raise ValueError("No documents provided for analysis")
         
-        Args:
-            data: Raw data to analyze
-            state: Current state for context
-            
-        Returns:
-            Analysis results including themes and insights
-        """
-        try:
-            self.logger.info(f"Analyzing {len(data)} data items")
-            
-            # Parallel analysis using modern tools
-            sentiment_analysis = await process_data(data, "analyze_sentiment")
-            theme_analysis = await process_data(data, "extract_themes")
-            
-            self.logger.info(f"Sentiment analysis type: {type(sentiment_analysis)}")
-            self.logger.info(f"Theme analysis type: {type(theme_analysis)}")
-            
-            # Enhanced analysis with LLM
-            enhanced_insights = await self._get_llm_insights(data, sentiment_analysis, theme_analysis)
-            
-            # Safe access to nested dictionaries
-            theme_keys = []
-            if isinstance(theme_analysis, dict) and "themes" in theme_analysis:
-                theme_keys = list(theme_analysis["themes"].keys())[:5]
-            
-            sentiment_dist = {}
-            if isinstance(sentiment_analysis, dict) and "sentiment_distribution" in sentiment_analysis:
-                sentiment_dist = sentiment_analysis["sentiment_distribution"]
-            
-            return {
-                "sentiment": sentiment_analysis,
-                "themes": self._format_themes(theme_analysis),
-                "summary": {
-                    "total_items": len(data),
-                    "top_themes": theme_keys,
-                    "sentiment_summary": sentiment_dist,
-                    "insights": enhanced_insights
-                }
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Data analysis failed: {e}", exc_info=True)
-            return {"error": str(e)}
-    
-    def _format_themes(self, theme_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Format themes for dashboard consumption."""
-        if not isinstance(theme_analysis, dict):
-            return []
-            
-        themes_dict = theme_analysis.get("themes", {})
-        total_items = theme_analysis.get("total_items", 1)
-        
-        themes = []
-        for theme, count in themes_dict.items():
-            themes.append({
-                "name": theme.title(),
-                "count": count,
-                "percentage": round((count / total_items) * 100, 2),
-                "relevance_score": min(count / max(themes_dict.values()) if themes_dict else 0, 1.0)
-            })
-        
-        return sorted(themes, key=lambda x: x["count"], reverse=True)
-    
-    async def _get_llm_insights(self, data: List[Dict[str, Any]], sentiment: Dict, themes: Dict) -> List[str]:
-        """Generate insights using LLM analysis."""
-        
-        system_prompt = """You are a data insight analyst. Analyze the provided data summary and generate 3-5 key insights that would be valuable for dashboard visualization.
-
-Focus on:
-1. Notable patterns in the data
-2. Sentiment trends
-3. Theme significance
-4. Actionable recommendations
-
-Provide insights as a JSON list of strings."""
-        
-        data_summary = {
-            "total_items": len(data),
-            "sentiment_distribution": sentiment.get("sentiment_distribution", {}) if isinstance(sentiment, dict) else {},
-            "top_themes": list(themes.get("themes", {}).keys())[:5] if isinstance(themes, dict) else [],
-            "sample_content": [item.get("content", "")[:100] for item in data[:3]]
-        }
-        
-        user_prompt = f"Data Summary: {json.dumps(data_summary, indent=2)}"
+        if len(docs) < 2:
+            raise ValueError("At least 2 documents required for BERTopic analysis")
         
         try:
-            messages = [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=user_prompt)
-            ]
+            # Fit the topic model to the data
+            topics, probs = self.topic_model.fit_transform(docs)
             
-            response = await self.safe_llm_call(messages)
+            # Update topics for better labels
+            self.topic_model.update_topics(docs, topics, language="english")
             
-            if response:
-                try:
-                    insights = json.loads(response)
-                    return insights if isinstance(insights, list) else [response]
-                except json.JSONDecodeError:
-                    return [response]
-            else:
-                return ["Analysis completed successfully"]
+            # Get topic labels
+            labels = self.topic_model.get_topic_labels()
+            
+            # Generate themes with descriptions
+            themes = []
+            for topic in range(-1, self.topic_model.get_topic_info()["Topic"].max() + 1):
+                if topic == -1:
+                    continue  # Skip outlier topic
                 
+                # Find documents belonging to this topic
+                topic_docs_idx = [i for i, t in enumerate(topics) if t == topic]
+                if not topic_docs_idx:
+                    continue
+                
+                # Find the most representative document
+                best_doc_idx = max(topic_docs_idx, key=lambda i: probs[i])
+                best_doc = docs[best_doc_idx]
+                
+                # Summarize the most representative document
+                try:
+                    summary = self.summarizer(best_doc, max_length=150, min_length=30, do_sample=False)[0]['summary_text']
+                except Exception as e:
+                    error_msg = f"Summarization failed for topic {topic}: {e}"
+                    logger.error(error_msg)
+                    raise RuntimeError(error_msg) from e
+                
+                # Get the topic name
+                name = labels[topic] if labels and topic < len(labels) else f"Topic {topic}"
+                
+                # Add to themes list
+                themes.append({"name": name, "description": summary})
+            
+            # Return the top 10 themes
+            themes_result = themes[:10]
+            logger.info(f"Generated {len(themes_result)} themes using BERTopic")
+            return themes_result
+            
         except Exception as e:
-            self.logger.error(f"LLM insights generation failed: {e}")
-            return ["Data analysis insights generation failed"]
+            if isinstance(e, (ValueError, RuntimeError)):
+                raise  # Re-raise our custom errors
+            error_msg = f"BERTopic analysis failed: {e}"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
     
-    async def _generate_dashboard_config(self, analysis: Dict[str, Any], state: Dict[str, Any]) -> Dict[str, Any]:
+    async def analyze_hits_and_state(self, hits: List[Dict[str, Any]], state: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate dashboard configuration based on analysis.
+        Method that processes hits and state separately (as per requirement 2).
         
         Args:
-            analysis: Analysis results
-            state: Current state
+            hits: List of hits from Sprinklr API (NOT stored in state)
+            state: LangGraph state for context
             
         Returns:
-            Dashboard configuration dictionary
+            Dictionary with themes for state update
+            
+        Raises:
+            ValueError: If no hits provided or no documents extracted
+            RuntimeError: If analysis fails
         """
+        if not hits:
+            raise ValueError("No hits provided for analysis")
+        
         try:
-            user_query = state.get("user_query", "")
-            themes = analysis.get("themes", [])
-            sentiment = analysis.get("sentiment", {})
+            logger.info(f"Analyzing {len(hits)} hits with BERTopic")
             
-            # Modern dashboard config generation
-            config = {
-                "title": self._generate_dashboard_title(user_query),
-                "query": state.get("boolean_query", {}).get("boolean_query", ""),
-                "filters": state.get("query_refinement", {}).get("filters", {}),
-                "charts": self._generate_chart_configs(themes, sentiment),
-                "metadata": {
-                    "generated_at": "2024-12-19",
-                    "data_points": analysis.get("summary", {}).get("total_items", 0),
-                    "confidence_score": self._calculate_confidence(analysis),
-                    "insights": analysis.get("summary", {}).get("insights", [])
-                }
-            }
+            # Extract text content from hits for analysis
+            documents = self._extract_documents_from_hits(hits)
             
-            # Validate configuration
-            validation = await validate_data(config, "dashboard_config")
-            if not validation.get("valid", False):
-                self.logger.warning(f"Dashboard config validation issues: {validation.get('errors', [])}")
+            if not documents:
+                raise ValueError("No documents could be extracted from hits")
             
-            return config
+            # Use the main analyze method (exactly matching demo helper)
+            themes = self.analyze(documents)
+            
+            return {"themes": themes}
             
         except Exception as e:
-            self.logger.error(f"Dashboard config generation failed: {e}")
-            return {"error": str(e)}
+            if isinstance(e, (ValueError, RuntimeError)):
+                raise  # Re-raise our custom errors
+            error_msg = f"Error in analyze_hits_and_state: {e}"
+            logger.error(error_msg, exc_info=True)
+            raise RuntimeError(error_msg) from e
     
-    def _generate_dashboard_title(self, user_query: str) -> str:
-        """Generate appropriate dashboard title."""
-        if "brand health" in user_query.lower():
-            return "Brand Health Monitoring Dashboard"
-        elif "sentiment" in user_query.lower():
-            return "Sentiment Analysis Dashboard"
-        elif "social media" in user_query.lower():
-            return "Social Media Analytics Dashboard"
-        else:
-            return f"Analytics Dashboard - {user_query[:50]}"
-    
-    def _generate_chart_configs(self, themes: List[Dict], sentiment: Dict) -> List[Dict[str, Any]]:
-        """Generate chart configurations based on analysis."""
-        charts = []
+    def _extract_documents_from_hits(self, hits: List[Dict[str, Any]]) -> List[str]:
+        """
+        Extract text content from Sprinklr API hits for analysis.
         
-        # Theme distribution chart
-        if themes:
-            charts.append({
-                "type": "bar",
-                "title": "Top Themes",
-                "data": themes[:10],
-                "x_axis": "name",
-                "y_axis": "count"
-            })
+        Args:
+            hits: List of hits from Sprinklr API
+            
+        Returns:
+            List of extracted document strings
+            
+        Raises:
+            ValueError: If no valid text content found in hits
+        """
+        documents = []
         
-        # Sentiment chart
-        sentiment_dist = sentiment.get("sentiment_distribution", {})
-        if sentiment_dist:
-            charts.append({
-                "type": "pie",
-                "title": "Sentiment Distribution",
-                "data": [{"name": k, "value": v} for k, v in sentiment_dist.items()],
-                "label": "name",
-                "value": "value"
-            })
+        for hit in hits:
+            # Extract text content from various possible fields
+            text_content = ""
+            
+            # Common Sprinklr API response fields
+            if isinstance(hit, dict):
+                # Try different possible text fields
+                for field in ['content', 'text', 'message', 'body', 'description', 'title']:
+                    if field in hit and hit[field]:
+                        text_content = str(hit[field])
+                        break
+                
+                # If no direct text field, try nested fields
+                if not text_content and 'source' in hit:
+                    source = hit['source']
+                    if isinstance(source, dict):
+                        for field in ['content', 'text', 'message', 'body']:
+                            if field in source and source[field]:
+                                text_content = str(source[field])
+                                break
+            
+            # Add document if we found content
+            if text_content.strip():
+                documents.append(text_content.strip())
         
-        # Timeline chart (placeholder)
-        charts.append({
-            "type": "line",
-            "title": "Mentions Over Time",
-            "data": [],
-            "x_axis": "date",
-            "y_axis": "mentions"
-        })
+        if not documents:
+            raise ValueError(f"No valid text content found in {len(hits)} hits")
         
-        return charts
-    
-    def _calculate_confidence(self, analysis: Dict[str, Any]) -> float:
-        """Calculate confidence score for the analysis."""
-        summary = analysis.get("summary", {})
-        total_items = summary.get("total_items", 0)
-        themes_count = len(analysis.get("themes", []))
-        
-        # Simple confidence calculation
-        if total_items >= 50 and themes_count >= 3:
-            return 0.9
-        elif total_items >= 20 and themes_count >= 2:
-            return 0.7
-        elif total_items >= 5:
-            return 0.5
-        else:
-            return 0.3
+        logger.info(f"Extracted {len(documents)} documents from {len(hits)} hits")
+        return documents
 
 
-# Factory for LangGraph  
+# Factory for LangGraph compatibility (backwards compatibility)
 def create_data_analyzer():
     """Create data analyzer for LangGraph integration."""
     return DataAnalyzerAgent()
