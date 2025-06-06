@@ -159,106 +159,13 @@ class DataCollectorAgent(LLMAgent):
                 self.logger.info(f"Successfully extracted data requirements: {len(extracted_data.get('keywords', []))} keywords")
                 return extracted_data
             except (json.JSONDecodeError, AttributeError, TypeError) as e:
-                self.logger.warning(f"Could not parse LLM response as JSON: {e}, using fallback extraction")
-                self.logger.debug(f"Raw response: {response_text[:500]}...")
-                return self._fallback_extraction(refined_query)
+                self.logger.error(f"Could not parse LLM response as JSON: {e}, using fallback extraction")
+                return {}
                 
         except Exception as e:
             self.logger.error(f"Data extraction failed: {e}")
-            return self._fallback_extraction(refined_query)
+            return {}
     
-    def _fallback_extraction(self, query: str) -> Dict[str, Any]:
-        """Fallback extraction using simple keyword matching."""
-        import re
-        
-        # Simple keyword extraction
-        words = re.findall(r'\b\w+\b', query.lower())
-        keywords = [word for word in words if len(word) > 3 and word not in ['want', 'need', 'show', 'give', 'provide']]
-        
-        # Simple filter detection
-        filters = {}
-        if any(term in query.lower() for term in ['twitter', 'instagram', 'facebook']):
-            source_terms = []
-            if 'twitter' in query.lower():
-                source_terms.append('Twitter')
-            if 'instagram' in query.lower():
-                source_terms.append('Instagram') 
-            if 'facebook' in query.lower():
-                source_terms.append('Facebook')
-            filters['source'] = source_terms
-        
-        # Simple entity extraction
-        entities = []
-        for word in query.split():
-            if word.istitle() and len(word) > 2:
-                entities.append(word)
-        
-        return {
-            "keywords": keywords[:10],  # Limit to 10 keywords
-            "filters": filters,
-            "data_completeness_score": 0.5,  # Conservative score for fallback
-            "missing_critical_info": ["specific analysis goals", "timeline specification", "target audience details"],
-            "ready_for_query_generation": False,  # Conservative approach for fallback
-            "clarification_questions": [
-                "What specific brands or products would you like to monitor?",
-                "Which social media platforms should we focus on?",
-                "What time period are you interested in?"
-            ]
-        }
-    
-    async def _collect_data(self, query: str, state: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Collect data using tool integration.
-        
-        Args:
-            query: Boolean query to execute
-            state: Current state for context
-            
-        Returns:
-            List of collected data items
-        """
-        try:
-            # Get filters from state
-            filters = self._extract_filters(state)
-            limit = self._determine_limit(state)
-            
-            self.logger.info(f"Collecting data with query: {query[:100]}...")
-            
-            # Use tool for data collection
-            raw_data = await get_sprinklr_data(query=query, filters=filters, limit=limit)
-            
-            if not raw_data:
-                self.logger.warning("No data returned from Sprinklr API")
-                return []
-            
-            # Process data using tool
-            processed_data = await process_data(data=raw_data, operation="extract_themes")
-            
-            self.logger.info(f"Successfully collected {len(raw_data)} items")
-            return raw_data
-            
-        except Exception as e:
-            self.logger.error(f"Data collection failed: {e}")
-            return []
-    
-    def _extract_filters(self, state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Extract filters from state."""
-        query_refinement = state.get("query_refinement", {})
-        return query_refinement.get("filters") or query_refinement.get("suggested_filters")
-    
-    def _determine_limit(self, state: Dict[str, Any]) -> int:
-        """Determine data limit based on state."""
-        # Check for explicit limit
-        if "data_limit" in state:
-            return state["data_limit"]
-        
-        # Check user context for limit preferences
-        user_context = state.get("user_context", {})
-        if "sample_size" in user_context:
-            return user_context["sample_size"]
-        
-        # Default limit
-        return 10
 
 
 

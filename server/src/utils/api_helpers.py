@@ -143,25 +143,3 @@ def log_endpoint_access(endpoint_name: str, additional_info: str = ""):
     logger.info(info_str)
 
 
-def extract_pagination_params(default_page: int = 0, default_size: int = 100) -> Dict[str, int]:
-    """
-    Extract pagination parameters from request args.
-    
-    Args:
-        default_page: Default page number
-        default_size: Default page size
-        
-    Returns:
-        Dictionary with 'page' and 'size' keys
-    """
-    try:
-        page = int(request.args.get('page', default_page))
-        size = int(request.args.get('size', default_size))
-        
-        # Ensure reasonable limits
-        page = max(0, page)
-        size = min(max(1, size), 1000)  # Cap at 1000 items per page
-        
-        return {"page": page, "size": size}
-    except ValueError:
-        return {"page": default_page, "size": default_size}

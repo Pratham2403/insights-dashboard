@@ -22,28 +22,24 @@ settings = settings_module.settings
 
 logger = logging.getLogger(__name__)
 
-@tool
+@tool("Get Sprinklr Dara")
 async def get_sprinklr_data(
     query: str, 
-    filters: Optional[Dict[str, Any]] = None,
     limit: int = 0
     ) -> List[Dict[str, Any]]:
         """Fetch data from Sprinklr API based on a query and optional filters.
 
         Args:
             query: The boolean_keyword_query for the Sprinklr API.
-            filters: Optional dictionary of filters (currently not implemented in the API call).
             limit: The page_size for the request. If 0 or not provided, defaults to 5.
 
         Returns:
             A list of hits from the Sprinklr API response, or an empty list if an error occurs.
         """
-        import uuid
-        import time
         
         # API URL from api-communication.md
         api_url = "https://space-prod0.sprinklr.com/ui/rest/reports/query"
-        page_size = limit if limit > 0 else 5  # Default to 5 as per api-communication.md
+        page_size = limit if limit > 0 else 100  # Default to 5 as per api-communication.md
         
         # Generate unique request ID and key
         request_key = "c85c0d7d-3a2a-4c62-839c-212ff872a188"
@@ -51,11 +47,11 @@ async def get_sprinklr_data(
         headers = {
             'accept': 'application/json; charset=utf-8',
             'accept-language': 'en-GB,en;q=0.7',
-            'baggage': 'sentry-environment=prod0,sentry-release=20.4.1-1f07f2b1ffb783e319e5ec41266d2ddd8edbac67,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=863556c0ff564cee8add06d45aa8e949',
+            'baggage': 'sentry-environment=prod0,sentry-release=20.4.1-84ff6e3feb30870e712636977ce67721c64b07c5,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=1898920dc28f8fa510bfad95290df7f6',
             'content-type': 'application/json',
             'origin': 'https://space-prod0.sprinklr.com',
             'priority': 'u=1, i',
-            'referer': 'https://space-prod0.sprinklr.com/research/insights/listening/dashboard/683982764a55c469871693aa/tab/0?DATE_RANGE_CONFIG=%7B%22dateRange%22%3A%7B%22option%22%3A%22LAST_30_DAYS%22%7D%2C%22timezone%22%3A%22Asia%2FKolkata%22%2C%22previousDateRange%22%3A%7B%22option%22%3A%22PREVIOUS_PERIOD_OPTION%22%7D%7D',
+            'referer': 'https://space-prod0-intuition.sprinklr.com/research/insights/listening/dashboard/677ce3ec3c7a1d5d052b3e72/tab/0?DATE_RANGE_CONFIG=%7B%22dateRange%22%3A%7B%22option%22%3A%22LAST_30_DAYS%22%7D%2C%22timezone%22%3A%22Asia%2FKolkata%22%2C%22previousDateRange%22%3A%7B%22option%22%3A%22PREVIOUS_PERIOD_OPTION%22%7D%7D',
             'sec-ch-ua': '"Brave";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"',
@@ -64,11 +60,11 @@ async def get_sprinklr_data(
             'sec-fetch-site': 'same-origin',
             'sec-gpc': '1',
             'x-engine': 'LISTENING',
-            'sentry-trace': '8c13e9412ce0480e964964c61fd83050-8145621e7d940360',
+            'sentry-trace': '1898920dc28f8fa510bfad95290df7f6-bf0142cdc0769b45',
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-            'x-csrf-token': 'SGFWNkNhbDJSVWRlOGkzdjhxSUox',
-            'x-request-id': 'space-cd1ae595-276a-4b53-96d2-e468589c4419',
-            'x-requested-at': '1749112921822',
+            'x-csrf-token': 'SUE3SFdCVG9HVno5MVdyeUNxV24y',
+            'x-request-id': 'space-b14dae0e-cdd6-4aef-a439-c109fc0e2db6',
+            'x-requested-at': '1749208582487',
             'x-user-context': 'c_9004_1000004509_1000462136'
         }
 

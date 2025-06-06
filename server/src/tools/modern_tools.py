@@ -82,37 +82,6 @@ class QueryGenerationInput(BaseModel):
     context: Dict[str, Any] = Field(description="RAG context for query refinement")
 
 
-@tool("generate_boolean_query", args_schema=QueryGenerationInput)
-async def generate_boolean_query(user_input: str, context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate boolean query from user input and context.
-    
-    Simplified implementation using  patterns.
-    """
-    try:
-        # Extract keywords from user input
-        keywords = [word.lower().strip() for word in user_input.split() if len(word) > 3]
-        
-        # Build boolean query
-        boolean_query = " OR ".join(f'"{keyword}"' for keyword in keywords[:5])
-        
-        # Add context-based filters if available
-        filters = {}
-        if "channels" in context:
-            filters["channels"] = context["channels"][:3]  # Limit to top 3
-        if "time_period" in context:
-            filters["time_period"] = context["time_period"]
-        
-        return {
-            "boolean_query": boolean_query,
-            "keywords": keywords,
-            "filters": filters,
-            "confidence": 0.8 if len(keywords) > 2 else 0.6
-        }
-        
-    except Exception as e:
-        logger.error(f"Query generation failed: {e}")
-        return {"error": str(e)}
 
 
 class ValidationInput(BaseModel):
@@ -158,7 +127,6 @@ async def validate_data(data: Dict[str, Any], schema_type: str) -> Dict[str, Any
 # Tool collection for easy access
 modern_tools = [
     process_data,
-    generate_boolean_query,
     validate_data
 ]
 

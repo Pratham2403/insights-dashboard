@@ -44,7 +44,7 @@ class QueryGeneratorAgent(LLMAgent):
             self.logger.warning(f"Could not load query patterns: {e}")
             return {"syntax_keywords": ["AND", "OR", "NOT", "NEAR"], "example_queries": []}
     
-    async def __call__(self, state: DashboardState) -> Dict[str, Any]:
+    async def __call__(self, state: DashboardState, description: str = "") -> Dict[str, Any]:
         """
         Generate Boolean query from refined query, keywords, and filters.
         
@@ -58,7 +58,7 @@ class QueryGeneratorAgent(LLMAgent):
             self.logger.info("Generating Boolean query")
             
             # Extract required data from state
-            refined_query = state.get("refined_query", "")
+            refined_query = state.get("refined_query", description)
             keywords = state.get("keywords", [])
             filters = state.get("filters", {})
             
