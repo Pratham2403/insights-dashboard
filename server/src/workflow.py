@@ -438,7 +438,6 @@ class SprinklrWorkflow:
         try:
             keywords = state.get("keywords", [])
             filters = state.get("filters", {})
-            data_requirements = state.get("data_requirements", {})
             refined_query = state.get("refined_query", "")
             
             logger.info(f"🔗 Boolean query generation starting with {len(keywords)} keywords")
@@ -518,17 +517,11 @@ class SprinklrWorkflow:
                 error_msg = AIMessage(content="Error: No Boolean query available for data retrieval")
                 return {"messages": [error_msg]}
             
-            # Execute tool using the Boolean query
-            # Note: get_sprinklr_data expects 'query' parameter, not 'boolean_query'
-            tool_input = {
-                "query": boolean_query,
-                "limit": 100  # Default limit for hits
-            }
-            
+
             logger.info(f"🛠️ Executing tool with Boolean query: {boolean_query[:100]}...")
             
-            # Execute the get_sprinklr_data tool directly to get hits from Sprinklr API
-            hits = await get_sprinklr_data(query=boolean_query, limit=100)
+            # Execute the get_sprinklr_data tool using the invoke method (modern LangChain pattern)
+            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 100})
             
             logger.info(f"🛠️ Retrieved {len(hits)} hits from Sprinklr API")
             

@@ -1,18 +1,17 @@
 {
-    "syntax_keywords": ["AND", "OR", "NOT", "ONEAR", "NEAR", "(", ")"],
+    "syntax_keywords": ["AND", "OR", "NOT", "ONEAR", "NEAR"],
     "example_queries": [
-        "( samsungs8 OR s8 OR galaxys8 OR #s8 OR #galaxys8 OR #samsungs8 )",
-        "(\"Hisense air purifier\" OR (\"Hisense\" AND \"air purifier\"))",
-        "((\"side by side\" OR \"french door\" OR \"top mount\" OR \"botton mount\" OR \"fridge\" OR \"refrigerator\" OR \"washing\" OR \"energy saving\" OR \"water saving\" OR \"front load\" OR \"top load\" OR \"washer\" OR \"release date\" OR \"leaks\" OR \"rumours\" OR \"specs\" OR \"specifications\" OR \"price\" OR \"design\" OR \"upgrade\" OR \"functionality\" OR \"quality\" OR \"freezer\" OR \"appliance\" OR \"range\" OR \"premium\" OR \"innovation\" OR \"features\" OR \"performance\" OR \"launch\" OR \"stainless steel\" OR \"dark stainless\" OR \"4 door\" OR \"bottom mount\" OR \"vertical\" OR \"chest freezer\") AND (\"westinghouse\" OR \"#westinghouse\") AND  NOT (\"case\" OR \"cases\" OR \"#bigdata\" OR \"#following\" OR \"#follow4follow\" OR \"#followback\" OR \"#followme\" OR \"#followed\" OR \"#follow4followback\" OR \"googleplay store\" OR \"google play store\" OR \"google playstore\" OR \"#googleplaystore\" OR \"#followers\" OR \"#sponsored\" OR \"#promoted\" OR \"#ad\" OR \"#ads\" OR \"coupon\" OR \"coupons\" OR \"#coupon\" OR \"#coupons\" OR \"free\" OR \"#free\" OR \"freebie\" OR \"#freebie\" OR \"freebies\" OR \"#freebies\" OR \"giveaway\" OR \"#giveaway\" OR \"giveaways\" OR \"#giveaways\" OR \"paypal\" OR \"#paypal\" OR \"enter to win\" OR \"#entertowin\" OR \"limited time offer\" OR \"#limitedtimeoffer\" OR \"mint in box\" OR \"mint condition\" OR \"slickdeals\" OR \"retweet to win\" OR \"repost\" OR \"win\" OR \"#rt\" OR \"#dealfotheday\" OR \"dealhacker\" OR \"bargain\" OR \"offers\" OR \"ebay\"))",
-        "( #theframe OR \"the frame tv\" OR \"frame tv\" OR \"samsung frame\" OR \"frame television\" OR \"samsung the frame\" )"
-    ],
+        "samsungs8 OR s8 OR galaxys8 OR #s8 OR #galaxys8 OR #samsungs8",
+        "Hisense air purifier OR Hisense AND air purifier",
+        "source: TWITTER OR source: FACEBOOK AND ambience"
+        ],
     "query_patterns": [
-        "( {keywords} )",
-        "( {keywords} AND {keywords} )",
-        "( {keywords} OR {keywords} )",
-        "( {keywords} AND NOT {keywords} )",
-        "( {keywords} OR NOT {keywords} )",
-        "( {keywords} ONEAR {keywords} )",
-        "( {keywords} NEAR {keywords} )"
+        "{keywords}",
+        "{keywords} AND {keywords}",
+        "{keywords} OR {keywords}",
+        "{keywords} AND NOT {keywords}",
+        "{keywords} OR NOT {keywords}",
+        "{keywords} ONEAR {keywords}",
+        "{keywords} NEAR {keywords}"
     ]
 }

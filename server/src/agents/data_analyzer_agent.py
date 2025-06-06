@@ -35,9 +35,9 @@ class DataAnalyzerAgent:
             # Initialize embedding model for topic modeling
             self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
             # Initialize BERTopic with 10 topics
-            self.topic_model = BERTopic(embedding_model=self.embedding_model, nr_topics=10)
+            self.topic_model = BERTopic(embedding_model=self.embedding_model, nr_topics=5)
             # Initialize summarization pipeline
-            self.summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+            self.summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
             logger.info("BERTopic models initialized successfully")
         except Exception as e:
             error_msg = f"Failed to initialize BERTopic models: {e}"
@@ -68,11 +68,10 @@ class DataAnalyzerAgent:
             # Fit the topic model to the data
             topics, probs = self.topic_model.fit_transform(docs)
             
-            # Update topics for better labels
-            self.topic_model.update_topics(docs, topics, language="english")
+            self.topic_model.update_topics(docs, topics)
             
-            # Get topic labels
-            labels = self.topic_model.get_topic_labels()
+            # Generate topic labels - BERTopic v0.17.0+ method
+            labels = self.topic_model.generate_topic_labels()
             
             # Generate themes with descriptions
             themes = []
@@ -91,7 +90,12 @@ class DataAnalyzerAgent:
                 
                 # Summarize the most representative document
                 try:
-                    summary = self.summarizer(best_doc, max_length=150, min_length=30, do_sample=False)[0]['summary_text']
+                    # Adjust max_length based on document length to avoid warnings
+                    doc_length = len(best_doc.split())
+                    max_len = min(150, max(30, doc_length * 2))  # Ensure reasonable limits
+                    min_len = min(30, max(10, doc_length // 2))  # Ensure min_len <= max_len
+                    
+                    summary = self.summarizer(best_doc, max_length=max_len, min_length=min_len, do_sample=False)[0]['summary_text']
                 except Exception as e:
                     error_msg = f"Summarization failed for topic {topic}: {e}"
                     logger.error(error_msg)
@@ -157,49 +161,51 @@ class DataAnalyzerAgent:
     def _extract_documents_from_hits(self, hits: List[Dict[str, Any]]) -> List[str]:
         """
         Extract text content from Sprinklr API hits for analysis.
-        
-        Args:
-            hits: List of hits from Sprinklr API
-            
-        Returns:
-            List of extracted document strings
-            
-        Raises:
-            ValueError: If no valid text content found in hits
+        This method handles nested objects and various field structures.
         """
         documents = []
         
         for hit in hits:
-            # Extract text content from various possible fields
             text_content = ""
             
-            # Common Sprinklr API response fields
             if isinstance(hit, dict):
-                # Try different possible text fields
+                # Try direct text fields first
                 for field in ['content', 'text', 'message', 'body', 'description', 'title']:
                     if field in hit and hit[field]:
-                        text_content = str(hit[field])
+                        text_content = str(hit[field]).strip()
                         break
                 
-                # If no direct text field, try nested fields
+                # If no direct text field, try nested 'source' object
                 if not text_content and 'source' in hit:
                     source = hit['source']
                     if isinstance(source, dict):
-                        for field in ['content', 'text', 'message', 'body']:
+                        for field in ['content', 'text', 'message', 'body', 'description', 'title']:
                             if field in source and source[field]:
-                                text_content = str(source[field])
+                                text_content = str(source[field]).strip()
+                                break
+                
+                # Try other common nested structures
+                if not text_content:
+                    # Check for nested data structures
+                    for nested_key in ['data', 'payload', 'document', 'item']:
+                        if nested_key in hit and isinstance(hit[nested_key], dict):
+                            nested_obj = hit[nested_key]
+                            for field in ['content', 'text', 'message', 'body', 'description', 'title']:
+                                if field in nested_obj and nested_obj[field]:
+                                    text_content = str(nested_obj[field]).strip()
+                                    break
+                            if text_content:
                                 break
             
-            # Add document if we found content
-            if text_content.strip():
-                documents.append(text_content.strip())
+            # Add document if we found valid content
+            if text_content and len(text_content) > 10:  # Minimum length check
+                documents.append(text_content)
         
         if not documents:
             raise ValueError(f"No valid text content found in {len(hits)} hits")
         
         logger.info(f"Extracted {len(documents)} documents from {len(hits)} hits")
         return documents
-
 
 # Factory for LangGraph compatibility (backwards compatibility)
 def create_data_analyzer():

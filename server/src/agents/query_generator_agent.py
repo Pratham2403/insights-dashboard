@@ -123,9 +123,10 @@ class QueryGeneratorAgent(LLMAgent):
             2. Use OR for alternative terms (brands, products, synonyms)
             3. Use NEAR for terms that should appear close to each other
             4. Use NOT to exclude unwanted content
-            5. Use parentheses to group logical operations
-            6. Foe Filters, use exact matches for fields. For Filters the Keyword should be in the format: "field:value" (e.g., "location:USA", "language:English")
+            6. For Filters, use exact matches for fields. For Filters, the Keyword should be in the format: "field: value" (e.g., "country: US", "language: en)
             7. Choose the right operator by considering the sentiment/emotion from the refined query
+            8. Do not use quotes, Brackets or backslashes in the query.
+            9. Use proper Boolean syntax with operators in uppercase (AND, OR, NOT, NEAR, ONEAR).
 
             Generate a Boolean query that captures the user's intent effectively."""
 

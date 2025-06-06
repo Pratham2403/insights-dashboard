@@ -1,10 +1,8 @@
 {
     "filters":{
-        "country":["India", "Afganistan", "Pakistan", "Bangladesh", "Sri Lanka", "Nepal", "Bhutan", "Maldives", "China", "Japan", "South Korea", "North Korea", "Mongolia", "Russia", "Kazakhstan", "Uzbekistan", "Turkmenistan", "Kyrgyzstan", "Tajikistan", "Iran", "Iraq", "Syria", "Lebanon"],
-        "region":["Asia", "Africa", "Middle East", "Europe", "North America", "South America", "Central America", "Caribbean", "Oceania", "Antarctica"],
-        "language":["English", "Hindi", "Bengali", "Punjabi", "Tamil", "Telugu", "Marathi", "Gujarati", "Urdu", "Malayalam", "Kannada", "Odia", "Assamese", "Maithili", "Santali", "Kashmiri", "Nepali", "Sinhala", "Burmese", "Thai"],
-        "source":["Twitter", "Reddit", "Facebook", "Instagram", "LinkedIn", "YouTube", "TikTok", "WhatsApp", "Telegram", "Signal", "News"],
-        "gender":["Male", "Female", "Non-binary", "Transgender", "Genderqueer", "Agender", "Genderfluid", "Bigender", "Two-Spirit", "Other"],
-        "time":["Last 24 hours", "Last 7 days", "Last 30 days", "Last 6 months", "Last year", "All time", "Custom range"]
+        "country":["IN", "CN", "US", "GB", "DE", "FR", "JP", "BR", "RU", "ZA", "AU", "CA", "IT", "ES", "KR", "MX", "ID", "NG", "AR", "NL", "SE"],
+        "language":["en", "sm", "fr", "de", "es", "it", "pt", "ru", "zh", "ja", "ko", "hi", "ar", "bn", "id", "tr", "vi", "th", "pl", "nl"],
+        "source":["TWITTER", "REDDIT", "FACEBOOK", "INSTAGRAM", "NEWS", "BLOGS", "FORUMS", "YOUTUBE", "PODCASTS", "OTHER"],
+        "gender":["MALE", "FEMALE", "UNKNOWN", "OTHER"]
     }
 }

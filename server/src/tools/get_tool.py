@@ -39,7 +39,7 @@ async def get_sprinklr_data(
         
         # API URL from api-communication.md
         api_url = "https://space-prod0.sprinklr.com/ui/rest/reports/query"
-        page_size = limit if limit > 0 else 100  # Default to 5 as per api-communication.md
+        page_size = limit if limit > 0 else 50  # Default to 5 as per api-communication.md
         
         # Generate unique request ID and key
         request_key = "c85c0d7d-3a2a-4c62-839c-212ff872a188"
