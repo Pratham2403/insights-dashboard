@@ -8,6 +8,11 @@ from typing import Dict, Optional, Any, List, Union
 from pathlib import Path
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file if it exists
+
+
 
 class Settings(BaseSettings):
     """
@@ -50,7 +55,7 @@ class Settings(BaseSettings):
         default="https://space-prod0.sprinklr.com/ui/rest/reports/query",
         description="Sprinklr API endpoint"
     )
-    SPRINKLR_COOKIES: Optional[str] = Field(default="SPR_STICKINESS=1749206150.75.66.232491|82e1351007a7c3c95a47ab53204a1f03; JSESSIONID=7595036953C0E5D1FBE07014F517ABF3; user.env.type=ENTERPRISE; connect.sid=s%3AR5dMTp4OISMa5JXQibcHpDraoR0FS2Ob.eO6oApUKiX%2BPJ8uN5u50mBgw4Tya1fN%2FCtGyyY40I%2F4; SPR_AT=SUE3SFdCVG9HVno5MVdyeUNxV24y; connect.token=eyJ2M1Nlc3Npb25VcGRhdGVkIjoidHJ1ZSIsImFjY2Vzc1Rva2VuIjoiZXlKaGJHY2lPaUpTVXpJMU5pSjkuZXlKemRXSWlPaUpCWTJObGMzTWdWRzlyWlc0Z1IyVnVaWEpoZEdWa0lFSjVJRk53Y21sdWEyeHlJaXdpWTJ4cFpXNTBTV1FpT2pFd01EQXdNRFExTURrc0lteHZaMmx1VFdWMGFHOWtJam9pVTFCU1gxQkJVMU5YVDFKRVgweFBSMGxPSWl3aWIzUmhTV1FpT2lJMk9ETmhaR1UzT1RjMVl6VTRNak5pTmpVNE9ESTNZVGdpTENKcGMzTWlPaUpUVUZKSlRrdE1VaUlzSW5SNWNDSTZJa3BYVkNJc0luVnpaWEpKWkNJNk1UQXdNRFEyTWpFek5pd2lkWFZwWkNJNklqTTJNekJpTlRZM0xXTTFPREl0TkdNd1ppMWhaRE0wTFdZeU1EY3pNRFkwWWpWbU9Ub3hNelUyTmpBMU1UQTNPVEl5TWpJeElpd2lZWFZrSWpvaVUxQlNTVTVMVEZJaUxDSnVZbVlpT2pFM05Ea3lNRFU1TkRBc0luTmpiM0JsSWpwYklsSkZRVVFpTENKWFVrbFVSU0pkTENKelpYTnphVzl1VkdsdFpXOTFkQ0k2TVRBeE1qZ3dMQ0p3WVhKMGJtVnlTV1FpT2prd01EUXNJbVY0Y0NJNk1UYzBPVFEyTmpNME1Dd2lZWFYwYUZSNWNHVWlPaUpUVUZKZlMwVlpYMUJCVTFOZlRFOUhTVTRpTENKMGIydGxibFI1Y0dVaU9pSkJRME5GVTFNaUxDSnBZWFFpT2pFM05Ea3lNRGN4TkRBc0ltcDBhU0k2SW5Od2NtbHVhMnh5SWl3aWJXbGpjbTlUWlhKMmFXTmxJam9pYzNCeUluMC5WY1hoaTZycW9pbWo1dGpJR194V19EelF3TFE4OXl3ZDZYanNLVnZjRXl6eThuUFdfNmN3MS1XZEFaU3lVZDY1Q1pYem8yQUo5VnVHQXJzZG5WYjhZSmdUYU5XdkpTRFpseFdtM2t1RTRwQlBDVFlBaHlmVXZackNyRnVDN1M0SlJlVm9PcEJ2YWZMd1JWQ3lGaTRFa3JOcXpCVVZ5azVfWDg3ZHViOHJzU0UtV1Z2QkFrNTk0NFRTcVJQRFFtV083Y3gwMEpzZWRxRXdwZk93eTA5RWhKclVyWkNGOEt0Y00wbEVvR203MkI5dGVNX3M2emxCU2d6eFg5bmp3dlo4aEh2UW1vaXBXS05lVTRoZ3NRdjFlaGJkakNZZVRCYW15RDRhSjhURjI4aTJiVXFEVTdYNk1DVkMtVHVuX1I1SDVhTEdqUy1EeFlxbnpha0N6RDMtZ3cifQ.3IYsgnvWY5YyqXmsn0jjkaVLhb0PR2Ua4dcu1iUgWd8; sess-exp-time=Sat, 7 Jun 2025 15:24:22 GMT", description="Sprinklr authentication cookies")
+    SPRINKLR_COOKIES: Optional[str] = Field(default="SPR_STICKINESS", description="Sprinklr authentication cookies")
     SPRINKLR_CSRF_TOKEN: Optional[str] = Field(default=None, description="CSRF token")
     
     # Workflow Configuration
