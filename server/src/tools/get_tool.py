@@ -60,11 +60,11 @@ async def get_sprinklr_data(
             'sec-fetch-site': 'same-origin',
             'sec-gpc': '1',
             'x-engine': 'LISTENING',
-            'sentry-trace': '1898920dc28f8fa510bfad95290df7f6-bf0142cdc0769b45',
+            'sentry-trace': settings.SPRINKLR_SENTRY_TRACE if hasattr(settings, 'SPRINKLR_SENTRY_TRACE') else 'ed0df10e92614c86bfef1061d68c36ee-a7c76c73531d5134',
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-            'x-csrf-token': 'SUE3SFdCVG9HVno5MVdyeUNxV24y',
-            'x-request-id': 'space-b14dae0e-cdd6-4aef-a439-c109fc0e2db6',
-            'x-requested-at': '1749208582487',
+            'x-csrf-token': settings.SPRINKLR_CSRF_TOKEN if hasattr(settings, 'SPRINKLR_CSRF_TOKEN') else 'VUhpT0ZOd2J6dHJiT2k5REFuMnF4',
+            'x-request-id': settings.SPRINKLR_REQUEST_ID if hasattr(settings, 'SPRINKLR_REQUEST_ID') else 'space-e6d0276f-f6de-41fd-92a0-29dc2037e1b9',
+            'x-requested-at': settings.SPRINKLR_REQUEST_AT if hasattr(settings, 'SPRINKLR_REQUEST_AT') else str(int(os.time() * 1000)),
             'x-user-context': 'c_9004_1000004509_1000462136'
         }
 
