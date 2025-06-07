@@ -1,27 +1,30 @@
 """
 API utility functions for standardizing responses, error handling, and request validation.
+FastAPI compatible version.
 """
 
+import asyncio
 import logging
 from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, Optional, Tuple, Union
-from flask import jsonify, request
+
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
 
-def create_success_response(data: Any, message: str = "Success", status_code: int = 200):
+def create_success_response(data: Any, message: str = "Success", status_code: int = 200) -> Dict[str, Any]:
     """
-    Create a standardized success response.
+    Create a standardized success response for FastAPI.
     
     Args:
         data: The response data
         message: Success message
-        status_code: HTTP status code
+        status_code: HTTP status code (included for consistency but not used in FastAPI response)
         
     Returns:
-        Flask response tuple
+        Dictionary response
     """
     response = {
         "status": "success",
@@ -29,7 +32,7 @@ def create_success_response(data: Any, message: str = "Success", status_code: in
         "data": data,
         "timestamp": datetime.utcnow().isoformat()
     }
-    return jsonify(response), status_code
+    return response
 
 
 def create_error_response(
@@ -37,18 +40,18 @@ def create_error_response(
     message: str = "An error occurred",
     status_code: int = 500,
     details: Optional[Any] = None
-):
+) -> Dict[str, Any]:
     """
-    Create a standardized error response.
+    Create a standardized error response for FastAPI.
     
     Args:
         error: The error message or exception
         message: User-friendly error message
-        status_code: HTTP status code
+        status_code: HTTP status code (included for consistency but not used in FastAPI response)
         details: Additional error details
         
     Returns:
-        Flask response tuple
+        Dictionary response
     """
     error_str = str(error)
     
@@ -65,27 +68,24 @@ def create_error_response(
     # Log the error
     logger.error(f"{message}: {error_str}")
     
-    return jsonify(response), status_code
+    return response
 
 
-def validate_request_data(required_fields: list, data: Optional[Dict] = None):
+def validate_request_data(required_fields: list, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Validate that required fields are present in request data.
+    Validate that required fields are present in request data for FastAPI.
     
     Args:
         required_fields: List of required field names
-        data: Request data (defaults to request.get_json())
+        data: Request data dictionary (from Pydantic model)
         
     Returns:
-        Error response tuple if validation fails, None if validation passes
+        Error response dict if validation fails, None if validation passes
     """
-    if data is None:
-        data = request.get_json()
-    
     if not data:
         return create_error_response(
-            "No JSON data provided", 
-            "Invalid request: Missing JSON data",
+            "No data provided", 
+            "Invalid request: Missing data",
             400
         )
     
@@ -104,28 +104,53 @@ def validate_request_data(required_fields: list, data: Optional[Dict] = None):
 
 def handle_exceptions(default_message: str = "An unexpected error occurred"):
     """
-    Decorator for handling exceptions in API endpoints.
+    Decorator for handling exceptions in FastAPI endpoints.
     
     Args:
         default_message: Default error message for unhandled exceptions
         
     Usage:
         @handle_exceptions("Error processing request")
-        def my_endpoint():
+        async def my_endpoint():
             # endpoint logic
     """
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def async_wrapper(*args, **kwargs):
+            try:
+                if asyncio.iscoroutinefunction(func):
+                    return await func(*args, **kwargs)
+                else:
+                    return func(*args, **kwargs)
+            except ValueError as e:
+                logger.error(f"ValueError in {func.__name__}: {e}")
+                raise HTTPException(status_code=400, detail=str(e))
+            except KeyError as e:
+                logger.error(f"KeyError in {func.__name__}: {e}")
+                raise HTTPException(status_code=400, detail=f"Missing required data: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error in {func.__name__}: {e}")
+                raise HTTPException(status_code=500, detail=default_message)
+        
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except ValueError as e:
-                return create_error_response(e, "Invalid input", 400)
+                logger.error(f"ValueError in {func.__name__}: {e}")
+                raise HTTPException(status_code=400, detail=str(e))
             except KeyError as e:
-                return create_error_response(e, "Missing required data", 400)
+                logger.error(f"KeyError in {func.__name__}: {e}")
+                raise HTTPException(status_code=400, detail=f"Missing required data: {e}")
             except Exception as e:
-                return create_error_response(e, default_message, 500)
-        return wrapper
+                logger.error(f"Unexpected error in {func.__name__}: {e}")
+                raise HTTPException(status_code=500, detail=default_message)
+        
+        # Return the appropriate wrapper based on whether the function is async
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
     return decorator
 
 

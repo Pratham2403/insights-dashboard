@@ -1,11 +1,12 @@
 """
 Sprinklr Insights Dashboard API
 
-Implementation using latest LangGraph patterns:
+FastAPI implementation using latest LangGraph patterns:
 - Workflow orchestration
 - Conversation memory management  
 - Human-in-the-loop patterns
 - Built-in error handling
+- Automatic OpenAPI documentation
 """
 
 import logging
@@ -14,19 +15,19 @@ import sys
 from datetime import datetime
 import asyncio
 import uuid
+from typing import Dict, Any, Optional
 from langgraph.types import Command
 
-
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 # Add the src directory to the path for imports
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 from src.utils.api_helpers import (
     create_success_response,
     create_error_response,
-    validate_request_data,
-    handle_exceptions,
     log_endpoint_access
 )
 
@@ -50,9 +51,44 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Initialize FastAPI app
+app = FastAPI(
+    title="Sprinklr Insights Dashboard API",
+    description="FastAPI implementation with LangGraph workflow orchestration for intelligent dashboard generation",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure this appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Pydantic models for request/response validation
+class QueryRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=10000, description="User query")
+    thread_id: Optional[str] = Field(None, description="Conversation thread ID")
+
+class ApiResponse(BaseModel):
+    status: str
+    message: str
+    data: Optional[Dict[str, Any]] = None
+    timestamp: str
+
+class HealthResponse(BaseModel):
+    status: str
+
+class StatusResponse(BaseModel):
+    workflow_initialized: bool
+    memory_enabled: bool
+    agents_loaded: int
+    timestamp: str
 
 # Global workflow instance
 workflow_instance = None
@@ -65,8 +101,8 @@ def get_workflow():
         workflow_instance = SprinklrWorkflow()
     return workflow_instance
 
-@app.route('/')
-def index():
+@app.get("/", response_model=ApiResponse)
+async def index():
     """Home page with basic API information"""
     log_endpoint_access("index")
     data = {
@@ -82,29 +118,31 @@ def index():
     }
     return create_success_response(data, "API is running")
 
-@app.route('/api/health', methods=['GET'])
-def health_check():
+@app.get("/api/health", response_model=Dict[str, Any])
+async def health_check():
     """Health check endpoint"""
     log_endpoint_access("health_check")
     return create_success_response({"status": "healthy"}, "Service is healthy")
 
-@app.route('/api/status', methods=['GET'])
-@handle_exceptions("Error getting service status")
-def get_status():
+@app.get("/api/status", response_model=Dict[str, Any])
+async def get_status():
     """Get detailed service status"""
     log_endpoint_access("get_status")
-    wf = get_workflow()
-    status_info = {
-        "workflow_initialized": wf is not None,
-        "memory_enabled": hasattr(wf, 'memory'),
-        "agents_loaded": len(wf.__dict__) > 0 if wf else 0,
-        "timestamp": datetime.now().isoformat()
-    }
-    return create_success_response(status_info, "API operational")
+    try:
+        wf = get_workflow()
+        status_info = {
+            "workflow_initialized": wf is not None,
+            "memory_enabled": hasattr(wf, 'memory'),
+            "agents_loaded": len(wf.__dict__) > 0 if wf else 0,
+            "timestamp": datetime.now().isoformat()
+        }
+        return create_success_response(status_info, "API operational")
+    except Exception as e:
+        logger.error(f"Error getting service status: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting service status: {str(e)}")
 
-@app.route('/api/process', methods=['POST'])
-@handle_exceptions("Processing error")
-def process_query():
+@app.post("/api/process", response_model=Dict[str, Any])
+async def process_query(query_request: QueryRequest):
     """    
     Simplified payload structure:
     
@@ -127,21 +165,17 @@ def process_query():
     """
     log_endpoint_access("process_query")
     
-    data = request.get_json()
-    if not data or 'query' not in data:
-        return create_error_response("Missing query parameter", "Invalid request", 400)
-    
-    user_query = data['query'].strip()
-    thread_id = data.get('thread_id')
+    user_query = query_request.query.strip()
+    thread_id = query_request.thread_id
     
     # Log the request details
     logger.info(f"🔍 Processing query: {user_query[:100]}...")
     
     if not user_query:
-        return create_error_response("Query cannot be empty", "Invalid request", 400)
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
     
     if len(user_query) > 10000:
-        return create_error_response("Query too long (max 10000 characters)", "Invalid request", 400)
+        raise HTTPException(status_code=400, detail="Query too long (max 10000 characters)")
     
     try:
         workflow = get_workflow()
@@ -158,7 +192,6 @@ def process_query():
         config = {"configurable": {"thread_id": thread_id}}
         
         # Use asyncio to handle the async stream properly
-
         
         async def run_workflow_stream():
             """Run the workflow stream in an async context to handle streaming and interrupts"""
@@ -198,7 +231,6 @@ def process_query():
                             keywords = state_values.get('keywords', [])
                             filters = state_values.get('filters', {})
                             data_requirements = state_values.get('data_requirements', [])
-                            
                             interrupt_data = {
                                 "question": "Please review the analysis below and approve to continue:",
                                 "step": 1,
@@ -245,36 +277,16 @@ def process_query():
                 "thread_id": thread_id
             }
 
-        
-        def run_async_workflow():
-            """Wrapper to run async workflow in Flask context"""
-            try:
-                # Check if there's already an event loop
-                try:
-                    loop = asyncio.get_running_loop()
-                    logger.warning("Event loop already running - cannot use asyncio.run")
-                    # If we're in an existing loop, we need to handle differently
-                    # This shouldn't happen in Flask normally, but let's be safe
-                    raise RuntimeError("Cannot use asyncio.run in existing loop")
-                except RuntimeError:
-                    # No loop running - this is the normal Flask case
-                    return asyncio.run(run_workflow_stream())
-            except Exception as e:
-                logger.error(f"❌ Async workflow error: {e}")
-                raise
-        
-        result = run_async_workflow()
+        result = await run_workflow_stream()
         return create_success_response(result, "Query processed successfully")
         
     except Exception as e:
         logger.error(f"❌ Error processing query: {str(e)}")
         logger.error(f"📝 Query was: {user_query[:200]}...")
-        return create_error_response(f"Processing failed: {str(e)}", "Processing error", 500)
-
-
-@app.route('/api/history/<thread_id>', methods=['GET'])
-@handle_exceptions("Modern history error")
-def get_history(thread_id):
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+                            
+@app.get("/api/history/{thread_id}", response_model=Dict[str, Any])
+async def get_history(thread_id: str):
     """
     Modern conversation history endpoint using built-in memory.
     
@@ -284,33 +296,51 @@ def get_history(thread_id):
     
     logger.info(f"Retrieving history for: {thread_id}")
     
-    # Modern history retrieval - built-in persistence
-    history = asyncio.run(get_workflow_history(thread_id))
-    
-    return create_success_response({
-        "thread_id": thread_id,
-        "messages": history,
-        "count": len(history)
-    }, "History retrieved")
+    try:
+        # Modern history retrieval - built-in persistence
+        history = await get_workflow_history(thread_id)
+        
+        return create_success_response({
+            "thread_id": thread_id,
+            "messages": history,
+            "count": len(history)
+        }, "History retrieved")
+    except Exception as e:
+        logger.error(f"Error retrieving history: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving history: {str(e)}")
 
-@app.errorhandler(404)
-def not_found(error):
+# Global exception handler
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
     """Handle 404 errors"""
-    logger.warning(f"404 Not Found: {request.url} (Error: {error})")
-    return create_error_response(str(error), "Not Found", 404)
+    logger.warning(f"404 Not Found: {request.url}")
+    return JSONResponse(
+        status_code=404,
+        content=create_error_response("Not Found", "Resource not found", 404)
+    )
 
-@app.errorhandler(500)
-def internal_error(error):
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc):
     """Handle 500 errors"""
     logger.error(f"500 Internal Server Error: {request.url}")
-    return create_error_response(str(error), "Internal Server Error", 500)
+    return JSONResponse(
+        status_code=500,
+        content=create_error_response("Internal Server Error", "Internal server error", 500)
+    )
 
 if __name__ == "__main__":
+    import uvicorn
     try:
-        logger.info("Starting Modern Sprinklr Dashboard API...")
+        logger.info("Starting Modern Sprinklr Dashboard API with FastAPI...")
         host = os.getenv('HOST', '0.0.0.0')
         port = int(os.getenv('PORT', 8000))
-        app.run(host=host, port=port, debug=True)
+        uvicorn.run(
+            "app:app",
+            host=host,
+            port=port,
+            reload=True,
+            log_level="info"
+        )
     except Exception as e:
-        logger.critical(f"Failed to start Flask application: {e}")
+        logger.critical(f"Failed to start FastAPI application: {e}")
         sys.exit(1)

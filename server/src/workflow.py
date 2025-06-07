@@ -1392,7 +1392,7 @@ class SprinklrWorkflow:
                 "Automatic state persistence",
                 "Multi-agent coordination",
                 "Lazy model loading for performance",
-                "Production-ready Flask integration"
+                "Production-ready FastAPI integration"
             ],
             "steps": [
                 "Query Refiner Agent",
@@ -1410,17 +1410,14 @@ class SprinklrWorkflow:
         }
 
 
-# Global workflow instance for Flask integration
+# Global workflow instance for FastAPI integration
 modern_workflow = SprinklrWorkflow()
 
 
-
-
-
-# Standalone Flask integration functions
+# Standalone FastAPI integration functions
 async def process_dashboard_request(user_query: str, thread_id: Optional[str] = None) -> Dict[str, Any]:
     """
-    Standalone function for Flask integration to process dashboard requests.
+    Standalone function for FastAPI integration to process dashboard requests.
     
     Args:
         user_query: User's query string  
@@ -1448,7 +1445,7 @@ async def process_dashboard_request(user_query: str, thread_id: Optional[str] = 
 
 async def handle_user_feedback(thread_id: str, feedback: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Standalone function for Flask integration to handle user feedback.
+    Standalone function for FastAPI integration to handle user feedback.
     
     Args:
         thread_id: Conversation thread ID
@@ -1481,7 +1478,7 @@ async def handle_user_feedback(thread_id: str, feedback: Union[str, Dict[str, An
 
 async def get_workflow_history(thread_id: str) -> List[Dict[str, Any]]:
     """
-    Standalone function for Flask integration to get workflow history.
+    Standalone function for FastAPI integration to get workflow history.
     
     Args:
         thread_id: Conversation thread ID

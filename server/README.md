@@ -9,7 +9,7 @@ The Sprinklr Insights Dashboard is a modular, multi-agent system designed to pro
 - Generates optimized boolean keyword queries for the Sprinklr API
 - Analyzes fetched data to identify and categorize themes
 - Orchestrates the end-to-end pipeline with LangGraph
-- Exposes a RESTful Flask API for external integration
+- Exposes a RESTful FastAPI API for external integration
 
 ## Architecture
 
@@ -23,7 +23,7 @@ The Sprinklr Insights Dashboard is a modular, multi-agent system designed to pro
 3. **Boolean Query Generator Agent**: Constructs precise boolean queries for the Sprinklr API based on collected user data.
 4. **ToolNode**: Executes the boolean queries to fetch raw data from Sprinklr.
 5. **Data Analyzer Agent**: Processes and clusters returned data into meaningful themes, generating theme-specific boolean queries for deeper dives.
-7. **Flask API**: Serves endpoints for submitting queries, checking workflow status, validating themes, and responding to prompts.
+7. **FastAPI API**: Serves endpoints for submitting queries, checking workflow status, validating themes, and responding to prompts.
 8. **Persistence & Memory**: Uses ChromaDB and LangGraph MemorySaver to store RAG indices and workflow state.
 
 ## Getting Started
@@ -61,10 +61,10 @@ python app.py
 
 By default, the API will be available at `http://0.0.0.0:8000`.
 
-For production deployments, consider using a WSGI server (e.g., Gunicorn):
+For production deployments, consider using an ASGI server (e.g., Uvicorn):
 
 ```bash
-gunicorn app:app --workers 4 --bind 0.0.0.0:8000
+uvicorn app:app --workers 4 --host 0.0.0.0 --port 8000
 ```
 
 ## API Endpoints
@@ -92,7 +92,7 @@ Refer to [USAGE.md](PROMPT.md) for a detailed end-to-end use-case example.
 
 ```
 server/
-├── app.py              # Flask entrypoint
+├── app.py              # FastAPI entrypoint
 ├── Architecture.pdf    # High-level system diagram
 ├── PROMPT.md            # Example usage & workflow description
 ├── README.md           # ← You are here

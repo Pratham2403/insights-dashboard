@@ -13,8 +13,6 @@ bertopic                # BERTopic for topic modeling with transformers
 # ===== Web Framework & API =====
 fastapi                  # Fast API framework for building REST APIs
 uvicorn[standard]        # ASGI server for running FastAPI applications
-flask                    # Flask web framework for simple API development
-flask-cors               # Cross-Origin Resource Sharing support for Flask
 python-multipart         # Multipart form data parsing for file uploads
 pydantic                 # Data validation and settings management
 pydantic-settings        # Settings management extension for Pydantic
