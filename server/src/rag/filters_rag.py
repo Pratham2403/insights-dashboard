@@ -17,6 +17,7 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 
 from src.utils.files_helper import import_module_from_file
+from src.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -288,59 +289,63 @@ class FiltersRAG:
             raise
     
     def _load_use_cases(self):
-        """Load and index complete use cases."""
+        """Load and index complete use cases from JSON file."""
         if self.vector_db is None:
             logger.warning("Vector database not available, skipping use cases loading")
             return
             
         try:
-            # Sample complete use cases
-            sample_use_cases = [
-                {
-                    "title": "Samsung Brand Health Monitoring",
-                    "description": "Complete brand health monitoring setup for Samsung products",
-                    "user_query": "I want to monitor Samsung brand health",
-                    "refined_query": "Brand health monitoring for Samsung products across social media",
-                    "filters": {
-                        "brand": "Samsung",
-                        "channels": ["Twitter", "Facebook", "Instagram"],
-                        "time_period": "last 30 days",
-                        "metrics": ["brand mentions", "sentiment analysis", "reach"]
-                    }
-                },
-                {
-                    "title": "Product Launch Analysis",
-                    "description": "Track new product launch performance and reception",
-                    "user_query": "How is our new product performing?",
-                    "refined_query": "Product launch performance analysis with sentiment tracking",
-                    "filters": {
-                        "product": "new product launch",
-                        "channels": ["Twitter", "Facebook", "Instagram", "News"],
-                        "time_period": "since launch date",
-                        "metrics": ["mentions", "sentiment", "engagement", "reach"]
-                    }
-                }
-            ]
+            # Load use cases from JSON file using settings configuration
+            use_case_file_path = Path(settings.USE_CASE_FILE_PATH)
+            
+            # Handle relative path resolution
+            if not use_case_file_path.is_absolute():
+                # Resolve relative to the project root
+                current_dir = Path(__file__).parent.parent.parent
+                use_case_file_path = current_dir / use_case_file_path
+            
+            if not use_case_file_path.exists():
+                logger.error(f"Use case file not found at: {use_case_file_path}")
+                return
+                
+            with open(use_case_file_path, 'r', encoding='utf-8') as f:
+                use_cases_data = json.load(f)
+            
+            if not isinstance(use_cases_data, list):
+                logger.error("Use cases data should be a list")
+                return
             
             documents = []
             metadatas = []
             ids = []
             
-            for i, use_case in enumerate(sample_use_cases):
-                doc_text = f"{use_case['title']}: {use_case['description']} User Query: {use_case['user_query']} Refined: {use_case['refined_query']}"
+            for use_case in use_cases_data:
+                # Create searchable document text from the use case data
+                doc_text = f"{use_case.get('category', '')}: {use_case.get('description', '')}"
+                
+                # Add features to the document text if they exist
+                if 'features' in use_case and use_case['features']:
+                    features_text = " ".join([
+                        f"{feature.get('name', '')}: {feature.get('description', '')}" 
+                        for feature in use_case['features'] 
+                        if isinstance(feature, dict) and ('name' in feature or 'description' in feature)
+                    ])
+                    if features_text:
+                        doc_text += f" Features: {features_text}"
+                
                 documents.append(doc_text)
                 
-                # Convert nested structures to strings for ChromaDB compatibility
+                # Store complete metadata preserving the original structure
                 metadata = {
-                    "title": use_case["title"],
-                    "description": use_case["description"],
-                    "user_query": use_case["user_query"],
-                    "refined_query": use_case["refined_query"],
-                    "filters_json": json.dumps(use_case["filters"])
+                    "id": use_case.get("id"),
+                    "category": use_case.get("category", ""),
+                    "description": use_case.get("description", ""),
+                    "features": json.dumps(use_case.get("features", [])) if use_case.get("features") else "[]"
                 }
                 metadatas.append(metadata)
-                ids.append(f"use_case_{i}")
+                ids.append(f"use_case_{use_case.get('id', len(ids))}")
             
+            # Add documents to vector database
             self.vector_db.add_documents(
                 self.use_cases_collection,
                 documents=documents,
@@ -348,7 +353,7 @@ class FiltersRAG:
                 ids=ids
             )
             
-            logger.info(f"Loaded {len(documents)} use case items")
+            logger.info(f"Loaded {len(documents)} use case items from {use_case_file_path}")
             
         except Exception as e:
             logger.error(f"Failed to load use cases: {e}")

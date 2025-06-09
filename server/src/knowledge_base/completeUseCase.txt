@@ -1,6 +1,0 @@
-// Consists the Examples of What Complete User Quereies Look Like, A Complete Use-Case Examples
-
-Complete User Query : 
-1. I am a Sales Incharge of Samsung and want to know how my Products : Samsung S25 ultra, S 25 plus and S25 are currently percieved in the market on channels like Twitter, Instagram, Facebook and Youtube. Provide me with the Insights of the average mentions and overall sentiment of the People around my Brand.
-2. I am a Product Manager of Google and want to see what people are talking about my brand, its policies and use of data. I want to know the overall sentiment of the people around my brand and how it is percieved in the market. Provide me with the insights of the average mentions and overall sentiment of the people around my brand on channels like Twitter, Instagram, Facebook and Youtube.
-3. I am a Marketing Manager of Apple and want to know how my products like iPhone 15, iPad Pro and MacBook Air are currently percieved in the market on channels like Twitter, Instagram, Facebook and Youtube. Provide me with the insights of the average mentions and overall sentiment of the people around my brand.

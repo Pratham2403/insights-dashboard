@@ -27,6 +27,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.types import interrupt, Command
 
+
 # Import our components
 from src.config.settings import settings
 from src.helpers.states import DashboardState, create_initial_state
@@ -37,6 +38,8 @@ from src.agents.data_collector_agent import DataCollectorAgent
 from src.agents.data_analyzer_agent import DataAnalyzerAgent
 from src.agents.query_generator_agent import  QueryGeneratorAgent
 from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action
+# from src.persistence.mongodb_checkpointer import MongoDBPersistenceManager
+
 
 
 logger = logging.getLogger(__name__)
@@ -161,7 +164,6 @@ class SprinklrWorkflow:
     async def _query_refiner_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 1: Query Refiner Agent
-        - Adds defaults like 30-day duration, Twitter/Instagram sources
         - Uses completeUseCase.txt for context
         - Handles conversation context intelligently
         """

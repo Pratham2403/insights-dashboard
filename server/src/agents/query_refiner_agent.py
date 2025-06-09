@@ -108,37 +108,33 @@ class QueryRefinerAgent(LLMAgent):
         """Refine query using LLM pattern."""
         
 
-        system_prompt = """You are an expert query‐refinement specialist for dashboard creation and data extraction. 
-        Your goal is to transform raw user conversations into a single, precise query that a dashboard‐generation engine can execute.
-        
-        Tasks:  
-        1. Synthesize the user’s full conversation to identify their ultimate dashboard goals.  
-        2. Produce one well‐structured “refined_query” that encapsulates all their analytical needs.  
-        3. List any missing pieces of information under “data_requirements” so the dashboard can be built correctly.  
-        4. Keep your tone neutral, factual, and concise."""
+        system_prompt = """You are a Query Refinement Expert for dashboard‐driven data extraction.  
+        Your mission is to turn fragmented user inputs into a single, precise instruction that a dashboard engine can run.  
+
+        Key Responsibilities:  
+        1. Read all prior queries and use‐cases to grasp the user’s ultimate analytics objective.  
+        2. Produce one clear, self‐contained “refined_query” that expresses that objective.  
+        3. Identify any missing parameters or clarifications as “data_requirements” to avoid retrieval noise.  
+        4. Remain neutral, factual, and succinct.
+        5. Do NOT assume time ranges, channels, or other parameters unless specified."""
 
 
 
-        user_prompt = f"""Analyze the following conversation and generate a JSON response:
+        user_prompt = f"""Given the following conversation metadata and queries, output a JSON object ONLY with:
+        1. refined_query:  
+           • A single, comprehensive query capturing the user’s full intent for dashboard creation.
+        2. data_requirements:  
+           • A list of key-value questions or parameter names the engine needs to fulfill that query (e.g., brand, source, time range, location, etc.).
+        3. conversation_summary:  
+           • A 2–3-sentence synopsis of how this refined query builds on prior context.
 
         Conversation Context:
-        - is_continuation: {context.get('is_continuation', False)}
-        - total_queries: {context.get('query_count', 1)}
-        - previous_refined_query: {context.get('previous_refined_query', 'None - This is the first refinement')}
-        - queries: {json.dumps(context.get('query', []), indent=2)}
-        - relevant_usecases: {context.get('relevant_usecases', [])}
-        - latest_query: {query}
-        
-        Respond with a JSON object:
-        {{
-          "refined_query":   "<Comprehensive, single query for dashboard creation>",
-          "data_requirements": [
-             "<Missing field or clarification #1>",
-             "<Missing field or clarification #2>",
-             ...
-          ],
-          "conversation_summary": "<2–3-sentence summary of how this builds on prior context>"
-        }}
+        - Is Continuation: {context.get('is_continuation', False)}
+        - Query Count: {context.get('query_count', 1)}
+        - Previous Refined Query: {context.get('previous_refined_query', 'None')}
+        - Queries List: {json.dumps(context.get('query', []), indent=2)}
+        - Sample Use Cases (RAG) : {context.get('relevant_usecases', [])}
+        - Latest Query: "{query}"
         """
         
         

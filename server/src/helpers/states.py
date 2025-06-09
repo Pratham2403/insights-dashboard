@@ -104,5 +104,10 @@ def create_initial_state(user_query: str, thread_id: str = None) -> DashboardSta
         hitl_step=0,
         user_input=None,
         next_node=None,
-        reason=None
+        reason=None,
+        
+        # Additional required fields
+        human_feedback=None,
+        needs_human_input=None,
+        analysis_results=None
     )

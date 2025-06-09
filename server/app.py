@@ -235,7 +235,7 @@ async def process_query(query_request: QueryRequest):
                                 "question": "Please review the analysis below and approve to continue:",
                                 "step": 1,
                                 "refined_query": refined_query,
-                                "keywords": keywords[:5] if keywords else [],
+                                "keywords": keywords if keywords else [],
                                 "filters": filters,
                                 "data_requirements": data_requirements if data_requirements else [],
                                 "instructions": "Reply 'yes' to approve or provide feedback to refine"

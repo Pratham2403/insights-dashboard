@@ -1,0 +1,200 @@
+[
+  {
+    "id": 1,
+    "category": "Top News Around Your Brand",
+    "description": "Identify News articles with your brand name in its title to understand the sentiment as well key topics being discussed.",
+    "features": [
+      {
+        "name": "Media Coverage",
+        "description": "Track the volume of news mentions to assess the extent of media coverage."
+      },
+      {
+        "name": "News Sentiment",
+        "description": "Understand which Articles are mentioning your brand the most and sentiment towards the same."
+      },
+      {
+        "name": "Key Publications",
+        "description": "Identify the most influential news sources covering your brand, helping target PR efforts effectively."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "category": "Influencers Discussing Your Brand",
+    "description": "Identify influential voices mentioning your brand and distinguishing between promoters and detractors.",
+    "features": [
+      {
+        "name": "Influencer Impact",
+        "description": "Track mentions from key influencers to assess their reach and engagement around your brand."
+      },
+      {
+        "name": "Influencer Sentiment",
+        "description": "Understand whether influencer conversations about your brand are positive, neutral, or negative."
+      },
+      {
+        "name": "Key Topics of Discussion",
+        "description": "Discover the topics they are discussing about, positively and negatively."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "category": "Sentiment Around Your Brand",
+    "description": "Analyze shifts in brand sentiment and identify reasons behind positive/negative changes.",
+    "features": [
+      {
+        "name": "Positive vs. Negative Sentiment",
+        "description": "Measure the balance of positive, negative, and neutral mentions to gauge brand health."
+      },
+      {
+        "name": "Sentiment Drivers",
+        "description": "Identify key factors/events influencing customer sentiment towards your brand."
+      },
+      {
+        "name": "Sentiment by Channel",
+        "description": "Compare the sentiment across previous period compared to current period and monitor if there are any noteworthy spikes."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "category": "Brand Health Monitoring",
+    "description": "Proactively manage your brand image for enhanced customer trust and loyalty.",
+    "features": [
+      {
+        "name": "Brand Insights",
+        "description": "Monitor real-time sentiment and brand perception to make informed decisions"
+      },
+      {
+        "name": "Customer Experience",
+        "description": "Understand how your brand is perceived across every purchase stage"
+      },
+      {
+        "name": "Audience Analysis",
+        "description": "Segment your audience based on demographics, preferences & influencers"
+      },
+      {
+        "name": "News & Traditional Media",
+        "description": "Monitor media coverage related to your brand"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "category": "Customer Experience Monitoring",
+    "description": "Monitor and improve every touchpoint of the customer journey, ensuring exceptional experiences.",
+    "features": [
+      {
+        "name": "Customer Experience",
+        "description": "Identify and address the most common issues of customers through their journey"
+      },
+      {
+        "name": "Pre-Purchase",
+        "description": "Gain insights into customers' potential questions before purchase to optimise marketing"
+      },
+      {
+        "name": "Purchase",
+        "description": "Monitor the purchasing process to ensure a smooth purchase & highlight obstacles"
+      },
+      {
+        "name": "Post-Purchase",
+        "description": "Track post-purchase feedback to address complaints & foster long term loyalty"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "category": "Crisis Monitoring",
+    "description": "Stay ahead of critical events impacting your brand to safeguard brand reputation and maintain customer trust.",
+    "features": [
+      {
+        "name": "Sentiment Analysis",
+        "description": "Track real-time sentiment shifts around top conversations & influencers"
+      },
+      {
+        "name": "Attention Areas",
+        "description": "Pinpoint critical areas of concern to focus your crisis management efforts effectively"
+      },
+      {
+        "name": "Entity Analysis",
+        "description": "Analyze key entities involved in the crisis using AI"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "category": "Product Category Monitoring",
+    "description": "Stay connected to your audience perception of your offerings and deliver products or services that meet and exceed customer expectations.",
+    "features": [
+      {
+        "name": "Product Attributes",
+        "description": "Evaluate real-time data on key product attributes to ensure they meet customer expectations and market standards"
+      },
+      {
+        "name": "Product Categories",
+        "description": "Analyze performance across different product categories to identify strengths and opportunities for improvement"
+      },
+      {
+        "name": "Key Attention Areas",
+        "description": "Pinpoint critical areas requiring immediate attention to maintain product quality and competitiveness"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "category": "Competitor Monitoring",
+    "description": "Stay one step ahead of competitors and maintain a competitive edge in the market.",
+    "features": [
+      {
+        "name": "Share of Voice",
+        "description": "Measure your brand's share of voice against competitors to identify strengths and areas for growth."
+      },
+      {
+        "name": "Conversation Overview",
+        "description": "Analyze competitor conversations to uncover trends, topics, and customer sentiment driving industry buzz."
+      },
+      {
+        "name": "Channel Overview",
+        "description": "Compare performance across key channels to understand where your competitors are gaining traction."
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "category": "Campaign Monitoring",
+    "description": "Stay informed and be proactive by monitoring campaigns relevant to your brand.",
+    "features": [
+      {
+        "name": "Earned Campaign Conversations",
+        "description": "Track and measure the total volume of mentions your campaign receives across various platforms."
+      },
+      {
+        "name": "Top Channels",
+        "description": "Identify the most effective channels, such as Twitter, Facebook, Instagram, etc - where your campaign is generating the buzz and engagements."
+      },
+      {
+        "name": "Influential Mentions",
+        "description": "Identify mentions from key influencers and opinion leaders to assess their impact on campaign reach and effectiveness."
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "category": "Executive Monitoring",
+    "description": "Empower decision-makers with real-time data and insights, enabling them to make informed strategic decisions that drive business growth and success.",
+    "features": [
+      {
+        "name": "Social Media KPI",
+        "description": "Monitor key metrics, trends to keep tab of your executives across social media channels"
+      },
+      {
+        "name": "Sentiment",
+        "description": "Use sentiment analysis to understand public perception and manage crises proactively"
+      },
+      {
+        "name": "Web Coverage",
+        "description": "Track your executives digital presence across news sites, blogs, and forums for a comprehensive online view"
+      }
+    ]
+  }
+]

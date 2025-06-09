@@ -108,45 +108,65 @@ class QueryGeneratorAgent(LLMAgent):
             Boolean query string or None if generation fails
         """
         try:
+
+            logger.info(f"Query Examples : {chr(10).join(self.query_patterns.get('example_queries', []))}")
+
             # Create system prompt with examples
-            system_prompt = f"""You are a Boolean Query Generator for social media data retrieval.
+            system_prompt = f"""
+            You are a Boolean Query Generator specialized in retrieving raw user-generated messages from social platforms.
 
-            Your task is to create Boolean queries using Operators : AND, OR, NEAR, NOT, ONEAR operators.
+            Your task is to convert a refined intent into one precise Boolean query that returns exactly the user’s messages of interest.
 
-            Available Syntax Operators : {', '.join(self.query_patterns.get('syntax_keywords', []))}
+            Key principles:
+            1. **Keyword matching**  
+               • Use only **message-level indicator terms**—words or short phrases people actually write (e.g., love, hate, worst, amazing, defect, never buying again).  
+               • **Do not** use abstract concepts (brand, monitoring, insights).
 
-            Example Queries:
+            2. **Filter matching**  
+               • Include only **explicit** "field:<space>value" filters (e.g., "source: TWITTER").  
+               • **Do not** invent or assume any filters.
+
+            Supported operators (uppercase only):  
+            - AND  – both terms required  
+            - OR   – either term acceptable  
+            - NOT  – exclude term  
+            - NEAR – terms appear close together  
+            - ONEAR– terms within a specified distance (e.g., love ONEAR defect)
+
+            Syntax rules:
+            - Separate every token and operator with spaces.  
+            - Inline filters exactly as field:value (no spaces around “:”).  
+            - Use parentheses to group OR expressions.  
+            - Use NEAR/ONEAR for proximity-based sentiment‐object pairs.  
+            - Only include keywords and filters directly from the provided lists.  
+
+            Examples:
             {chr(10).join(self.query_patterns.get('example_queries', []))}
 
-            Syntax Rules:
-            1. Use AND for required terms that must appear together
-            2. Use OR for alternative terms (brands, products, synonyms)
-            3. Use NEAR for terms that should appear close to each other
-            4. Use NOT to exclude unwanted content
-            5. Use ONEAR for terms that should appear within a certain distance (e.g., brand1 ONEAR brand2)
-            6. For Filters, use exact matches for fields. For Filters, the Keyword should be in the format: field: value (e.g., country: US, language: en)
-            7. Choose the right operator by considering the sentiment/emotion from the refined query
-            8. Do not use quotes, brackets or backslashes in the query, i.e. do not use " or ( or ) or \ in the query
-            9. Use proper Boolean syntax with operators in uppercase : AND, OR, NOT, NEAR, ONEAR
-
-            Generate a Boolean query that captures the user's intent effectively."""
+            """
 
             # Create user prompt with context
-            user_prompt = f"""Generate a Boolean query for this request:
+            user_prompt = f"""
+            Generate a Boolean query:
 
-            Refined Query: {refined_query}
+            Refined Query:
+            {refined_query}
 
-            Keywords: {keywords}
+            Available Keywords:
+            {keywords}
 
-            Filters: {json.dumps(filters, indent=2)}
+            Available Filters:
+            {json.dumps(filters, indent=2)}
 
-            Generate a Boolean query that:
-            - Includes all the relevant keywords and filters based on the intent specified by the refined query
-            - Reflects the sentiment/intent from the refined query
-            - Uses proper Boolean syntax with operators in uppercase
-            - Does not use " or ) or ( or \ in the query
-            
-            Return only the Boolean query string, no explanation needed."""
+            Requirements:
+            - Use **only** message-level indicator keywords from the Available Keywords list.
+            - Apply **only** those filters explicitly provided.
+            - Group related keywords with parentheses and OR.
+            - Use NEAR or ONEAR for sentiment–object proximity (e.g., hate NEAR defect).
+            - Combine terms with uppercase Boolean operators (AND, OR, NOT, NEAR, ONEAR).
+            - Return **only** the final Boolean query string, no explanation.
+            """
+
 
 
             messages = [

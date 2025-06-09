@@ -57,7 +57,6 @@ class DataCollectorAgent(LLMAgent):
         # Check if the extracted data is sufficient for query generation
         # Trigger HITL if data completeness is low or missing critical info
         data_completeness_score = extracted_data.get('data_completeness_score', 1.0)
-        missing_critical_info = extracted_data.get('missing_critical_info', [])
         ready_for_query_generation = extracted_data.get('ready_for_query_generation', True)
         
         result = {
@@ -70,9 +69,9 @@ class DataCollectorAgent(LLMAgent):
         }
         
         # Set reason for HITL if clarification is needed
-        if data_completeness_score < 0.7 or missing_critical_info or not ready_for_query_generation:
+        if data_completeness_score < 0.7 or not ready_for_query_generation:
             result["reason"] = "clarification_needed"
-            self.logger.info(f"🔄 Data collection needs clarification - completeness: {data_completeness_score}, missing_info: {len(missing_critical_info)}, ready: {ready_for_query_generation}")
+            self.logger.info(f"🔄 Data collection needs clarification - completeness: {data_completeness_score}, ready: {ready_for_query_generation}")
         
         return result
     
@@ -97,39 +96,62 @@ class DataCollectorAgent(LLMAgent):
                 available_filters = json.load(f)["filters"]
             
             # Create extraction prompt
-            system_prompt = f"""You are a data extraction specialist. Analyze the Refined Query and Query List and extract:
-            1. Keywords: Important One Word terms for Boolean search queries
-            2. Filters: Applicable filters from the available filter list
-            3. Data completeness assessment: Evaluate if information is sufficient for query generation
-            4. Missing critical information: Identify what key information is still needed
+            system_prompt = f"""
+            You are a Data Extraction Specialist. Your job is to analyze user queries and refined prompts to extract:
+
+            1. **keywords**  
+               • At least **30 one- or two-word terms** that are **verbatim** matches for what end users might write in UGC (social media, reviews, forums).  
+               • Must include three categories:
+                 1. **Entities/Topics** (e.g., “brand_name”, “product_name”)  
+                 2. **Intent Signals** (e.g., “monitoring”, “insights”, “analysis”)  
+                 3. **Raw Message Indicators** – actual sentiments or experiences (e.g., “love”, “hate”, “never buying again”, “worst experience”, “amazing service”, “broken”, “refund”, “recommend”).  
+               • These are the exact words or short phrases you’d query on in a database to retrieve relevant messages.  
+               • **Do not** limit yourself to abstract business terms—focus on everyday language people use when talking about the brand.
+
+            2. **filters**  
+               • Exact key:value pairs drawn **only** from the provided `available_filters`.  
+               • Do **not** assume or add any filter (time, source, geography) unless it’s literally in the query or context.
+
+            3. **data_completeness assessment**  
+               • A score between 0.0–1.0 based on:  
+                 – 30%: coverage of the three keyword categories above  
+                 – 30%: correct use of explicit filters  
+                 – 20%: clarity of user intent via keywords  
+                 – 20%: presence of analysis goals (e.g., “compare,” “track,” “detect issues”)  
+
+               • Set `"ready_for_query_generation"` to **false** if score < 0.7 or if any category is missing.
+
+            📌 **Return only** the JSON object, nothing else:
+
+            {{
+              "keywords": ["..."],        # ≥30 terms across Entities, Intent, Raw Indicators
+              "filters": {{...}},         # only explicit filters
+              "data_completeness_score": 0.0,
+              "ready_for_query_generation": true/false
+            }}
 
             Available Filters: {json.dumps(available_filters, indent=2)}
-
-            IMPORTANT: Respond ONLY with a valid JSON object. No additional text, explanations, or formatting. 
-            The JSON must have this exact structure:
-            {{
-                "keywords": ["list", "of", "keywords"],
-                "filters": {{"filter_type": ["selected", "values"]}},
-                "data_completeness_score": 0.0-1.0,
-                "missing_critical_info": ["specific missing information needed"],
-                "ready_for_query_generation": true/false,
-            }}
-            
-            Assess data_completeness_score based on:
-            - Presence of clear brands/products (0.3 weight)
-            - Specified channels/sources (0.2 weight) 
-            - Defined timeline/period (0.2 weight)
-            - Clear analysis goals (0.2 weight)
-            - Geographic/demographic scope (0.1 weight)
-            
-            Set ready_for_query_generation to false if score < 0.7 or critical info is missing."""
-            
-            user_prompt = f"""
-            Refined Query: {refined_query}
-            Query Context (List of Actual User Queries): {query_context}
-
-            Extract the Keywords and Filters for dashboard generation.
             """
+
+
+            user_prompt = f"""
+            Refined Query:
+            {refined_query}
+            
+            Full Query Context:
+            {query_context}
+            
+            Instructions:
+            - Extract **≥30 keywords** including:
+              1. Entities/topics (brand, product)
+              2. Intent signals (monitoring, insights)
+              3. **Raw message indicators**—common sentiment words and phrases people actually post (e.g., love, hate, worst, best, amazing, terrible, broken, recommend, never buying again).  
+            - Use filters **only** if explicitly mentioned.
+            - Do not assume any unstated parameters.
+            - Compute `data_completeness_score` per system rules.
+            - Return exactly one JSON object per schema; no extra text.
+            """
+            
             
             messages = [
                 SystemMessage(content=system_prompt),
@@ -137,7 +159,7 @@ class DataCollectorAgent(LLMAgent):
             ]
             
             response = await self.llm.ainvoke(messages)
-            
+            logger.info(f"LLM response of Data Collector: {response.content}")
             # Parse LLM response
             try:
                 # Handle different response types

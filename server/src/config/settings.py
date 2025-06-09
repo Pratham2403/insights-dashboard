@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     )
     
     # Environment Configuration
-    ENVIRONMENT: str = Field(default="development", description="Application environment (development/production)")
+    ENVIRONMENT: str = Field(default=os.getenv("ENVIROMENT"), description="Application environment (development/production)")
     
     # LLM Configuration (Primary)
     GOOGLE_API_KEY: str = Field(..., description="Google API key for LLM access")
@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     # Knowledge Base Paths
     KNOWLEDGE_BASE_PATH: str = Field(default="./src/knowledge_base", description="Knowledge base directory")
     FILTERS_JSON_PATH: str = Field(default="./src/knowledge_base/filters.json", description="Filters JSON file path")
-    USE_CASE_FILE_PATH: str = Field(default="./src/knowledge_base/completeUseCase.txt", description="Use case context file")
+    USE_CASE_FILE_PATH: str = Field(default="./src/knowledge_base/completeUseCase.json", description="Complete use case JSON file path")
     QUERY_PATTERNS_PATH: str = Field(default="./src/knowledge_base/keyword_query_patterns.json", description="Query patterns file")
     
     # API Configuration
@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     SPRINKLR_CSRF_TOKEN: str = Field(default="OGgyaHVFMDM4R1RVQkZocTRmT2p2", description="CSRF token for Sprinklr API requests")
     SPRINKLR_SENTRY_TRACE: str = Field(default="4a1ef890c8e52537e4b36ecce331f79e-a2f6df7b75e9286c", description="Sentry trace ID for Sprinklr API requests")
 
+    # MongoDB Configuration for Persistence
+    MONGODB_URI: str = Field(default="mongodb://localhost:27017", description="MongoDB connection URI")
+    MONGODB_DATABASE: str = Field(default="insights_dashboard", description="MongoDB database name")
+    MONGODB_COLLECTION: str = Field(default="langgraph_checkpoints", description="MongoDB collection for checkpoints")
 
     # Logging Configuration
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")

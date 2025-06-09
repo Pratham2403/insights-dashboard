@@ -3,6 +3,7 @@ langchain                # Main LangChain framework for building LLM application
 langchain-core           # Core components and abstractions for LangChain
 langchain-community      # Community integrations for LangChain
 langgraph                # Directed graphs for LLM application flows
+langgraph-checkpoint-mongodb # MongoDB checkpointing for LangGraph
 
 # ===== LLM Providers =====
 langchain-google-genai   # Google Generative AI integration for LangChain
