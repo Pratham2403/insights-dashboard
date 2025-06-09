@@ -1,0 +1,72 @@
+# ===== Core LangChain Ecosystem =====
+langchain                # Main LangChain framework for building LLM applications
+langchain-core           # Core components and abstractions for LangChain
+langchain-community      # Community integrations for LangChain
+langgraph                # Directed graphs for LLM application flows
+
+# ===== LLM Providers =====
+langchain-google-genai   # Google Generative AI integration for LangChain
+sentence-transformers    # Sentence Transformers for semantic similarity and embeddings
+transformers             # Hugging Face Transformers for LLMs
+bertopic                # BERTopic for topic modeling with transformers
+
+# ===== Web Framework & API =====
+fastapi                  # Fast API framework for building REST APIs
+uvicorn[standard]        # ASGI server for running FastAPI applications
+python-multipart         # Multipart form data parsing for file uploads
+pydantic                 # Data validation and settings management
+pydantic-settings        # Settings management extension for Pydantic
+
+# ===== HTTP Client & Async =====
+httpx                    # Modern HTTP client with async support
+aiohttp                  # Async HTTP client/server framework
+aiofiles                 # Async file operations
+aiocache                 # Async caching
+
+# ===== Text Processing & NLP =====
+regex                    # Enhanced regular expression capabilities
+unidecode                # ASCII transliterations of Unicode text
+
+# ===== Elasticsearch Integration =====
+langchain-elasticsearch  # Elasticsearch integration for LangChain
+elasticsearch            # Official Elasticsearch client
+
+# ===== Vector Stores & Embeddings =====
+chromadb                 # Vector database for embedding storage and retrieval
+protobuf<=3.20.3         # Protocol buffers (fixed version for chromadb compatibility)
+faiss-cpu                # Facebook AI Similarity Search for vector search
+tiktoken                 # OpenAI's tokenizer for GPT models
+
+# ===== Data Processing & Analysis =====
+numpy<2.0                    # Numerical computing library
+pandas                   # Data analysis and manipulation library
+scikit-learn             # Machine learning library for classification and clustering
+
+# ===== Date & Time Handling =====
+arrow                    # Better date and time handling for Python
+
+# ===== Environment & Configuration =====
+python-dotenv            # Load environment variables from .env files
+PyYAML                   # YAML parser and emitter
+toml                     # TOML file parser
+
+# ===== Database & Caching =====
+pymongo                  # MongoDB client
+motor                    # Async MongoDB driver
+
+# ===== Security & Authentication =====
+cryptography             # Cryptographic recipes and primitives
+passlib[bcrypt]          # Password hashing library
+python-jose[cryptography] # JavaScript Object Signing and Encryption
+
+# ===== File Handling & Utilities =====
+chardet                  # Character encoding detection
+python-magic             # File type detection
+
+# ===== CLI & Development Tools =====
+click                    # Command line interface creation kit
+tqdm                     # Fast, extensible progress bar
+rich                     # Rich text and formatting in terminal
+
+# ===== Testing =====
+pytest                   # Testing framework

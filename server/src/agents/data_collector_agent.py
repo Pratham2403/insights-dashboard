@@ -113,7 +113,6 @@ class DataCollectorAgent(LLMAgent):
                 "data_completeness_score": 0.0-1.0,
                 "missing_critical_info": ["specific missing information needed"],
                 "ready_for_query_generation": true/false,
-                "clarification_questions": ["questions to ask user if info is missing"]
             }}
             
             Assess data_completeness_score based on:
