@@ -139,46 +139,47 @@ What specific aspect would you like me to focus on?`;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Dashboard Header */}
+      {/* Sprinklr Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="text-xl font-semibold text-gray-900">Brand Health Monitor</div>
-              <div className="text-sm text-gray-500">Last 30 Days: May 11, 2025 – Jun 09, 2025</div>
+            <div className="flex items-center space-x-6">
+              <div className="text-2xl font-bold text-gray-900">Brand Health Monitor</div>
+              <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                Last 30 Days: May 11, 2025 – Jun 09, 2025
+              </div>
             </div>
             
-            {/* AI Chat Logo/Button */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={toggleChat}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <Brain className="w-5 h-5" />
-                <span className="font-medium">AI Assistant</span>
-                <Sparkles className="w-4 h-4" />
-              </button>
-            </div>
+            {/* AI Assistant Button */}
+            <button
+              onClick={toggleChat}
+              className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+            >
+              <Brain className="w-5 h-5" />
+              <span>AI Assistant</span>
+              <Sparkles className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Dashboard Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      {/* Main Dashboard Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Brand Insights Section */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+        <div className="mb-12">
+          {/* Section Header */}
+          <div className="flex items-center space-x-4 mb-8">
+            <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
               <MessageCircle className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Apparel & Fashion Brand Insights</h2>
-              <p className="text-gray-600">Visit Brand Insights section to see more details</p>
+              <h2 className="text-2xl font-bold text-gray-900">Apparel & Fashion Brand Insights</h2>
+              <p className="text-gray-600 mt-1">Visit Brand Insights section to see more details</p>
             </div>
           </div>
 
-          {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Metrics Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <MetricCard
               title="Mentions"
               value={dashboardData.brandMetrics.mentions.current}
@@ -214,7 +215,7 @@ What specific aspect would you like me to focus on?`;
           </div>
 
           {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
             <LineChart
               data={dashboardData.sentimentTrend}
               title="Sentiment Trend Over Time"
@@ -225,7 +226,7 @@ What specific aspect would you like me to focus on?`;
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <DonutChart
               data={dashboardData.geographicData}
               title="Geographic Distribution"
@@ -239,68 +240,68 @@ What specific aspect would you like me to focus on?`;
 
         {/* Customer Experience Section */}
         <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
+          <div className="flex items-center space-x-4 mb-8">
+            <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
               <Brain className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Apparel & Fashion Customer Experience</h2>
-              <p className="text-gray-600">Visit Customer Experience section to see more details</p>
+              <h2 className="text-2xl font-bold text-gray-900">Apparel & Fashion Customer Experience</h2>
+              <p className="text-gray-600 mt-1">Visit Customer Experience section to see more details</p>
             </div>
           </div>
 
-          {/* Customer Experience Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Pre-Purchase Stage</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Product Discovery</span>
-                  <span className="text-sm font-medium text-green-600">+15%</span>
+          {/* Customer Experience Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow duration-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Pre-Purchase Stage</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Product Discovery</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+15%</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Price Comparison</span>
-                  <span className="text-sm font-medium text-yellow-600">-5%</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Price Comparison</span>
+                  <span className="text-yellow-600 font-bold text-sm bg-yellow-50 px-3 py-1 rounded-full">-5%</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Reviews Reading</span>
-                  <span className="text-sm font-medium text-green-600">+22%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Purchase Stage</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Checkout Process</span>
-                  <span className="text-sm font-medium text-green-600">+8%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Payment Options</span>
-                  <span className="text-sm font-medium text-green-600">+12%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Order Confirmation</span>
-                  <span className="text-sm font-medium text-green-600">+18%</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Reviews Reading</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+22%</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Post-Purchase Stage</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Delivery Experience</span>
-                  <span className="text-sm font-medium text-green-600">+25%</span>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow duration-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Purchase Stage</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Checkout Process</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+8%</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Product Quality</span>
-                  <span className="text-sm font-medium text-green-600">+30%</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Payment Options</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+12%</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Customer Support</span>
-                  <span className="text-sm font-medium text-yellow-600">+5%</span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Order Confirmation</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+18%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow duration-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Post-Purchase Stage</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Delivery Experience</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+25%</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Product Quality</span>
+                  <span className="text-green-600 font-bold text-sm bg-green-50 px-3 py-1 rounded-full">+30%</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700 font-medium">Customer Support</span>
+                  <span className="text-yellow-600 font-bold text-sm bg-yellow-50 px-3 py-1 rounded-full">+5%</span>
                 </div>
               </div>
             </div>
@@ -311,17 +312,17 @@ What specific aspect would you like me to focus on?`;
       {/* Floating Chat Interface */}
       {isChatOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className={`bg-white rounded-xl shadow-2xl border border-gray-200 transition-all duration-300 ${
-            isMinimized ? 'w-96 h-16' : 'w-full max-w-6xl h-[80vh]'
+          <div className={`bg-white rounded-2xl shadow-2xl border border-gray-200 transition-all duration-300 ${
+            isMinimized ? 'w-96 h-16' : 'w-full max-w-6xl h-[85vh]'
           }`}>
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50 rounded-t-xl">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-2xl">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
                   <Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">AI Assistant</h3>
+                  <h3 className="font-bold text-gray-900 text-lg">AI Assistant</h3>
                   <p className="text-sm text-gray-600">Integrated reasoning & analysis</p>
                 </div>
               </div>
@@ -330,13 +331,13 @@ What specific aspect would you like me to focus on?`;
                   onClick={toggleMinimize}
                   className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <Minimize2 className="w-4 h-4" />
+                  <Minimize2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={toggleChat}
                   className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -359,13 +360,13 @@ What specific aspect would you like me to focus on?`;
                         onComplete={handleReasoningComplete}
                       />
                     ) : (
-                      <div className="p-6 h-full flex items-center justify-center bg-gray-50">
+                      <div className="p-8 h-full flex items-center justify-center bg-gray-50">
                         <div className="text-center">
-                          <Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                          <Brain className="w-20 h-20 text-gray-400 mx-auto mb-6" />
+                          <h3 className="text-xl font-bold text-gray-700 mb-3">
                             Reasoning Panel
                           </h3>
-                          <p className="text-gray-500 max-w-xs">
+                          <p className="text-gray-500 max-w-sm">
                             Ask me "How to implement React error handling?" to see my step-by-step reasoning process!
                           </p>
                         </div>
