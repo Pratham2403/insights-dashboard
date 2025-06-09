@@ -107,57 +107,42 @@ class QueryRefinerAgent(LLMAgent):
     async def _refine_query_with_llm(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Refine query using LLM pattern."""
         
-        system_prompt = """You are an expert query refinement specialist for dashboard creation and data extraction. 
 
-Your task is to analyze the complete conversation context and create a refined, actionable query that makes sense for Dashboard Creation and Data Extraction.
+        system_prompt = """You are an expert query‐refinement specialist for dashboard creation and data extraction. 
+        Your goal is to transform raw user conversations into a single, precise query that a dashboard‐generation engine can execute.
+        
+        Tasks:  
+        1. Synthesize the user’s full conversation to identify their ultimate dashboard goals.  
+        2. Produce one well‐structured “refined_query” that encapsulates all their analytical needs.  
+        3. List any missing pieces of information under “data_requirements” so the dashboard can be built correctly.  
+        4. Keep your tone neutral, factual, and concise."""
 
-Focus on:
-1. Understanding the complete user intent from all queries in the conversation
-2. Analyzing the context of previous queries and the latest refined query (if any)
-3. Creating a comprehensive refined query that captures the essence of the entire conversation
-4. Providing specific, actionable data_requirements for dashboard generation
 
-Always respond with a JSON object containing:
-- refined_query: A comprehensive, well-structured query for dashboard creation
-- data_requirements: Specific requirements for data extraction and visualization. These will Serve as Questions for the user to clarify. Data Requirements Can also be Empty If All Information is Seemed to be Collected.
 
-Be precise and actionable in your response."""
+        user_prompt = f"""Analyze the following conversation and generate a JSON response:
 
-        user_prompt = f"""
-Analyze the following conversation context and create a refined query for dashboard creation:
-
-Conversation Context:
-- Is Continuation: {context.get('is_continuation', False)}
-- Total Queries in Conversation: {context.get('query_count', 1)}
-- Previous Refined Query: {context.get('previous_refined_query', 'None - This is the first refinement')}
-
-Complete Query List (Conversation History):
-{json.dumps(context.get('query', []), indent=2)}
-
-Latest Query to Process: {query}
-
-Available Context from Knowledge Base:
-- Relevant Use Cases: {context.get('relevant_usecases', [])}
-
-Task: 
-1. Analyze the complete conversation context to understand evolving user intent
-2. Create a comprehensive refined query that captures the essence of the entire conversation
-3. Consider how the latest query builds upon or modifies previous queries
-4. Provide specific data_requirements for dashboard generation. If no Data needed return an empty data_requirements list.
-
-For continuing conversations:
-- Build upon the previous refined query
-- Incorporate new information from the latest query
-- Maintain continuity while addressing new requirements
-
-Respond with a JSON object containing:
-{{
-  "refined_query": "Your comprehensive refined query that considers the full conversation context",
-  "data_requirements": ["requirement1", "requirement2", "requirement3"],
-  "conversation_summary": "Brief summary of how this refinement builds on the conversation"
-}}
+        Conversation Context:
+        - is_continuation: {context.get('is_continuation', False)}
+        - total_queries: {context.get('query_count', 1)}
+        - previous_refined_query: {context.get('previous_refined_query', 'None - This is the first refinement')}
+        - queries: {json.dumps(context.get('query', []), indent=2)}
+        - relevant_usecases: {context.get('relevant_usecases', [])}
+        - latest_query: {query}
+        
+        Respond with a JSON object:
+        {{
+          "refined_query":   "<Comprehensive, single query for dashboard creation>",
+          "data_requirements": [
+             "<Missing field or clarification #1>",
+             "<Missing field or clarification #2>",
+             ...
+          ],
+          "conversation_summary": "<2–3-sentence summary of how this builds on prior context>"
+        }}
         """
         
+        
+
         try:
             messages = [
                 SystemMessage(content=system_prompt),
@@ -190,25 +175,6 @@ Respond with a JSON object containing:
             return {"error": str(e)}
 
 
-@tool
-async def refine_user_query(query: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """
-     tool for query refinement.
-    
-    Args:
-        query: User's original query
-        context: Optional RAG context
-        
-    Returns:
-        Refined query data
-    """
-    agent = QueryRefinerAgent()
-    state = {"user_query": query}
-    if context:
-        state["rag_context"] = context
-    
-    result = await agent(state)
-    return result.get("query_refinement", {})
 
 
 # Factory for LangGraph

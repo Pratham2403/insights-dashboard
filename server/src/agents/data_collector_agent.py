@@ -98,7 +98,7 @@ class DataCollectorAgent(LLMAgent):
             
             # Create extraction prompt
             system_prompt = f"""You are a data extraction specialist. Analyze the Refined Query and Query List and extract:
-            1. Keywords: Important terms for Boolean search queries
+            1. Keywords: Important One Word terms for Boolean search queries
             2. Filters: Applicable filters from the available filter list
             3. Data completeness assessment: Evaluate if information is sufficient for query generation
             4. Missing critical information: Identify what key information is still needed

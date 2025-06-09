@@ -42,7 +42,7 @@ class QueryGeneratorAgent(LLMAgent):
                 return json.load(f)
         except Exception as e:
             self.logger.warning(f"Could not load query patterns: {e}")
-            return {"syntax_keywords": ["AND", "OR", "NOT", "NEAR"], "example_queries": []}
+            return {"syntax_keywords": ["AND", "OR", "NOT", "NEAR", "ONEAR"], "example_queries": []}
     
     async def __call__(self, state: DashboardState, description: str = "") -> Dict[str, Any]:
         """
@@ -118,15 +118,16 @@ class QueryGeneratorAgent(LLMAgent):
             Example Queries:
             {chr(10).join(self.query_patterns.get('example_queries', []))}
 
-            Rules:
+            Syntax Rules:
             1. Use AND for required terms that must appear together
             2. Use OR for alternative terms (brands, products, synonyms)
             3. Use NEAR for terms that should appear close to each other
             4. Use NOT to exclude unwanted content
-            6. For Filters, use exact matches for fields. For Filters, the Keyword should be in the format: "field: value" (e.g., "country: US", "language: en)
+            5. Use ONEAR for terms that should appear within a certain distance (e.g., brand1 ONEAR brand2)
+            6. For Filters, use exact matches for fields. For Filters, the Keyword should be in the format: field: value (e.g., country: US, language: en)
             7. Choose the right operator by considering the sentiment/emotion from the refined query
-            8. Do not use quotes, Brackets or backslashes in the query.
-            9. Use proper Boolean syntax with operators in uppercase (AND, OR, NOT, NEAR, ONEAR).
+            8. Do not use quotes, brackets or backslashes in the query, i.e. do not use " or ( or ) or \ in the query
+            9. Use proper Boolean syntax with operators in uppercase : AND, OR, NOT, NEAR, ONEAR
 
             Generate a Boolean query that captures the user's intent effectively."""
 
@@ -139,14 +140,14 @@ class QueryGeneratorAgent(LLMAgent):
 
             Filters: {json.dumps(filters, indent=2)}
 
-
             Generate a Boolean query that:
-            - Includes the keywords with proper operators 
-            - Applies the specified filters in the format.
+            - Includes all the relevant keywords and filters based on the intent specified by the refined query
             - Reflects the sentiment/intent from the refined query
-            - Uses proper Boolean syntax
-
+            - Uses proper Boolean syntax with operators in uppercase
+            - Does not use " or ) or ( or \ in the query
+            
             Return only the Boolean query string, no explanation needed."""
+
 
             messages = [
                 SystemMessage(content=system_prompt),
