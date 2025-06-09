@@ -34,8 +34,8 @@ class DataAnalyzerAgent:
         try:
             # Initialize embedding model for topic modeling
             self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-            # Initialize BERTopic with 10 topics
-            self.topic_model = BERTopic(embedding_model=self.embedding_model, nr_topics=10)
+            # Initialize BERTopic with nr_topics
+            self.topic_model = BERTopic(embedding_model=self.embedding_model, nr_topics=5)
             # Initialize summarization pipeline
             self.summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
             logger.info("BERTopic models initialized successfully")

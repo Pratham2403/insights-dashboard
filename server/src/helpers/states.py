@@ -45,7 +45,6 @@ class DashboardState(TypedDict):
     workflow_status: Optional[str]
     workflow_started: Optional[str]
 
-    # Metadata for tracking by Grok - matching helper_hitl_demo_code.py
     hitl_step: Optional[int]  ### IMPORTANT - tracks HITL step progression
     user_input: Optional[str]  ### IMPORTANT - current user input
     next_node: Optional[str]   ### IMPORTANT - next node to route to

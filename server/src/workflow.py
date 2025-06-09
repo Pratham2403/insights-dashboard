@@ -521,7 +521,7 @@ class SprinklrWorkflow:
             logger.info(f"🛠️ Executing tool with Boolean query: {boolean_query[:100]}...")
             
             # Execute the get_sprinklr_data tool using the invoke method (modern LangChain pattern)
-            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 100})
+            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 50})
             
             logger.info(f"🛠️ Retrieved {len(hits)} hits from Sprinklr API")
             
