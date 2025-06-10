@@ -69,8 +69,8 @@ class DataAnalyzerAgent:
             # Initialize RAG system for theme context retrieval
             self.rag_system = get_filters_rag()
             
-            # Scoring parameters for theme evaluation
-            self.min_confidence_score = 0.45  # Lowered from 0.6 to be more realistic
+            # Scoring parameters for theme evaluation (very lenient)
+            self.min_confidence_score = 0.3  # Extremely low threshold for maximum theme discovery
             self.max_themes_output = 10
             self.min_themes_output = 5
             
@@ -137,9 +137,7 @@ class DataAnalyzerAgent:
                 
                 rag_themes_context.append(theme_info)
             
-            # Create comprehensive prompt for theme generation with RAG context
             system_prompt = """You are an expert data analyst specializing in theme identification for business intelligence.
-
             Your task is to generate 10-15 potential themes based on the user's query and context, leveraging the provided theme knowledge base.
 
             CONTEXT FROM THEMES KNOWLEDGE BASE:
@@ -151,12 +149,14 @@ class DataAnalyzerAgent:
             - Applied Filters: {filters}
 
             INSTRUCTIONS:
-            1. Use the knowledge base themes as inspiration and context
-            2. Generate themes that are relevant to the user's specific query
-            3. You can select existing themes, adapt them, or create new ones based on sub-themes
-            4. Focus on themes that would be discoverable in document clustering
-            5. Each theme should have a clear, descriptive name and detailed description
-            6. Ensure themes are distinct and cover different aspects of the query
+            1. Use the knowledge base themes as inspiration and context.
+            2. Generate themes that are relevant to the user's specific query.
+            3. You can select existing themes, adapt them, or create new ones based on sub-themes.
+            4. Focus on themes that would be discoverable in document clustering.
+            5. Do NOT use any entity names (e.g., Apple, HDFC, SBI, etc.) or source names in theme names or descriptions.
+            6. Each theme should have a **clear, descriptive name** (no brand names), and a **detailed description** explaining what textual patterns, topics, or issues it represents.
+            7. Ensure themes are distinct and cover different facets of the user’s query context.
+            8. Write descriptions such that a Boolean query can be crafted using it — with no dependency on specific entity filters.
 
             Return ONLY a JSON array with this exact structure:
             [
@@ -165,6 +165,8 @@ class DataAnalyzerAgent:
             ]
 
             Do not include any other text or explanations."""
+
+
 
             human_prompt = system_prompt.format(
                 rag_context='\n\n'.join(rag_themes_context),
@@ -367,13 +369,20 @@ class DataAnalyzerAgent:
                 theme_similarities = similarity_matrix[:, theme_idx]
                 
                 # Dynamic threshold based on theme's similarity distribution
-                # Use mean + 0.5 * std to get documents that are meaningfully similar
+                # Very lenient threshold approach for maximum theme discovery
+                # Use low percentile thresholds to capture more diverse document-theme associations
+                percentile_75 = np.percentile(theme_similarities, 75)
+                percentile_50 = np.percentile(theme_similarities, 50)  # Median
+                percentile_25 = np.percentile(theme_similarities, 25)
                 mean_sim = np.mean(theme_similarities)
-                std_sim = np.std(theme_similarities)
                 
-                # Adaptive threshold: higher quality threshold for better themes
-                base_threshold = max(0.3, mean_sim + 0.3 * std_sim)  # Minimum 0.3 similarity
-                quality_threshold = min(0.8, base_threshold + 0.1 * max_sim)  # Scale with max similarity
+                # Extremely lenient threshold - prioritize finding themes over quality
+                base_threshold = max(0.2, min(percentile_25, mean_sim * 0.5))  # Very low minimum
+                quality_threshold = min(0.6, max(base_threshold, percentile_50))  # Use median as cap
+                
+                logger.debug(f"Theme '{theme['name']}': mean_sim={mean_sim:.3f}, "
+                           f"p25={percentile_25:.3f}, p50={percentile_50:.3f}, p75={percentile_75:.3f}, "
+                           f"threshold={quality_threshold:.3f}")
                 
                 # Find unassigned documents above threshold
                 candidate_docs = [
@@ -385,9 +394,9 @@ class DataAnalyzerAgent:
                     # Sort by similarity and take the best matches
                     candidate_docs.sort(key=lambda x: theme_similarities[x], reverse=True)
                     
-                    # Dynamic document count based on theme quality
-                    min_docs = max(2, int(len(docs) * 0.02))  # At least 2% of documents or 2 docs
-                    max_docs = min(int(len(docs) * 0.4), 50)  # At most 40% of documents or 50 docs
+                    # Very permissive document count requirements
+                    min_docs = 1  # Accept themes with even 1 document
+                    max_docs = min(int(len(docs) * 0.8), 200)  # Allow up to 80% of documents or 200 docs
                     
                     # Take top documents for this theme
                     selected_docs = candidate_docs[:max_docs]
@@ -409,8 +418,33 @@ class DataAnalyzerAgent:
                         })
                         
                         logger.debug(f"Theme '{theme['name']}' assigned {len(selected_docs)} docs with avg similarity {avg_similarity:.3f}")
+                    else:
+                        logger.debug(f"Theme '{theme['name']}' had {len(candidate_docs)} candidates but needed min {min_docs} docs")
+                else:
+                    # Log why no candidates were found
+                    above_threshold_count = sum(1 for sim in theme_similarities if sim >= quality_threshold)
+                    already_assigned_count = sum(1 for j, sim in enumerate(theme_similarities) 
+                                               if sim >= quality_threshold and j in assigned_docs)
+                    logger.debug(f"Theme '{theme['name']}' had {above_threshold_count} docs above threshold "
+                               f"({already_assigned_count} already assigned), available: {above_threshold_count - already_assigned_count}")
             
             logger.info(f"Refined clustering complete: {len(refined_themes)} themes with variable document counts")
+            
+            # Additional debugging if no themes were generated
+            if not refined_themes:
+                logger.warning("No themes were generated during refinement!")
+                logger.info(f"Total potential themes checked: {len(potential_themes)}")
+                logger.info(f"Total documents available: {len(docs)}")
+                logger.info(f"Documents already assigned: {len(assigned_docs)}")
+                
+                # Log a sample of similarity scores for debugging
+                if len(potential_themes) > 0:
+                    sample_theme = potential_themes[0]
+                    sample_sims = similarity_matrix[:, 0]
+                    logger.info(f"Sample theme '{sample_theme['name']}' similarity stats: "
+                               f"min={np.min(sample_sims):.3f}, max={np.max(sample_sims):.3f}, "
+                               f"mean={np.mean(sample_sims):.3f}, median={np.median(sample_sims):.3f}")
+            
             return refined_themes
             
         except Exception as e:
@@ -580,10 +614,15 @@ class DataAnalyzerAgent:
             if len(high_confidence_themes) >= self.min_themes_output:
                 selected_themes = high_confidence_themes[:self.max_themes_output]
             else:
-                # If not enough high-confidence themes, take top themes but ensure minimum quality
-                min_acceptable_confidence = 0.3  # Absolute minimum
+                # Very lenient fallback - accept any theme with minimal confidence
+                min_acceptable_confidence = 0.1  # Extremely low absolute minimum
                 acceptable_themes = [t for t in themes if t["confidence_score"] >= min_acceptable_confidence]
                 selected_themes = acceptable_themes[:max(self.min_themes_output, len(acceptable_themes))]
+                
+                # If still no themes, take all available themes
+                if not selected_themes and themes:
+                    selected_themes = themes[:self.max_themes_output]
+                    logger.warning(f"Using all {len(selected_themes)} themes due to very low confidence scores")
             
             if selected_themes:
                 logger.info(f"Selected {len(selected_themes)} themes with confidence scores ranging from "
@@ -697,7 +736,19 @@ class DataAnalyzerAgent:
             )
             
             if not refined_themes:
-                raise ValueError("No themes could be generated from the analysis")
+                logger.info("No themes could be clustered from the documents - this is a valid result")
+                return {
+                    "themes": [],
+                    "analysis_summary": {
+                        "total_documents": len(documents),
+                        "initial_topics": len(set(initial_topics)),
+                        "potential_themes_generated": len(potential_themes),
+                        "final_themes_selected": 0,
+                        "avg_confidence_score": 0.0,
+                        "analysis_method": "hybrid_bertopic_llm_with_rag",
+                        "no_themes_reason": "Documents did not cluster into meaningful themes"
+                    }
+                }
             
             # Step 5: Score and select top themes
             selected_themes = self._score_and_select_themes(refined_themes, documents, state)

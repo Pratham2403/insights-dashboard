@@ -26,8 +26,6 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore"
     )
-    
-    # Environment Configuration
     ENVIRONMENT: str = Field(default=os.getenv("ENVIROMENT"), description="Application environment (development/production)")
     
     # LLM Configuration (Primary)
@@ -59,7 +57,7 @@ class Settings(BaseSettings):
     SPRINKLR_SENTRY_TRACE: str = Field(default="12f7b8d965654154ae1a5b6e72dbcd92-84d7f94084e7713e", description="Sentry trace ID for Sprinklr API requests")
 
     # MongoDB Configuration for Persistence
-    MONGODB_URI: str = Field(default="mongodb://localhost:27017", description="MongoDB connection URI")
+    MONGODB_URI: str = Field(default="mongodb://localhost:27017/insights_dashboard", description="MongoDB connection URI")
     MONGODB_DATABASE: str = Field(default="insights_dashboard", description="MongoDB database name")
     MONGODB_COLLECTION: str = Field(default="langgraph_checkpoints", description="MongoDB collection for checkpoints")
 

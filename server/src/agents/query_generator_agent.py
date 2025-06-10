@@ -157,7 +157,7 @@ class QueryGeneratorAgent(LLMAgent):
             {json.dumps(filters, indent=2)}
             
             Requirements:
-            - Use **only** message-level indicator keywords from the Available Keywords list.
+            - Use **only** the required message-level indicator keywords from the Available Keywords list that will be present in the messages.
             - Apply **only** those filters explicitly provided, formatted as field:<space>value (e.g., source: TWITTER).
             - Group related keywords with parentheses and OR.
             - Use NEAR or ONEAR for sentiment–object proximity (e.g., hate NEAR defect).

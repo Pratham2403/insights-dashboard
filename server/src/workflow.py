@@ -38,7 +38,8 @@ from src.agents.data_collector_agent import DataCollectorAgent
 from src.agents.data_analyzer_agent2 import DataAnalyzerAgent
 from src.agents.query_generator_agent import  QueryGeneratorAgent
 from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action
-# from src.persistence.mongodb_checkpointer import MongoDBPersistenceManager
+from src.persistence.mongodb_checkpointer import get_async_mongodb_checkpointer
+import asyncio
 
 
 
@@ -62,10 +63,9 @@ class SprinklrWorkflow:
     - Support for multiple conversation threads
     """
     
-    def __init__(self):
-        """Initialize the workflow with all components"""
+    def __init__(self, checkpointer=None):
+        """Initialize the workflow with all components. If checkpointer is None, must call async_init."""
         logger.info("Initializing Modern Sprinklr Workflow...")
-        
         # Setup LLM
         self.llm_setup = LLMSetup()
         self.llm = self.llm_setup.get_agent_llm("workflow")
@@ -80,17 +80,19 @@ class SprinklrWorkflow:
         self.tools = [get_sprinklr_data]
         self.tool_node = ToolNode(self.tools)
         
-        # Memory management
-        self.memory = MemorySaver()
-        
         # Initialize current hits storage (separate from state to prevent memory explosion)
         self._current_hits = []
-        
-        # Build workflow
-        self.workflow = self._build_workflow()
-        
+        self.checkpointer = checkpointer
+        self.workflow = None
+        if checkpointer is not None:
+            self.workflow = self._build_workflow()
         logger.info("Modern Sprinklr Workflow initialized successfully")
-    
+
+    async def async_init(self):
+        """Async initializer to set up MongoDB checkpointer and build workflow."""
+        self.checkpointer = await get_async_mongodb_checkpointer()
+        self.workflow = self._build_workflow()
+
     def _build_workflow(self) -> StateGraph:
         """Build the complete LangGraph workflow following the architecture"""
         
@@ -124,12 +126,12 @@ class SprinklrWorkflow:
         workflow.add_edge("tools", "data_analyzer")
         workflow.add_edge("data_analyzer", END)
         
-        # Compile with memory - using helper demo pattern
+        # Use MongoDB checkpointer for persistence
         compiled_workflow = workflow.compile(
-            checkpointer=self.memory
+            checkpointer=self.checkpointer
         )
         
-        logger.info("📋 Workflow compiled with memory checkpointer")
+        logger.info("📋 Workflow compiled with MongoDB checkpointer")
         logger.info(f"📊 Workflow nodes: {list(workflow.nodes.keys()) if hasattr(workflow, 'nodes') else 'Unknown'}")
         
         return compiled_workflow
@@ -523,7 +525,7 @@ class SprinklrWorkflow:
             logger.info(f"🛠️ Executing tool with Boolean query: {boolean_query[:100]}...")
             
             # Execute the get_sprinklr_data tool using the invoke method (modern LangChain pattern)
-            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 500})
+            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 1000})
             
             logger.info(f"🛠️ Retrieved {len(hits)} hits from Sprinklr API")
             

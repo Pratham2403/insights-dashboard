@@ -38,6 +38,7 @@ from src.workflow import (
     get_workflow_history,
     SprinklrWorkflow
 )
+from src.persistence.mongodb_checkpointer import get_async_mongodb_checkpointer
 
 # Configure logging
 logging.basicConfig(
@@ -93,12 +94,20 @@ class StatusResponse(BaseModel):
 # Global workflow instance
 workflow_instance = None
 
+@app.on_event("startup")
+async def startup_event():
+    global workflow_instance
+    if workflow_instance is None:
+        logger.info("Initializing persistent workflow instance with MongoDB checkpointer...")
+        workflow_instance = SprinklrWorkflow()
+        await workflow_instance.async_init()
+        logger.info("Workflow instance initialized with MongoDB persistence.")
+
 def get_workflow():
     """Get or initialize the workflow instance"""
     global workflow_instance
     if workflow_instance is None:
-        logger.info("Initializing workflow instance for the first time.")
-        workflow_instance = SprinklrWorkflow()
+        raise RuntimeError("Workflow instance not initialized. Startup event should handle this.")
     return workflow_instance
 
 @app.get("/", response_model=ApiResponse)
