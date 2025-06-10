@@ -1,0 +1,67 @@
+{
+  "id": "customer-experience",
+  "name": "Customer Experience Analytics",
+  "type": "customer-analytics",
+  "brandMetrics": {
+    "mentions": {
+      "current": 234,
+      "previous": 198,
+      "change": "+18%",
+      "trend": "up"
+    },
+    "sentiment": {
+      "positive": 78,
+      "negative": 15,
+      "neutral": 7
+    },
+    "reach": {
+      "current": "1.8M",
+      "previous": "1.5M",
+      "change": "+20%",
+      "trend": "up"
+    },
+    "engagement": {
+      "current": "8.9K",
+      "previous": "7.2K",
+      "change": "+24%",
+      "trend": "up"
+    }
+  },
+  "sentimentTrend": [
+    { "date": "May 11", "positive": 2.1, "negative": 0.4 },
+    { "date": "May 15", "positive": 2.3, "negative": 0.3 },
+    { "date": "May 20", "positive": 2.5, "negative": 0.2 },
+    { "date": "May 25", "positive": 2.8, "negative": 0.3 },
+    { "date": "May 30", "positive": 3.1, "negative": 0.2 },
+    { "date": "Jun 05", "positive": 3.3, "negative": 0.1 },
+    { "date": "Jun 09", "positive": 3.0, "negative": 0.2 }
+  ],
+  "topicAnalysis": [
+    { "topic": "Support Response", "mentions": 89, "sentiment": 0.9 },
+    { "topic": "User Experience", "mentions": 76, "sentiment": 0.8 },
+    { "topic": "Feature Requests", "mentions": 54, "sentiment": 0.6 },
+    { "topic": "Bug Reports", "mentions": 32, "sentiment": -0.1 },
+    { "topic": "Documentation", "mentions": 28, "sentiment": 0.7 }
+  ],
+  "competitorComparison": [
+    { "brand": "Our Platform", "mentions": 234, "sentiment": 0.8, "share": 42 },
+    { "brand": "Competitor X", "mentions": 189, "sentiment": 0.6, "share": 34 },
+    { "brand": "Competitor Y", "mentions": 134, "sentiment": 0.7, "share": 24 }
+  ],
+  "geographicData": [
+    { "region": "North America", "mentions": 89, "sentiment": 0.9 },
+    { "region": "Europe", "mentions": 67, "sentiment": 0.8 },
+    { "region": "Asia Pacific", "mentions": 45, "sentiment": 0.7 },
+    { "region": "Latin America", "mentions": 23, "sentiment": 0.6 },
+    { "region": "Africa", "mentions": 10, "sentiment": 0.8 }
+  ],
+  "timeSeriesData": [
+    { "date": "May 11", "mentions": 45, "reach": 280000, "engagement": 1800 },
+    { "date": "May 15", "mentions": 52, "reach": 320000, "engagement": 2200 },
+    { "date": "May 20", "mentions": 61, "reach": 380000, "engagement": 2800 },
+    { "date": "May 25", "mentions": 78, "reach": 450000, "engagement": 3400 },
+    { "date": "May 30", "mentions": 89, "reach": 520000, "engagement": 4100 },
+    { "date": "Jun 05", "mentions": 156, "reach": 890000, "engagement": 6700 },
+    { "date": "Jun 09", "mentions": 234, "reach": 1800000, "engagement": 8900 }
+  ]
+}

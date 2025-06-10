@@ -1,0 +1,68 @@
+{
+  "id": "market-intelligence",
+  "name": "Market Intelligence",
+  "type": "market-analysis",
+  "brandMetrics": {
+    "mentions": {
+      "current": 156,
+      "previous": 134,
+      "change": "+16%",
+      "trend": "up"
+    },
+    "sentiment": {
+      "positive": 72,
+      "negative": 18,
+      "neutral": 10
+    },
+    "reach": {
+      "current": "3.2M",
+      "previous": "2.8M",
+      "change": "+14%",
+      "trend": "up"
+    },
+    "engagement": {
+      "current": "15.7K",
+      "previous": "13.2K",
+      "change": "+19%",
+      "trend": "up"
+    }
+  },
+  "sentimentTrend": [
+    { "date": "May 11", "positive": 1.8, "negative": 0.6 },
+    { "date": "May 15", "positive": 2.0, "negative": 0.5 },
+    { "date": "May 20", "positive": 2.2, "negative": 0.4 },
+    { "date": "May 25", "positive": 2.5, "negative": 0.3 },
+    { "date": "May 30", "positive": 2.8, "negative": 0.4 },
+    { "date": "Jun 05", "positive": 3.1, "negative": 0.2 },
+    { "date": "Jun 09", "positive": 2.9, "negative": 0.3 }
+  ],
+  "topicAnalysis": [
+    { "topic": "Market Trends", "mentions": 98, "sentiment": 0.8 },
+    { "topic": "Innovation", "mentions": 76, "sentiment": 0.9 },
+    { "topic": "Pricing Strategy", "mentions": 54, "sentiment": 0.3 },
+    { "topic": "Market Share", "mentions": 43, "sentiment": 0.6 },
+    { "topic": "Industry News", "mentions": 32, "sentiment": 0.7 }
+  ],
+  "competitorComparison": [
+    { "brand": "Market Leader", "mentions": 298, "sentiment": 0.7, "share": 45 },
+    { "brand": "Our Company", "mentions": 156, "sentiment": 0.8, "share": 28 },
+    { "brand": "Challenger A", "mentions": 134, "sentiment": 0.6, "share": 18 },
+    { "brand": "Challenger B", "mentions": 89, "sentiment": 0.5, "share": 9 }
+  ],
+  "geographicData": [
+    { "region": "North America", "mentions": 67, "sentiment": 0.8 },
+    { "region": "Europe", "mentions": 45, "sentiment": 0.7 },
+    { "region": "Asia Pacific", "mentions": 32, "sentiment": 0.9 },
+    { "region": "Latin America", "mentions": 8, "sentiment": 0.6 },
+    { "region": "Middle East", "mentions": 4, "sentiment": 0.5 }
+  ],
+  "timeSeriesData": [
+    { "date": "May 11", "mentions": 23, "reach": 450000, "engagement": 2100 },
+    { "date": "May 15", "mentions": 28, "reach": 520000, "engagement": 2800 },
+    { "date": "May 20", "mentions": 34, "reach": 680000, "engagement": 3600 },
+    { "date": "May 25", "mentions": 45, "reach": 890000, "engagement": 4900 },
+    { "date": "May 30", "mentions": 67, "reach": 1200000, "engagement": 7200 },
+    { "date": "Jun 05", "mentions": 123, "reach": 2100000, "engagement": 12400 },
+    { "date": "Jun 09", "mentions": 156, "reach": 3200000, "engagement": 15700 }
+  ]
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "brand-health-monitor",
+    "name": "Brand Health Monitor",
+    "type": "brand-monitoring",
+    "description": "Monitor brand mentions, sentiment, and engagement across social media",
+    "icon": "MessageCircle",
+    "color": "purple",
+    "dataFile": "brandHealthData.json",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "lastAccessed": "2025-01-15T10:30:00.000Z"
+  },
+  {
+    "id": "customer-experience",
+    "name": "Customer Experience Analytics",
+    "type": "customer-analytics",
+    "description": "Track customer journey, satisfaction, and support metrics",
+    "icon": "Users",
+    "color": "blue",
+    "dataFile": "customerExperienceData.json",
+    "createdAt": "2025-01-02T00:00:00.000Z",
+    "lastAccessed": "2025-01-14T15:45:00.000Z"
+  },
+  {
+    "id": "market-intelligence",
+    "name": "Market Intelligence",
+    "type": "market-analysis",
+    "description": "Competitive analysis, market trends, and industry insights",
+    "icon": "TrendingUp",
+    "color": "green",
+    "dataFile": "marketIntelligenceData.json",
+    "createdAt": "2025-01-03T00:00:00.000Z",
+    "lastAccessed": "2025-01-13T09:15:00.000Z"
+  }
+]

@@ -1,0 +1,125 @@
+[
+  {
+    "id": "react-error-handling",
+    "name": "React Error Handling Analysis",
+    "description": "Comprehensive analysis for React error handling implementation",
+    "steps": [
+      {
+        "id": 1,
+        "heading": "Understanding request",
+        "content": "User asks about React error handling - requires comprehensive coverage of error boundaries, try-catch patterns, and best practices",
+        "duration": 2000
+      },
+      {
+        "id": 2,
+        "heading": "Analyzing requirements",
+        "content": "Breaking down: error boundaries for component errors, async error handling, global error handling, and user experience considerations",
+        "duration": 2500
+      },
+      {
+        "id": 3,
+        "heading": "Research & fact-checking",
+        "content": "Reviewing React documentation, community best practices, and modern error handling patterns in React 18+",
+        "duration": 3000
+      },
+      {
+        "id": 4,
+        "heading": "Synthesizing information",
+        "content": "Combining research with practical implementation strategies, considering both development and production scenarios",
+        "duration": 2000
+      },
+      {
+        "id": 5,
+        "heading": "Generating response",
+        "content": "Creating comprehensive response with code examples, error boundary implementation, and async error handling patterns",
+        "duration": 2500
+      },
+      {
+        "id": 6,
+        "heading": "Quality verification",
+        "content": "Reviewing response for accuracy, completeness, and practical applicability. Ensuring code examples are production-ready",
+        "duration": 1500
+      }
+    ]
+  },
+  {
+    "id": "dashboard-analysis",
+    "name": "Dashboard Data Analysis",
+    "description": "Analysis process for dashboard metrics and insights",
+    "steps": [
+      {
+        "id": 1,
+        "heading": "Data ingestion",
+        "content": "Processing dashboard metrics, sentiment data, and performance indicators from multiple sources",
+        "duration": 1500
+      },
+      {
+        "id": 2,
+        "heading": "Pattern recognition",
+        "content": "Identifying trends, anomalies, and correlations in the data across different time periods and segments",
+        "duration": 2000
+      },
+      {
+        "id": 3,
+        "heading": "Contextual analysis",
+        "content": "Comparing current metrics with historical data, industry benchmarks, and competitor performance",
+        "duration": 2500
+      },
+      {
+        "id": 4,
+        "heading": "Insight generation",
+        "content": "Formulating actionable insights and recommendations based on data patterns and business context",
+        "duration": 2000
+      },
+      {
+        "id": 5,
+        "heading": "Response formulation",
+        "content": "Crafting clear, actionable recommendations with supporting data and visualization suggestions",
+        "duration": 1800
+      }
+    ]
+  },
+  {
+    "id": "market-intelligence",
+    "name": "Market Intelligence Processing",
+    "description": "Comprehensive market analysis and competitive intelligence",
+    "steps": [
+      {
+        "id": 1,
+        "heading": "Market scanning",
+        "content": "Collecting and processing market data, competitor activities, and industry trends from multiple sources",
+        "duration": 2200
+      },
+      {
+        "id": 2,
+        "heading": "Competitive analysis",
+        "content": "Analyzing competitor positioning, market share changes, and strategic movements in the industry",
+        "duration": 2800
+      },
+      {
+        "id": 3,
+        "heading": "Trend identification",
+        "content": "Identifying emerging trends, market opportunities, and potential threats based on data patterns",
+        "duration": 2500
+      },
+      {
+        "id": 4,
+        "heading": "Strategic implications",
+        "content": "Evaluating the strategic implications of market changes and competitor actions for business strategy",
+        "duration": 2000
+      },
+      {
+        "id": 5,
+        "heading": "Recommendation synthesis",
+        "content": "Synthesizing findings into actionable strategic recommendations and market positioning advice",
+        "duration": 2300
+      },
+      {
+        "id": 6,
+        "heading": "Risk assessment",
+        "content": "Assessing potential risks and opportunities, providing confidence levels and implementation timelines",
+        "duration": 1700
+      }
+    ]
+  }
+]

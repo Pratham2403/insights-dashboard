@@ -1,0 +1,68 @@
+{
+  "id": "brand-health-monitor",
+  "name": "Brand Health Monitor",
+  "type": "brand-monitoring",
+  "brandMetrics": {
+    "mentions": {
+      "current": 48,
+      "previous": 2,
+      "change": "+2,300%",
+      "trend": "up"
+    },
+    "sentiment": {
+      "positive": 65,
+      "negative": 25,
+      "neutral": 10
+    },
+    "reach": {
+      "current": "2.4M",
+      "previous": "1.8M",
+      "change": "+33%",
+      "trend": "up"
+    },
+    "engagement": {
+      "current": "12.5K",
+      "previous": "8.2K",
+      "change": "+52%",
+      "trend": "up"
+    }
+  },
+  "sentimentTrend": [
+    { "date": "May 11", "positive": 1.2, "negative": 0.8 },
+    { "date": "May 15", "positive": 1.4, "negative": 0.6 },
+    { "date": "May 20", "positive": 1.6, "negative": 0.7 },
+    { "date": "May 25", "positive": 1.8, "negative": 0.5 },
+    { "date": "May 30", "positive": 2.1, "negative": 0.4 },
+    { "date": "Jun 05", "positive": 2.3, "negative": 0.3 },
+    { "date": "Jun 09", "positive": 2.0, "negative": 0.4 }
+  ],
+  "topicAnalysis": [
+    { "topic": "Product Quality", "mentions": 156, "sentiment": 0.8 },
+    { "topic": "Customer Service", "mentions": 89, "sentiment": 0.6 },
+    { "topic": "Pricing", "mentions": 67, "sentiment": -0.2 },
+    { "topic": "Delivery", "mentions": 45, "sentiment": 0.4 },
+    { "topic": "Brand Image", "mentions": 34, "sentiment": 0.9 }
+  ],
+  "competitorComparison": [
+    { "brand": "Our Brand", "mentions": 48, "sentiment": 0.7, "share": 35 },
+    { "brand": "Competitor A", "mentions": 42, "sentiment": 0.5, "share": 30 },
+    { "brand": "Competitor B", "mentions": 38, "sentiment": 0.6, "share": 25 },
+    { "brand": "Competitor C", "mentions": 15, "sentiment": 0.3, "share": 10 }
+  ],
+  "geographicData": [
+    { "region": "North America", "mentions": 18, "sentiment": 0.8 },
+    { "region": "Europe", "mentions": 15, "sentiment": 0.6 },
+    { "region": "Asia Pacific", "mentions": 10, "sentiment": 0.7 },
+    { "region": "Latin America", "mentions": 3, "sentiment": 0.5 },
+    { "region": "Middle East", "mentions": 2, "sentiment": 0.4 }
+  ],
+  "timeSeriesData": [
+    { "date": "May 11", "mentions": 2, "reach": 180000, "engagement": 1200 },
+    { "date": "May 15", "mentions": 5, "reach": 320000, "engagement": 2100 },
+    { "date": "May 20", "mentions": 8, "reach": 450000, "engagement": 3400 },
+    { "date": "May 25", "mentions": 12, "reach": 680000, "engagement": 5200 },
+    { "date": "May 30", "mentions": 18, "reach": 920000, "engagement": 7800 },
+    { "date": "Jun 05", "mentions": 35, "reach": 1800000, "engagement": 11200 },
+    { "date": "Jun 09", "mentions": 48, "reach": 2400000, "engagement": 12500 }
+  ]
+}

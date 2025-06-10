@@ -1,17 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot } from 'lucide-react';
-import { ChatMessage } from '../types';
+import { useChatContext } from '../context/ChatContext';
+import { useDashboardContext } from '../context/DashboardContext';
 import { useTypingAnimation } from '../hooks/useTypingAnimation';
+import { chatApiService } from '../services/chatApi';
 
 interface ChatInterfaceProps {
-  messages: ChatMessage[];
-  onSendMessage: (message: string) => void;
-  isLoading: boolean;
+  onReasoningStart: (configId: string) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSendMessage, isLoading }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ onReasoningStart }) => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { threadId, messages, isLoading, setThreadId, addMessage, setLoading } = useChatContext();
+  const { currentDashboard } = useDashboardContext();
+  
   const lastMessage = messages[messages.length - 1];
   const shouldAnimate = lastMessage && !lastMessage.isUser;
   
@@ -28,13 +31,98 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSendMessage, 
     scrollToBottom();
   }, [messages, displayText]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Initialize with welcome message when dashboard changes
+  useEffect(() => {
+    if (currentDashboard && messages.length === 0) {
+      const welcomeMessage = {
+        id: Date.now().toString(),
+        content: `Hello! I'm your AI assistant for the ${currentDashboard.name} dashboard. I can help analyze your data, provide insights, and show you my reasoning process. 
+
+Try asking me:
+- "How to implement React error handling?" for technical guidance
+- "Analyze my dashboard data" for insights
+- "What are the market trends?" for competitive analysis
+
+What would you like to explore?`,
+        isUser: false,
+        timestamp: new Date(),
+        threadId: threadId || undefined,
+      };
+      addMessage(welcomeMessage);
+    }
+  }, [currentDashboard, messages.length, threadId, addMessage]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() && !isLoading) {
-      onSendMessage(inputValue.trim());
+    if (inputValue.trim() && !isLoading && currentDashboard) {
+      const userMessage = {
+        id: Date.now().toString(),
+        content: inputValue.trim(),
+        isUser: true,
+        timestamp: new Date(),
+        threadId: threadId || undefined,
+      };
+
+      addMessage(userMessage);
+      setLoading(true);
       setInputValue('');
+
+      try {
+        const response = await chatApiService.sendMessage({
+          query: inputValue.trim(),
+          thread_id: threadId || undefined,
+          dashboard_id: currentDashboard.id,
+        });
+
+        // Update thread ID if it's a new conversation
+        if (!threadId && response.thread_id) {
+          setThreadId(response.thread_id);
+        }
+
+        // Start reasoning animation if config is provided
+        if (response.reasoning_config) {
+          onReasoningStart(response.reasoning_config);
+        }
+
+        // Add AI response after a delay to show reasoning
+        setTimeout(() => {
+          const aiMessage = {
+            id: (Date.now() + 1).toString(),
+            content: response.response,
+            isUser: false,
+            timestamp: new Date(),
+            threadId: response.thread_id,
+          };
+
+          addMessage(aiMessage);
+          setLoading(false);
+        }, response.reasoning_config ? 4000 : 1500);
+
+      } catch (error) {
+        console.error('Error sending message:', error);
+        const errorMessage = {
+          id: (Date.now() + 1).toString(),
+          content: 'Sorry, I encountered an error while processing your request. Please try again.',
+          isUser: false,
+          timestamp: new Date(),
+          threadId: threadId || undefined,
+        };
+        addMessage(errorMessage);
+        setLoading(false);
+      }
     }
   };
+
+  if (!currentDashboard) {
+    return (
+      <div className="bg-white flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-gray-500 mb-2">No dashboard selected</p>
+          <p className="text-sm text-gray-400">Please select a dashboard from the sidebar to start chatting</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white flex flex-col h-full">
@@ -113,7 +201,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSendMessage, 
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask me anything about your data..."
+            placeholder={`Ask me about ${currentDashboard.name}...`}
             disabled={isLoading}
             className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50 shadow-sm"
           />
@@ -125,6 +213,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSendMessage, 
             <Send className="w-5 h-5" />
           </button>
         </form>
+        
+        {threadId && (
+          <p className="text-xs text-gray-500 mt-2">
+            Thread ID: {threadId.slice(0, 8)}...
+          </p>
+        )}
       </div>
     </div>
   );

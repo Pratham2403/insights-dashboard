@@ -38,15 +38,13 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, trend, ic
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
-      <div className="flex items-center justify-between mb-6">
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${getColorClasses()} flex items-center justify-center text-white`}>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-3 rounded-lg bg-gradient-to-r ${getColorClasses()} text-white`}>
           {getIcon()}
         </div>
-        <div className={`flex items-center space-x-2 text-sm font-bold px-3 py-1 rounded-full ${
-          trend === 'up' 
-            ? 'text-green-700 bg-green-50' 
-            : 'text-red-700 bg-red-50'
+        <div className={`flex items-center space-x-1 text-sm font-medium ${
+          trend === 'up' ? 'text-green-600' : 'text-red-600'
         }`}>
           {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
           <span>{change}</span>
@@ -54,8 +52,8 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, trend, ic
       </div>
       
       <div>
-        <h3 className="text-3xl font-bold text-gray-900 mb-2">{value}</h3>
-        <p className="text-gray-600 font-medium">{title}</p>
+        <h3 className="text-2xl font-bold text-gray-900 mb-1">{value}</h3>
+        <p className="text-gray-600 text-sm font-medium">{title}</p>
       </div>
     </div>
   );
