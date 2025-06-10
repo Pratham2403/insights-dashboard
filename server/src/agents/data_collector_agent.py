@@ -159,7 +159,6 @@ class DataCollectorAgent(LLMAgent):
             ]
             
             response = await self.llm.ainvoke(messages)
-            logger.info(f"LLM response of Data Collector: {response.content}")
             # Parse LLM response
             try:
                 # Handle different response types

@@ -176,62 +176,98 @@ class FiltersRAG:
             raise
     
     def _load_themes_data(self):
-        """Load and index themes data."""
+        """Load and index themes data from themes.json file."""
         if self.vector_db is None:
             raise RuntimeError("Vector database not available, cannot load themes data")
             
         try:
-            # Sample themes data
-            sample_themes = [
-                {
-                    "name": "Brand Health Monitoring",
-                    "description": "Track overall brand perception and health metrics",
-                    "keywords": ["brand health", "monitoring", "perception", "reputation"],
-                    "related_filters": ["Brand Mentions", "Sentiment Analysis", "Time Period"]
-                },
-                {
-                    "name": "Customer Satisfaction",
-                    "description": "Monitor customer satisfaction and feedback",
-                    "keywords": ["customer satisfaction", "feedback", "reviews", "rating"],
-                    "related_filters": ["Sentiment Analysis", "Brand Mentions"]
-                },
-                {
-                    "name": "Competitive Analysis",
-                    "description": "Analyze competitor presence and performance",
-                    "keywords": ["competitor", "competitive analysis", "market share"],
-                    "related_filters": ["Brand Mentions", "Channel Filter", "Time Period"]
-                },
-                {
-                    "name": "Product Launch Analysis",
-                    "description": "Track and analyze product launch performance",
-                    "keywords": ["product launch", "new product", "launch analysis"],
-                    "related_filters": ["Brand Mentions", "Sentiment Analysis", "Time Period", "Channel Filter"]
-                },
-                {
-                    "name": "Crisis Management",
-                    "description": "Monitor and manage brand crisis situations",
-                    "keywords": ["crisis", "crisis management", "negative sentiment", "issue tracking"],
-                    "related_filters": ["Sentiment Analysis", "Brand Mentions", "Time Period"]
-                }
-            ]
+            # Load themes from themes.json file
+            themes_file = self.knowledge_base_path / "themes.json"
+            
+            if not themes_file.exists():
+                raise FileNotFoundError(f"Themes file not found at: {themes_file}")
+                
+            with open(themes_file, 'r', encoding='utf-8') as f:
+                themes_data = json.load(f)
+            
+            # Extract themes from the JSON structure
+            if not isinstance(themes_data, dict) or "themes" not in themes_data:
+                raise ValueError("Invalid themes.json structure: expected 'themes' key at root level")
+                
+            themes_list = themes_data["themes"]
+            if not isinstance(themes_list, list):
+                raise ValueError("Invalid themes.json structure: 'themes' should be a list")
+                
+            if not themes_list:
+                raise ValueError("No themes found in themes.json file")
             
             documents = []
             metadatas = []
             ids = []
             
-            for i, theme in enumerate(sample_themes):
-                doc_text = f"{theme['name']}: {theme['description']} Keywords: {', '.join(theme['keywords'])} Related Filters: {', '.join(theme['related_filters'])}"
+            for i, theme in enumerate(themes_list):
+                # Validate theme structure
+                if not isinstance(theme, dict) or "name" not in theme or "description" not in theme:
+                    logger.warning(f"Skipping invalid theme at index {i}: missing name or description")
+                    continue
+                
+                # Extract keywords, handling both list and missing keywords
+                keywords = theme.get("keywords", [])
+                if not isinstance(keywords, list):
+                    keywords = []
+                
+                # Extract related_filters, handling both list and missing filters
+                related_filters = theme.get("related_filters", [])
+                if not isinstance(related_filters, list):
+                    related_filters = []
+                
+                # Extract related_topics for additional context if available
+                related_topics = theme.get("related_topics", [])
+                if not isinstance(related_topics, list):
+                    related_topics = []
+                
+                # Create comprehensive document text for semantic search
+                doc_text = f"{theme['name']}: {theme['description']}"
+                
+                # Add keywords to document text if available
+                if keywords:
+                    doc_text += f" Keywords: {', '.join(keywords)}"
+                
+                # Add related filters to document text if available
+                if related_filters:
+                    doc_text += f" Related Filters: {', '.join(related_filters)}"
+                
+                # Add related topics to document text if available and not empty
+                if related_topics:
+                    # Extract topic names/descriptions for searchable text
+                    topic_text = []
+                    for topic in related_topics:
+                        if isinstance(topic, dict):
+                            if "name" in topic:
+                                topic_text.append(topic["name"])
+                            if "description" in topic:
+                                topic_text.append(topic["description"])
+                        elif isinstance(topic, str):
+                            topic_text.append(topic)
+                    
+                    if topic_text:
+                        doc_text += f" Related Topics: {', '.join(topic_text)}"
+                
                 documents.append(doc_text)
                 
                 # Convert lists to strings for ChromaDB compatibility
                 metadata = {
                     "name": theme["name"],
                     "description": theme["description"],
-                    "keywords": ", ".join(theme["keywords"]),
-                    "related_filters": ", ".join(theme["related_filters"])
+                    "keywords": ", ".join(keywords) if keywords else "",
+                    "related_filters": ", ".join(related_filters) if related_filters else "",
+                    "related_topics": json.dumps(related_topics) if related_topics else "[]"
                 }
                 metadatas.append(metadata)
                 ids.append(f"theme_{i}")
+            
+            if not documents:
+                raise ValueError("No valid themes found in themes.json file")
             
             self.vector_db.add_documents(
                 self.themes_collection,
@@ -240,7 +276,7 @@ class FiltersRAG:
                 ids=ids
             )
             
-            logger.info(f"Loaded {len(documents)} theme items")
+            logger.info(f"Loaded {len(documents)} theme items from themes.json")
             
         except Exception as e:
             logger.error(f"Failed to load themes data: {e}")

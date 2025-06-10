@@ -35,7 +35,7 @@ from src.setup.llm_setup import LLMSetup
 from src.tools.get_tool import get_sprinklr_data
 from src.agents.query_refiner_agent import QueryRefinerAgent
 from src.agents.data_collector_agent import DataCollectorAgent
-from src.agents.data_analyzer_agent import DataAnalyzerAgent
+from src.agents.data_analyzer_agent2 import DataAnalyzerAgent
 from src.agents.query_generator_agent import  QueryGeneratorAgent
 from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action
 # from src.persistence.mongodb_checkpointer import MongoDBPersistenceManager
@@ -73,7 +73,7 @@ class SprinklrWorkflow:
         # Initialize agents
         self.query_refiner = QueryRefinerAgent(self.llm)
         self.data_collector = DataCollectorAgent(self.llm)
-        self.data_analyzer = DataAnalyzerAgent()  # No LLM needed for BERTopic
+        self.data_analyzer = DataAnalyzerAgent(self.llm) 
         self.query_generator = QueryGeneratorAgent(self.llm)
         
         # Setup tools
@@ -523,7 +523,7 @@ class SprinklrWorkflow:
             logger.info(f"🛠️ Executing tool with Boolean query: {boolean_query[:100]}...")
             
             # Execute the get_sprinklr_data tool using the invoke method (modern LangChain pattern)
-            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 50})
+            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 500})
             
             logger.info(f"🛠️ Retrieved {len(hits)} hits from Sprinklr API")
             

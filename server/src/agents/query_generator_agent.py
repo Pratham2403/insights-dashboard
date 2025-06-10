@@ -109,7 +109,6 @@ class QueryGeneratorAgent(LLMAgent):
         """
         try:
 
-            logger.info(f"Query Examples : {chr(10).join(self.query_patterns.get('example_queries', []))}")
 
             # Create system prompt with examples
             system_prompt = f"""
@@ -123,7 +122,7 @@ class QueryGeneratorAgent(LLMAgent):
                • **Do not** use abstract concepts (brand, monitoring, insights).
 
             2. **Filter matching**  
-               • Include only **explicit** "field:<space>value" filters (e.g., "source: TWITTER").  
+               • Include only **explicit** field:<space>value filters (e.g., source: TWITTER).  
                • **Do not** invent or assume any filters.
 
             Supported operators (uppercase only):  
@@ -135,32 +134,31 @@ class QueryGeneratorAgent(LLMAgent):
 
             Syntax rules:
             - Separate every token and operator with spaces.  
-            - Inline filters exactly as field:value (no spaces around “:”).  
+            - Inline filters exactly as field:<space>value (e.g., source: TWITTER).  
             - Use parentheses to group OR expressions.  
-            - Use NEAR/ONEAR for proximity-based sentiment‐object pairs.  
-            - Only include keywords and filters directly from the provided lists.  
+            - Use NEAR/ONEAR for proximity-based sentiment-object pairs.  
+            - Only include keywords and filters directly from the provided lists.
 
             Examples:
             {chr(10).join(self.query_patterns.get('example_queries', []))}
-
             """
 
             # Create user prompt with context
             user_prompt = f"""
             Generate a Boolean query:
-
+            
             Refined Query:
             {refined_query}
-
+            
             Available Keywords:
             {keywords}
-
+            
             Available Filters:
             {json.dumps(filters, indent=2)}
-
+            
             Requirements:
             - Use **only** message-level indicator keywords from the Available Keywords list.
-            - Apply **only** those filters explicitly provided.
+            - Apply **only** those filters explicitly provided, formatted as field:<space>value (e.g., source: TWITTER).
             - Group related keywords with parentheses and OR.
             - Use NEAR or ONEAR for sentiment–object proximity (e.g., hate NEAR defect).
             - Combine terms with uppercase Boolean operators (AND, OR, NOT, NEAR, ONEAR).

@@ -1,13 +1,14 @@
 """
-BERTopic-based Data Analyzer Agent exactly mimicking demo-helper-data-analyzer-agent.py
+BERTopic-based Data Analyzer Agent without using any in-house LLMs
 
 Key features:
-- Uses BERTopic for theme identification  
-- Uses SentenceTransformers for embeddings
-- Uses transformers for summarization
-- Processes hits separately from LangGraph state
-- Updates themes state as final output
-- Throws errors when dependencies are missing or when analysis fails
+- Uses BERTopic for unsupervised theme identification from raw text content
+- Leverages SentenceTransformer for high-quality text embeddings
+- Employs transformers for automatic theme description summarization
+- Processes hits separately from LangGraph state to prevent memory explosion
+- Generates concise theme names and descriptive summaries
+- Implements robust error handling and input validation
+- Maintains separation between clustering and theme extraction steps
 """
 import logging
 from typing import Dict, Any, List, Optional
@@ -17,9 +18,12 @@ from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 import numpy as np
 
+
+
+
 logger = logging.getLogger(__name__)
 
-class DataAnalyzerAgent:
+class DataAnalyzerAgent():
     """
     BERTopic-based Data Analyzer exactly mimicking demo-helper-data-analyzer-agent.py
     
@@ -31,6 +35,7 @@ class DataAnalyzerAgent:
         Initialize BERTopic components exactly matching demo helper.
         Throws errors if models cannot be initialized.
         """
+        # super().__init__("data_analyzer", llm) # Uncomment if using LLMAgent base class
         try:
             # Initialize embedding model for topic modeling
             self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")

@@ -1,34 +1,348 @@
 {
-    "themes": [
+  "themes": [
+    {
+      "name": "Brand Health Monitoring",
+      "description": "Track overall brand perception and health metrics",
+      "keywords": [
+        "brand health",
+        "monitoring",
+        "perception",
+        "reputation",
+        "brand image",
+        "public opinion",
+        "brand awareness"
+      ],
+      "related_topics": [
         {
-            "name": "brand-awareness",
-            "description": "Measures the extent to which consumers are familiar with a brand and its products.",
-            "query": "brand OR brand name OR #brand OR #brand"
+          "name": "Product & Service Attributes - Retail Bank",
+          "description": "Core service and product features offered by a retail bank, reflecting customer experiences and product categories.",
+          "sub_theme": [
+            "Banking Experience",
+            "Customer Support Experience",
+            "Onboarding Experience",
+            "Deposit Products",
+            "Payment Products",
+            "Insurance Products",
+            "Credit Products",
+            "Payment Services"
+          ]
         },
         {
-            "name": "customer-engagement",
-            "description": "Evaluates how actively customers interact with a brand across various channels.",
-            "query": "engagement OR interact OR interaction OR customer interaction OR customer engagement OR user engagement OR brand engagement"
+          "name": "Attention Areas - Retail Bank",
+          "description": "High-risk or high-visibility issues that demand immediate focus or monitoring.",
+          "sub_theme": [
+            "Investigations",
+            "Hacking/Data Breach",
+            "Bans & Boycotts",
+            "Money Laundering",
+            "Fraud/Scams",
+            "Corruption",
+            "Violence",
+            "Bank Run",
+            "Scandals",
+            "Executive Exits"
+          ]
         },
         {
-            "name": "sales-performance",
-            "description": "Tracks the effectiveness of sales strategies and the overall sales process.",
-            "query": "sales growth OR revenue growth OR sales increase OR conversion rate OR deal size OR sales performance OR revenue performance OR sales metrics"
-        },
-        {
-            "name": "market-trends",
-            "description": "Analyzes current market conditions and emerging trends that affect business strategies.",
-            "query": "market trend OR market share OR industry trend OR consumer trend OR competitive analysis OR market analysis OR consumer behavior"
-        },
-        {
-            "name": "product-development",
-            "description": "Focuses on the innovation and improvement of products to meet customer needs.",
-            "query": "product development OR new product OR product feature OR product innovation OR product launch OR time to market OR product adoption"
-        },
-        {
-            "name": "customer-satisfaction",
-            "description": "Measures the level of satisfaction customers have with a product or service.",
-            "query": "customer satisfaction OR customer experience OR customer feedback OR nps OR net promoter score OR csat OR customer satisfaction score"
+          "name": "Brand Sentiment Analysis",
+          "description": "Analysis of positive, negative, and neutral sentiment around the brand",
+          "sub_theme": [
+            "Positive Mentions",
+            "Negative Mentions",
+            "Neutral Mentions",
+            "Sentiment Trends",
+            "Comparative Sentiment"
+          ]
         }
-    ]
+      ],
+      "related_filters": ["Time Period", "Channel Filter", "Geography"]
+    },
+    {
+      "name": "Customer Satisfaction",
+      "description": "Monitor customer satisfaction and feedback",
+      "keywords": [
+        "customer satisfaction",
+        "feedback",
+        "reviews",
+        "rating",
+        "customer experience",
+        "user experience",
+        "satisfaction score"
+      ],
+      "related_topics": [
+        {
+          "name": "Customer Support Experience - Retail Bank",
+          "description": "Touchpoints and issues encountered when customers seek help or resolution from the bank.",
+          "sub_theme": [
+            "User Complaints",
+            "Customer Care",
+            "Fraud/Scam Reports",
+            "Data Breach/Hacking",
+            "Relationship Manager",
+            "Refunds"
+          ]
+        },
+        {
+          "name": "Banking Experience - Retail Bank",
+          "description": "Everyday banking operations and digital experiences for customers.",
+          "sub_theme": [
+            "Bill Payments",
+            "Transaction Process",
+            "ATM Experience",
+            "Mobile/App Banking",
+            "Online/Net-Banking",
+            "Closing Account",
+            "Automatic Payments",
+            "Password Change",
+            "Account Login",
+            "Transaction Charges"
+          ]
+        },
+        {
+          "name": "Sentiment Distribution",
+          "description": "Distribution of sentiment across customer feedback channels",
+          "sub_theme": [
+            "Positive Feedback Areas",
+            "Negative Feedback Areas",
+            "Improvement Opportunities",
+            "Customer Pain Points"
+          ]
+        }
+      ],
+      "related_filters": ["Sentiment Analysis", "Time Period", "Channel Type"]
+    },
+    {
+      "name": "Competitive Analysis",
+      "description": "Analyze competitor presence and performance",
+      "keywords": [
+        "competitor",
+        "competitive analysis",
+        "market share",
+        "competitive advantage",
+        "market position",
+        "competitor tracking"
+      ],
+      "related_topics": [
+        {
+          "name": "Product Share of Voice (SoV) - Retail Bank",
+          "description": "Visibility and discussion volume of specific product categories relative to competitors.",
+          "sub_theme": [
+            "Counterfeit Products",
+            "Product Availability",
+            "Product Pricing",
+            "Product Quality",
+            "Product Comfort"
+          ]
+        },
+        {
+          "name": "Service Share of Voice (SoV) - Retail Bank",
+          "description": "Prominence of service-related topics in customer conversations.",
+          "sub_theme": [
+            "Fraud/Scam Reports",
+            "Customer Support",
+            "Relationship Manager",
+            "User Complaints",
+            "App & Website Experience"
+          ]
+        },
+        {
+          "name": "Competitive Product Offerings",
+          "description": "Analysis of competitor product offerings and their reception",
+          "sub_theme": [
+            "Deposit Products Comparison",
+            "Credit Products Comparison",
+            "Insurance Products Comparison",
+            "Payment Services Comparison",
+            "Feature Comparison"
+          ]
+        }
+      ],
+      "related_filters": [
+        "Brand Mentions",
+        "Channel Filter",
+        "Time Period",
+        "Competitor Names"
+      ]
+    },
+    {
+      "name": "Product Launch Analysis",
+      "description": "Track and analyze product launch performance",
+      "keywords": [
+        "product launch",
+        "new product",
+        "launch analysis",
+        "product performance",
+        "market reception",
+        "adoption rate"
+      ],
+      "related_topics": [
+        {
+          "name": "Credit Products - Retail Bank",
+          "description": "Loan and credit facilities offered to individuals and businesses.",
+          "sub_theme": [
+            "Business Loan",
+            "Student Loan",
+            "Personal Loan",
+            "Auto Loan",
+            "Home Loan"
+          ]
+        },
+        {
+          "name": "Deposit Products - Retail Bank",
+          "description": "Savings and investment deposit options provided by the bank.",
+          "sub_theme": [
+            "Brokerage Account",
+            "Health Savings Account",
+            "Individual Retirement Account",
+            "Money Market Accounts",
+            "Fixed Deposit",
+            "Checking Account",
+            "Savings Account"
+          ]
+        },
+        {
+          "name": "Insurance Products - Retail Bank",
+          "description": "Different types of insurance offerings available through the bank.",
+          "sub_theme": [
+            "Travel Insurance",
+            "Health Insurance",
+            "Medical Insurance",
+            "General Insurance",
+            "Property Insurance",
+            "Life Insurance"
+          ]
+        },
+        {
+          "name": "Launch Performance Metrics",
+          "description": "Key metrics tracking the success of product launches",
+          "sub_theme": [
+            "Awareness Metrics",
+            "Adoption Rate",
+            "Customer Feedback",
+            "Conversion Rate",
+            "Feature Satisfaction"
+          ]
+        }
+      ],
+      "related_filters": [
+        "Brand Mentions",
+        "Sentiment Analysis",
+        "Time Period",
+        "Channel Filter",
+        "Product Category"
+      ]
+    },
+    {
+      "name": "Crisis Management",
+      "description": "Monitor and manage brand crisis situations",
+      "keywords": [
+        "crisis",
+        "crisis management",
+        "negative sentiment",
+        "issue tracking",
+        "reputation management",
+        "damage control",
+        "remediation"
+      ],
+      "related_topics": [
+        {
+          "name": "Attention Areas - Retail Bank",
+          "description": "High-risk or high-visibility issues that demand immediate focus or monitoring.",
+          "sub_theme": [
+            "Investigations",
+            "Hacking/Data Breach",
+            "Bans & Boycotts",
+            "Money Laundering",
+            "Fraud/Scams",
+            "Corruption",
+            "Violence",
+            "Bank Run",
+            "Scandals",
+            "Executive Exits"
+          ]
+        },
+        {
+          "name": "Crisis Response Tracking",
+          "description": "Monitoring effectiveness of crisis response efforts",
+          "sub_theme": [
+            "Response Time",
+            "Resolution Effectiveness",
+            "Customer Communication",
+            "Sentiment Recovery",
+            "Media Coverage",
+            "Social Amplification"
+          ]
+        }
+      ],
+      "related_filters": [
+        "Sentiment Analysis",
+        "Brand Mentions",
+        "Time Period",
+        "Crisis Type",
+        "Media Source"
+      ]
+    },
+    {
+      "name": "Customer Journey Analysis",
+      "description": "Track customer experience across different touchpoints and stages",
+      "keywords": [
+        "customer journey",
+        "touchpoint",
+        "user experience",
+        "customer path",
+        "journey mapping"
+      ],
+      "related_topics": [
+        {
+          "name": "Onboarding Experience - Retail Bank",
+          "description": "Steps and interactions involved when a customer first engages with the bank's services.",
+          "sub_theme": [
+            "Account Opening",
+            "Account/Card Setup",
+            "Application Process",
+            "Document Verification",
+            "Getting a Loan",
+            "Credit Score",
+            "Welcome Offers",
+            "Getting a Debit/Credit Card"
+          ]
+        },
+        {
+          "name": "Banking Experience - Retail Bank",
+          "description": "Everyday banking operations and digital experiences for customers.",
+          "sub_theme": [
+            "Bill Payments",
+            "Transaction Process",
+            "ATM Experience",
+            "Mobile/App Banking",
+            "Online/Net-Banking",
+            "Closing Account",
+            "Automatic Payments",
+            "Password Change",
+            "Account Login",
+            "Transaction Charges"
+          ]
+        },
+        {
+          "name": "Journey Stage Analysis",
+          "description": "Analysis of customer experience at each journey stage",
+          "sub_theme": [
+            "Awareness Stage",
+            "Consideration Stage",
+            "Decision Stage",
+            "Onboarding Stage",
+            "Usage Stage",
+            "Support Stage",
+            "Loyalty Stage"
+          ]
+        }
+      ],
+      "related_filters": [
+        "Journey Stage",
+        "Customer Segment",
+        "Time Period",
+        "Channel Type"
+      ]
+    }
+  ]
 }
