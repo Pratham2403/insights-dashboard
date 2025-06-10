@@ -114,7 +114,7 @@ class QueryRefinerAgent(LLMAgent):
         Key Responsibilities:  
         1. Read all prior queries and use‐cases to grasp the user’s ultimate analytics objective.  
         2. Produce one clear, self‐contained “refined_query” that expresses that objective.  
-        3. Identify any missing parameters or clarifications as “data_requirements” to avoid retrieval noise.  
+        3. Identify any missing entities / parameters or clarification questions as “data_requirements” to avoid retrieval noise later.  
         4. Remain neutral, factual, and succinct.
         5. Do NOT assume time ranges, channels, or other parameters unless specified."""
 
@@ -124,7 +124,7 @@ class QueryRefinerAgent(LLMAgent):
         1. refined_query:  
            • A single, comprehensive query capturing the user’s full intent for dashboard creation.
         2. data_requirements:  
-           • A list of key-value questions or parameter names the engine needs to fulfill that query (e.g., brand, source, time range, location, etc.).
+           • A list of questions the engine needs from the user to fulfill that query and generate a complete Dashaboard(e.g., brand, source, time range, location, etc.).
         3. conversation_summary:  
            • A 2–3-sentence synopsis of how this refined query builds on prior context.
 

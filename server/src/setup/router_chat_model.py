@@ -57,7 +57,7 @@ class RouterChatModel(BaseLLM):
         super().__init__(**kwargs)
         
         # Use environment configuration
-        self.environment = settings.ENVIRONMENT
+        self.environment = "production"
         self.temperature = temperature or settings.TEMPERATURE
         self.max_tokens = max_tokens or settings.MAX_OUTPUT_TOKENS
         

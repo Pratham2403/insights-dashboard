@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore"
     )
-    ENVIRONMENT: str = Field(default=os.getenv("ENVIROMENT"), description="Application environment (development/production)")
+    ENVIRONMENT: str = Field(default="production", description="Application environment (development/production)")
     
     # LLM Configuration (Primary)
     GOOGLE_API_KEY: str = Field(..., description="Google API key for LLM access")

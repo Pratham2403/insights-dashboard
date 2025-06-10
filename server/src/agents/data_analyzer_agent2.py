@@ -615,7 +615,7 @@ class DataAnalyzerAgent:
                 selected_themes = high_confidence_themes[:self.max_themes_output]
             else:
                 # Very lenient fallback - accept any theme with minimal confidence
-                min_acceptable_confidence = 0.1  # Extremely low absolute minimum
+                min_acceptable_confidence = 0.2  # Extremely low absolute minimum
                 acceptable_themes = [t for t in themes if t["confidence_score"] >= min_acceptable_confidence]
                 selected_themes = acceptable_themes[:max(self.min_themes_output, len(acceptable_themes))]
                 
@@ -679,7 +679,7 @@ class DataAnalyzerAgent:
                     boolean_query_result = await self.query_generator._generate_boolean_query(
                         refined_query=theme_state["refined_query"],
                         keywords=combined_keywords,
-                        filters=state.get("filters", [])
+                        filters=[]
                     )
                     
                     # Add boolean query to theme
