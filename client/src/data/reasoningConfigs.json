@@ -1,125 +1,52 @@
 [
-  {
-    "id": "react-error-handling",
-    "name": "React Error Handling Analysis",
-    "description": "Comprehensive analysis for React error handling implementation",
-    "steps": [
-      {
-        "id": 1,
-        "heading": "Understanding request",
-        "content": "User asks about React error handling - requires comprehensive coverage of error boundaries, try-catch patterns, and best practices",
-        "duration": 2000
-      },
-      {
-        "id": 2,
-        "heading": "Analyzing requirements",
-        "content": "Breaking down: error boundaries for component errors, async error handling, global error handling, and user experience considerations",
-        "duration": 2500
-      },
-      {
-        "id": 3,
-        "heading": "Research & fact-checking",
-        "content": "Reviewing React documentation, community best practices, and modern error handling patterns in React 18+",
-        "duration": 3000
-      },
-      {
-        "id": 4,
-        "heading": "Synthesizing information",
-        "content": "Combining research with practical implementation strategies, considering both development and production scenarios",
-        "duration": 2000
-      },
-      {
-        "id": 5,
-        "heading": "Generating response",
-        "content": "Creating comprehensive response with code examples, error boundary implementation, and async error handling patterns",
-        "duration": 2500
-      },
-      {
-        "id": 6,
-        "heading": "Quality verification",
-        "content": "Reviewing response for accuracy, completeness, and practical applicability. Ensuring code examples are production-ready",
-        "duration": 1500
-      }
-    ]
-  },
-  {
-    "id": "dashboard-analysis",
-    "name": "Dashboard Data Analysis",
-    "description": "Analysis process for dashboard metrics and insights",
-    "steps": [
-      {
-        "id": 1,
-        "heading": "Data ingestion",
-        "content": "Processing dashboard metrics, sentiment data, and performance indicators from multiple sources",
-        "duration": 1500
-      },
-      {
-        "id": 2,
-        "heading": "Pattern recognition",
-        "content": "Identifying trends, anomalies, and correlations in the data across different time periods and segments",
-        "duration": 2000
-      },
-      {
-        "id": 3,
-        "heading": "Contextual analysis",
-        "content": "Comparing current metrics with historical data, industry benchmarks, and competitor performance",
-        "duration": 2500
-      },
-      {
-        "id": 4,
-        "heading": "Insight generation",
-        "content": "Formulating actionable insights and recommendations based on data patterns and business context",
-        "duration": 2000
-      },
-      {
-        "id": 5,
-        "heading": "Response formulation",
-        "content": "Crafting clear, actionable recommendations with supporting data and visualization suggestions",
-        "duration": 1800
-      }
-    ]
-  },
-  {
-    "id": "market-intelligence",
-    "name": "Market Intelligence Processing",
-    "description": "Comprehensive market analysis and competitive intelligence",
-    "steps": [
-      {
-        "id": 1,
-        "heading": "Market scanning",
-        "content": "Collecting and processing market data, competitor activities, and industry trends from multiple sources",
-        "duration": 2200
-      },
-      {
-        "id": 2,
-        "heading": "Competitive analysis",
-        "content": "Analyzing competitor positioning, market share changes, and strategic movements in the industry",
-        "duration": 2800
-      },
-      {
-        "id": 3,
-        "heading": "Trend identification",
-        "content": "Identifying emerging trends, market opportunities, and potential threats based on data patterns",
-        "duration": 2500
-      },
-      {
-        "id": 4,
-        "heading": "Strategic implications",
-        "content": "Evaluating the strategic implications of market changes and competitor actions for business strategy",
-        "duration": 2000
-      },
-      {
-        "id": 5,
-        "heading": "Recommendation synthesis",
-        "content": "Synthesizing findings into actionable strategic recommendations and market positioning advice",
-        "duration": 2300
-      },
-      {
-        "id": 6,
-        "heading": "Risk assessment",
-        "content": "Assessing potential risks and opportunities, providing confidence levels and implementation timelines",
-        "duration": 1700
-      }
-    ]
-  }
+    {
+        "id": "dashboard-workflow",
+        "name": "Dashboard Workflow Analysis",
+        "description": "Multi-agent workflow process for dashboard query analysis and theme generation",
+        "steps": [
+            {
+                "id": 1,
+                "heading": "Query Refinement Agent",
+                "content": "Processing user query to extract intent, refine language, and identify key requirements for dashboard analysis. Creating refined_query from original query.",
+                "duration": 2500,
+                "state_field": "refined_query"
+            },
+            {
+                "id": 2,
+                "heading": "Query Generator Agent",
+                "content": "Generating boolean queries based on refined query, extracting keywords, and applying appropriate filters. Creating keywords list and filters object.",
+                "duration": 3000,
+                "state_field": "keywords"
+            },
+            {
+                "id": 3,
+                "heading": "Human-in-the-Loop Verification",
+                "content": "Waiting for human review and approval of extracted keywords, filters, and boolean queries before proceeding. User can approve or provide feedback.",
+                "duration": 0,
+                "state_field": "hitl_step",
+                "is_hitl": true
+            },
+            {
+                "id": 4,
+                "heading": "Data Collector Agent",
+                "content": "Collecting relevant data based on approved queries and filters, organizing information for analysis. Gathering data_requirements.",
+                "duration": 2800,
+                "state_field": "data_requirements"
+            },
+            {
+                "id": 5,
+                "heading": "Data Analyzer Agent",
+                "content": "Analyzing collected data, generating themes, insights, and recommendations for dashboard visualization. Creating themes with boolean queries.",
+                "duration": 3500,
+                "state_field": "themes"
+            },
+            {
+                "id": 6,
+                "heading": "Final Processing",
+                "content": "Synthesizing analysis results, formatting output, and preparing final response with actionable insights.",
+                "duration": 2000,
+                "state_field": "analysis_results"
+            }
+        ]
+    }
 ]

@@ -32,7 +32,7 @@ def main():
             "app:app",
             host=host,
             port=port,
-            reload=reload,
+            reload="false",
             log_level="info" if not debug else "debug",
             access_log=True
         )

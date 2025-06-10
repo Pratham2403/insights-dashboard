@@ -1,46 +1,52 @@
 import { ReasoningStep } from '../types';
 
 export const sampleReasoningSteps: ReasoningStep[] = [
-  {
-    id: 1,
-    heading: "Understanding request",
-    content: "User asks about React error handling - requires comprehensive coverage of error boundaries, try-catch patterns, and best practices",
-    isCompleted: false,
-    isActive: false
-  },
-  {
-    id: 2,
-    heading: "Analyzing requirements",
-    content: "Breaking down: error boundaries for component errors, async error handling, global error handling, and user experience considerations",
-    isCompleted: false,
-    isActive: false
-  },
-  {
-    id: 3,
-    heading: "Research & fact-checking",
-    content: "Reviewing React documentation, community best practices, and modern error handling patterns in React 18+",
-    isCompleted: false,
-    isActive: false
-  },
-  {
-    id: 4,
-    heading: "Synthesizing information",
-    content: "Combining research with practical implementation strategies, considering both development and production scenarios",
-    isCompleted: false,
-    isActive: false
-  },
-  {
-    id: 5,
-    heading: "Generating response",
-    content: "Creating comprehensive response with code examples, error boundary implementation, and async error handling patterns",
-    isCompleted: false,
-    isActive: false
-  },
-  {
-    id: 6,
-    heading: "Quality verification",
-    content: "Reviewing response for accuracy, completeness, and practical applicability. Ensuring code examples are production-ready",
-    isCompleted: false,
-    isActive: false
-  }
+    {
+        id: 1,
+        heading: 'Query Refinement Agent',
+        content:
+            'Processing user query to extract intent, refine language, and identify key requirements for dashboard analysis. Creating refined_query from original query.',
+        isCompleted: false,
+        isActive: false,
+    },
+    {
+        id: 2,
+        heading: 'Query Generator Agent',
+        content:
+            'Generating boolean queries based on refined query, extracting keywords, and applying appropriate filters. Creating keywords list and filters object.',
+        isCompleted: false,
+        isActive: false,
+    },
+    {
+        id: 3,
+        heading: 'Human-in-the-Loop Verification',
+        content:
+            'Waiting for human review and approval of extracted keywords, filters, and boolean queries before proceeding. User can approve or provide feedback.',
+        isCompleted: false,
+        isActive: false,
+    },
+    {
+        id: 4,
+        heading: 'Data Collector Agent',
+        content:
+            'Collecting relevant data based on approved queries and filters, organizing information for analysis. Gathering data_requirements.',
+        isCompleted: false,
+        isActive: false,
+    },
+    {
+        id: 5,
+        heading: 'Data Analyzer Agent',
+        content:
+            'Analyzing collected data, generating themes, insights, and recommendations for dashboard visualization. Creating themes with boolean queries.',
+        isCompleted: false,
+        isActive: false,
+    },
+    {
+        id: 6,
+        heading: 'Final Processing',
+        content:
+            'Synthesizing analysis results, formatting output, and preparing final response with actionable insights.',
+        isCompleted: false,
+        isActive: false,
+    },
 ];

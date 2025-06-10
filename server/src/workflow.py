@@ -35,7 +35,7 @@ from src.setup.llm_setup import LLMSetup
 from src.tools.get_tool import get_sprinklr_data
 from src.agents.query_refiner_agent import QueryRefinerAgent
 from src.agents.data_collector_agent import DataCollectorAgent
-from src.agents.data_analyzer_agent2 import DataAnalyzerAgent
+from src.agents.data_analyzer_agent1 import DataAnalyzerAgent
 from src.agents.query_generator_agent import  QueryGeneratorAgent
 from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action
 from src.persistence.mongodb_checkpointer import get_async_mongodb_checkpointer
@@ -73,7 +73,7 @@ class SprinklrWorkflow:
         # Initialize agents
         self.query_refiner = QueryRefinerAgent(self.llm)
         self.data_collector = DataCollectorAgent(self.llm)
-        self.data_analyzer = DataAnalyzerAgent(self.llm) 
+        self.data_analyzer = DataAnalyzerAgent() 
         self.query_generator = QueryGeneratorAgent(self.llm)
         
         # Setup tools
@@ -1366,6 +1366,7 @@ class SprinklrWorkflow:
             config = {"configurable": {"thread_id": thread_id}}
             
             # Get state from memory
+            print(f"Self Workflow: {self}")
             state = await self.workflow.aget_state(config)
             
             return {
