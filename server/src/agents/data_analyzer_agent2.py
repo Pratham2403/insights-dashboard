@@ -10,7 +10,7 @@ Key features:
 - Generates optimized boolean queries for each of the top 5-10 identified themes
 - Calculates confidence scores to validate theme relevance against original clusters
 - Leverages LLM capabilities for natural language theme names and descriptions
-- Combines unsupervised clustering with supervised refinement for higher accuracy
+- Combines unsupervised clustering with supervised refinement for higher accuracyClus
 """
 
 import logging
@@ -26,7 +26,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 
 from src.setup.llm_setup import LLMSetup
 from src.agents.query_generator_agent import QueryGeneratorAgent
-from src.rag.filters_rag import get_filters_rag
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,13 +66,10 @@ class DataAnalyzerAgent:
             # Initialize QueryGeneratorAgent for boolean query generation
             self.query_generator = QueryGeneratorAgent(llm=self.llm)
             
-            # Initialize RAG system for theme context retrieval
-            self.rag_system = get_filters_rag()
-            
-            # Scoring parameters for theme evaluation (very lenient)
-            self.min_confidence_score = 0.3  # Extremely low threshold for maximum theme discovery
+            # Enhanced scoring parameters for high-quality theme generation
+            self.min_confidence_score = 0.65  # Higher threshold for quality themes
             self.max_themes_output = 10
-            self.min_themes_output = 5
+            self.min_themes_output = 1  # Allow minimum 1 high-quality theme
             
             logger.info("DataAnalyzerAgent initialized successfully with hybrid capabilities")
             
@@ -83,7 +80,7 @@ class DataAnalyzerAgent:
 
     async def _generate_potential_themes_with_llm(self, state: Dict[str, Any]) -> List[Dict[str, str]]:
         """
-        Generate potential themes using LLM based on LangGraph state context and RAG-retrieved theme context.
+        Enhanced multi-shot theme generation using iterative LLM refinement.
         
         Args:
             state: LangGraph state containing refined_query, keywords, filters
@@ -92,157 +89,185 @@ class DataAnalyzerAgent:
             List of potential themes with names and descriptions
             
         Raises:
-            RuntimeError: If RAG context retrieval fails or LLM response is invalid
+            RuntimeError: If LLM response is invalid
         """
         try:
             refined_query = state.get("refined_query", "")
+            boolean_query = state.get("boolean_query", "")
             keywords = state.get("keywords", [])
-            filters = state.get("filters", {})
+            entities = state.get("entities", [])
+            industry = state.get("industry", "")
+            sub_vertical = state.get("sub_vertical", "")
+            use_case = state.get("use_case", "")
             
             if not refined_query:
                 raise ValueError("Refined query is required for theme generation")
-            
-            # Get RAG context for relevant existing themes from themes.json
-            try:
-                search_query = f"{refined_query} {' '.join(keywords)}"
-                relevant_themes = self.rag_system.search_themes(search_query, n_results=10)
-            except Exception as e:
-                error_msg = f"Failed to retrieve RAG context for themes: {e}"
-                logger.error(error_msg)
-                raise RuntimeError(error_msg) from e
-            
-            if not relevant_themes:
-                raise RuntimeError("No relevant themes found in RAG context - themes.json may be empty or inaccessible")
-            
-            # Format RAG themes for LLM context
-            rag_themes_context = []
-            for theme in relevant_themes:
-                theme_info = f"Theme: {theme.get('name', 'Unknown')}\n"
-                theme_info += f"Description: {theme.get('description', 'No description')}\n"
-                
-                # Add keywords if available
-                keywords_str = theme.get('keywords', '')
-                if keywords_str:
-                    theme_info += f"Keywords: {keywords_str}\n"
-                
-                # Add related topics/sub-themes if available
-                related_topics = theme.get('related_topics', '[]')
-                if related_topics and related_topics != '[]':
-                    try:
-                        topics_data = json.loads(related_topics) if isinstance(related_topics, str) else related_topics
-                        if topics_data:
-                            theme_info += f"Sub-themes: {', '.join([t.get('name', str(t)) for t in topics_data if isinstance(t, dict)])}\n"
-                    except:
-                        pass
-                
-                rag_themes_context.append(theme_info)
-            
-            system_prompt = """You are an expert data analyst specializing in theme identification for business intelligence.
-            Your task is to generate 10-15 potential themes based on the user's query and context, leveraging the provided theme knowledge base.
 
-            CONTEXT FROM THEMES KNOWLEDGE BASE:
-            {rag_context}
-
-            USER CONTEXT:
-            - Refined Query: {refined_query}
-            - Keywords: {keywords}
-            - Applied Filters: {filters}
-
-            INSTRUCTIONS:
-            1. Use the knowledge base themes as inspiration and context.
-            2. Generate themes that are relevant to the user's specific query.
-            3. You can select existing themes, adapt them, or create new ones based on sub-themes.
-            4. Focus on themes that would be discoverable in document clustering.
-            5. Do NOT use any entity names (e.g., Apple, HDFC, SBI, etc.) or source names in theme names or descriptions.
-            6. Each theme should have a **clear, descriptive name** (no brand names), and a **detailed description** explaining what textual patterns, topics, or issues it represents.
-            7. Ensure themes are distinct and cover different facets of the user’s query context.
-            8. Write descriptions such that a Boolean query can be crafted using it — with no dependency on specific entity filters.
-
-            Return ONLY a JSON array with this exact structure:
-            [
-              {{"name": "Theme Name", "description": "Detailed description of what this theme covers"}},
-              {{"name": "Another Theme", "description": "Another detailed description"}}
-            ]
-
-            Do not include any other text or explanations."""
-
-
-
-            human_prompt = system_prompt.format(
-                rag_context='\n\n'.join(rag_themes_context),
-                refined_query=refined_query,
-                keywords=', '.join(keywords) if keywords else 'None',
-                filters=json.dumps(filters) if filters else 'None'
+            # Step 1: Initial theme brainstorming
+            initial_themes = await self._generate_initial_themes(
+                refined_query, keywords, entities, boolean_query, industry, sub_vertical, use_case
             )
             
-            messages = [HumanMessage(content=human_prompt)]
+            # Step 2: Theme quality enhancement and refinement
+            refined_themes = await self._refine_theme_quality(initial_themes, state)
             
-            # Get LLM response
-            response = await self._safe_llm_call(messages)
-            if not response:
-                raise RuntimeError("LLM failed to generate potential themes")
+            return refined_themes
             
-            # Parse JSON response with robust cleaning
-            try:
-                # Clean the response by removing markdown code blocks and extra whitespace
-                cleaned_response = response.strip()
-                
-                # Handle various markdown code block formats
-                if "```json" in cleaned_response:
-                    # Extract content between ```json and ```
-                    start_idx = cleaned_response.find("```json") + 7
-                    end_idx = cleaned_response.find("```", start_idx)
-                    if end_idx != -1:
-                        cleaned_response = cleaned_response[start_idx:end_idx].strip()
-                elif cleaned_response.startswith("```") and cleaned_response.endswith("```"):
-                    # Generic code block removal
-                    lines = cleaned_response.split("\n")
-                    if len(lines) > 2:
-                        cleaned_response = "\n".join(lines[1:-1]).strip()
-                
-                # Remove any remaining leading/trailing whitespace and newlines
-                cleaned_response = cleaned_response.strip()
-                
-                # Attempt to find JSON array if it's embedded in text
-                if not cleaned_response.startswith("["):
-                    start_bracket = cleaned_response.find("[")
-                    end_bracket = cleaned_response.rfind("]")
-                    if start_bracket != -1 and end_bracket != -1 and end_bracket > start_bracket:
-                        cleaned_response = cleaned_response[start_bracket:end_bracket + 1]
-                
-                # Parse the JSON
-                potential_themes = json.loads(cleaned_response)
-                if not isinstance(potential_themes, list):
-                    raise ValueError("Response is not a list")
-                
-                logger.info(f"Successfully parsed {len(potential_themes)} potential themes from LLM")
-                
-                # Validate theme structure
-                validated_themes = []
-                for theme in potential_themes:
-                    if isinstance(theme, dict) and "name" in theme and "description" in theme:
-                        validated_themes.append({
-                            "name": str(theme["name"]).strip(),
-                            "description": str(theme["description"]).strip()
-                        })
-                
-                if not validated_themes:
-                    raise ValueError("No valid themes found in LLM response")
-                
-                logger.info(f"Generated {len(validated_themes)} potential themes using RAG context")
-                return validated_themes
-                
-            except json.JSONDecodeError as e:
-                error_msg = f"Failed to parse LLM response as JSON: {e}"
-                logger.error(f"{error_msg}. Cleaned response was: {cleaned_response[:500]}...")
-                logger.error(f"Original response was: {response[:300]}...")
-                raise RuntimeError(error_msg) from e
-                
         except Exception as e:
             if isinstance(e, (ValueError, RuntimeError)):
                 raise
             error_msg = f"Error generating potential themes with LLM: {e}"
             logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
+
+    async def _generate_initial_themes(
+        self, 
+        refined_query: str,
+        keywords: List[str],
+        entities: List[str], 
+        boolean_query: str,
+        industry: str,
+        sub_vertical: str,
+        use_case: str
+    ) -> List[Dict[str, str]]:
+        """Generate initial set of themes using enhanced prompt engineering."""
+        
+        system_prompt = """
+        You are an expert business intelligence analyst with deep expertise in thematic analysis for enterprise dashboards.
+
+        Your task is to generate 15-20 DISTINCT analytical themes that will serve as lenses for exploring business data.
+        
+        CONTEXT ANALYSIS:
+        - Refined Query: {refined_query}
+        - Keywords: {keywords}
+        - Entities: {entities}
+        - Boolean Query: {boolean_query}
+        - Industry: {industry}
+        - Sub-Vertical: {sub_vertical}
+        - Use Case: {use_case}
+
+        THEME GENERATION REQUIREMENTS:
+        1. Generate themes that are MUTUALLY EXCLUSIVE and COLLECTIVELY EXHAUSTIVE
+        2. Focus on ACTIONABLE BUSINESS INSIGHTS rather than simple categorization
+        3. Each theme should represent a unique analytical perspective on the data
+        4. Themes must be industry-agnostic and entity-neutral (no brand names)
+        5. Consider multiple dimensions: sentiment, risk, opportunity, operational, strategic
+        6. Ensure themes can generate meaningful boolean queries for data filtering
+
+        OUTPUT FORMAT:
+        Return exactly a JSON array of objects with "name" and "description" fields.
+        Each description should be 1-2 sentences explaining the analytical value.
+        """
+
+        human_prompt = system_prompt.format(
+            refined_query=refined_query,
+            keywords=', '.join(keywords) if keywords else 'None',
+            entities=', '.join(entities) if entities else 'None',
+            boolean_query=boolean_query,
+            industry=industry,
+            sub_vertical=sub_vertical,
+            use_case=use_case
+        )
+
+        messages = [HumanMessage(content=human_prompt)]
+        response = await self._safe_llm_call(messages)
+        
+        if not response:
+            raise RuntimeError("LLM failed to generate initial themes")
+        
+        return self._parse_theme_response(response)
+
+    async def _refine_theme_quality(
+        self, 
+        initial_themes: List[Dict[str, str]], 
+        state: Dict[str, Any]
+    ) -> List[Dict[str, str]]:
+        """Refine theme quality through iterative LLM enhancement."""
+        
+        refinement_prompt = f"""
+        You are a quality control expert for business intelligence themes. 
+        
+        Review these {len(initial_themes)} themes and enhance them for maximum analytical value:
+
+        ORIGINAL THEMES:
+        {json.dumps(initial_themes, indent=2)}
+
+        ENHANCEMENT CRITERIA:
+        1. Eliminate redundant or overlapping themes
+        2. Ensure each theme offers unique analytical insight
+        3. Improve theme names for clarity and business relevance
+        4. Enhance descriptions for better boolean query generation
+        5. Prioritize themes with highest business impact potential
+        6. Maintain 10-15 highest quality themes
+
+        Return the ENHANCED themes as JSON array with same structure.
+        Focus on QUALITY over quantity - select only the most valuable analytical lenses.
+        """
+
+        messages = [HumanMessage(content=refinement_prompt)]
+        response = await self._safe_llm_call(messages)
+        
+        if not response:
+            logger.warning("Theme refinement failed, using initial themes")
+            return initial_themes
+        
+        try:
+            refined_themes = self._parse_theme_response(response)
+            logger.info(f"Enhanced Themes : {json.dumps(refined_themes, indent=2)}")
+            return refined_themes
+        except Exception as e:
+            logger.warning(f"Theme refinement parsing failed: {e}, using initial themes")
+            return initial_themes
+
+    def _parse_theme_response(self, response: str) -> List[Dict[str, str]]:
+        """Parse and validate LLM theme response."""
+        try:
+            # Clean the response by removing markdown code blocks and extra whitespace
+            cleaned_response = response.strip()
+            
+            # Handle various markdown code block formats
+            if "```json" in cleaned_response:
+                start_idx = cleaned_response.find("```json") + 7
+                end_idx = cleaned_response.find("```", start_idx)
+                if end_idx != -1:
+                    cleaned_response = cleaned_response[start_idx:end_idx].strip()
+            elif cleaned_response.startswith("```") and cleaned_response.endswith("```"):
+                lines = cleaned_response.split("\n")
+                if len(lines) > 2:
+                    cleaned_response = "\n".join(lines[1:-1]).strip()
+            
+            cleaned_response = cleaned_response.strip()
+            
+            # Attempt to find JSON array if it's embedded in text
+            if not cleaned_response.startswith("["):
+                start_bracket = cleaned_response.find("[")
+                end_bracket = cleaned_response.rfind("]")
+                if start_bracket != -1 and end_bracket != -1 and end_bracket > start_bracket:
+                    cleaned_response = cleaned_response[start_bracket:end_bracket + 1]
+            
+            # Parse the JSON
+            potential_themes = json.loads(cleaned_response)
+            if not isinstance(potential_themes, list):
+                raise ValueError("Response is not a list")
+            
+            # Validate theme structure
+            validated_themes = []
+            for theme in potential_themes:
+                if isinstance(theme, dict) and "name" in theme and "description" in theme:
+                    validated_themes.append({
+                        "name": str(theme["name"]).strip(),
+                        "description": str(theme["description"]).strip()
+                    })
+            
+            if not validated_themes:
+                raise ValueError("No valid themes found in LLM response")
+            
+            logger.info(f"Parsed {len(validated_themes)} valid themes from LLM response")
+            return validated_themes
+            
+        except json.JSONDecodeError as e:
+            error_msg = f"Failed to parse LLM response as JSON: {e}"
+            logger.error(f"{error_msg}. Cleaned response was: {cleaned_response[:500]}...")
             raise RuntimeError(error_msg) from e
 
     def _extract_documents_from_hits(self, hits: List[Dict[str, Any]]) -> List[str]:
@@ -260,38 +285,13 @@ class DataAnalyzerAgent:
         for hit in hits:
             text_content = ""
             
-            if isinstance(hit, dict):
-                # Try direct text fields first
-                for field in ['content', 'text', 'message', 'body', 'description', 'title']:
-                    if field in hit and hit[field]:
-                        text_content = str(hit[field]).strip()
-                        break
-                
-                # If no direct text field, try nested 'source' object
-                if not text_content and 'source' in hit:
-                    source = hit['source']
-                    if isinstance(source, dict):
-                        for field in ['content', 'text', 'message', 'body', 'description', 'title']:
-                            if field in source and source[field]:
-                                text_content = str(source[field]).strip()
-                                break
-                
-                # Try other common nested structures
-                if not text_content:
-                    for nested_key in ['data', 'payload', 'document', 'item']:
-                        if nested_key in hit and isinstance(hit[nested_key], dict):
-                            nested_obj = hit[nested_key]
-                            for field in ['content', 'text', 'message', 'body', 'description', 'title']:
-                                if field in nested_obj and nested_obj[field]:
-                                    text_content = str(nested_obj[field]).strip()
-                                    break
-                            if text_content:
-                                break
-            
+            if isinstance(hit, dict) and "text" in hit and hit["text"]:
+                text_content = str(hit["text"]).strip()
+
             # Add document if we found valid content
             if text_content and len(text_content) > 10:  # Minimum length check
                 documents.append(text_content)
-        
+
         if not documents:
             raise ValueError(f"No valid text content found in {len(hits)} hits")
         
@@ -301,28 +301,48 @@ class DataAnalyzerAgent:
     def _cluster_documents(self, docs: List[str]) -> Tuple[List[int], np.ndarray, BERTopic]:
         """
         Perform initial BERTopic clustering on documents.
-        
+
         Args:
             docs: List of document strings
-            
+
         Returns:
             Tuple of (topics, probabilities, topic_model)
         """
         try:
             logger.info(f"Performing initial clustering on {len(docs)} documents")
-            
+
             # Fit the topic model to the data
             topics, probs = self.topic_model.fit_transform(docs)
-            
+
             # Update topics with documents for better representation
             self.topic_model.update_topics(docs, topics)
-            
+
             logger.info(f"Initial clustering complete: {len(set(topics))} topics found")
             return topics, probs, self.topic_model
-            
+
+        except IndexError as e:
+            # Handle BERTopic clustering failure when no topics can be found
+            logger.warning(f"BERTopic could not find meaningful topics in the documents: {e}")
+            logger.info("Creating fallback clustering with single topic assignment")
+
+            # Create fallback clustering where all documents belong to topic 0
+            fallback_topics = [0] * len(docs)
+            fallback_probs = np.ones((len(docs),)) * 0.5  # Moderate confidence
+
+            # Create a new topic model instance for consistency
+            fallback_model = BERTopic(
+                embedding_model=self.embedding_model,
+                nr_topics=1,  # Force single topic
+                min_topic_size=1
+            )
+
+            return fallback_topics, fallback_probs, fallback_model
+
         except Exception as e:
             logger.error(f"Error in initial clustering: {e}")
             raise RuntimeError(f"Clustering failed: {e}") from e
+
+
 
     async def _refine_clusters_with_labels(
         self, 
@@ -332,7 +352,7 @@ class DataAnalyzerAgent:
         initial_probs: np.ndarray
     ) -> List[Dict[str, Any]]:
         """
-        Refine clusters using LLM-generated theme labels with dynamic similarity thresholds.
+        Refine clusters using LLM-generated theme labels with enhanced quality thresholds.
         
         Args:
             docs: Original document list
@@ -344,7 +364,7 @@ class DataAnalyzerAgent:
             List of refined themes with document associations
         """
         try:
-            logger.info("Refining clusters with LLM-generated labels using dynamic thresholds")
+            logger.info("Refining clusters with LLM-generated labels using enhanced quality thresholds")
             
             # Get document embeddings for semantic similarity
             doc_embeddings = self.embedding_model.encode(docs)
@@ -368,20 +388,21 @@ class DataAnalyzerAgent:
                 theme = potential_themes[theme_idx]
                 theme_similarities = similarity_matrix[:, theme_idx]
                 
-                # Dynamic threshold based on theme's similarity distribution
-                # Very lenient threshold approach for maximum theme discovery
-                # Use low percentile thresholds to capture more diverse document-theme associations
+                # Enhanced quality threshold based on distribution analysis
+                percentile_90 = np.percentile(theme_similarities, 90)
                 percentile_75 = np.percentile(theme_similarities, 75)
-                percentile_50 = np.percentile(theme_similarities, 50)  # Median
-                percentile_25 = np.percentile(theme_similarities, 25)
+                percentile_50 = np.percentile(theme_similarities, 50)
                 mean_sim = np.mean(theme_similarities)
                 
-                # Extremely lenient threshold - prioritize finding themes over quality
-                base_threshold = max(0.2, min(percentile_25, mean_sim * 0.5))  # Very low minimum
-                quality_threshold = min(0.6, max(base_threshold, percentile_50))  # Use median as cap
+                # High-quality threshold approach for top themes
+                if max_sim >= 0.7:  # High-confidence theme
+                    quality_threshold = max(0.5, percentile_75)
+                elif max_sim >= 0.5:  # Medium-confidence theme
+                    quality_threshold = max(0.4, percentile_50)
+                else:  # Lower-confidence theme
+                    quality_threshold = max(0.3, mean_sim)
                 
-                logger.debug(f"Theme '{theme['name']}': mean_sim={mean_sim:.3f}, "
-                           f"p25={percentile_25:.3f}, p50={percentile_50:.3f}, p75={percentile_75:.3f}, "
+                logger.info(f"Theme '{theme['name']}': max_sim={max_sim:.3f}, "
                            f"threshold={quality_threshold:.3f}")
                 
                 # Find unassigned documents above threshold
@@ -391,120 +412,50 @@ class DataAnalyzerAgent:
                 ]
                 
                 if candidate_docs:
-                    # Sort by similarity and take the best matches
+                    # Sort by similarity and apply quality controls
                     candidate_docs.sort(key=lambda x: theme_similarities[x], reverse=True)
                     
-                    # Very permissive document count requirements
-                    min_docs = 1  # Accept themes with even 1 document
-                    max_docs = min(int(len(docs) * 0.8), 200)  # Allow up to 80% of documents or 200 docs
-                    
+                    # Quality-based document count requirements
+                    min_docs = max(1, int(len(docs) * 0.02))  # At least 2% of documents
+                    max_docs = min(int(len(docs) * 0.4), 500)  # At most 40% of documents or 500 docs
+
                     # Take top documents for this theme
                     selected_docs = candidate_docs[:max_docs]
                     
-                    if len(selected_docs) >= min_docs:  # Only include if we have enough documents
+                    if len(selected_docs) >= min_docs:
                         # Mark documents as assigned
                         assigned_docs.update(selected_docs)
                         
                         avg_similarity = np.mean([theme_similarities[j] for j in selected_docs])
                         
+                        # Memory optimization: store only document indices and count
                         refined_themes.append({
                             "name": theme["name"],
                             "description": theme["description"],
                             "document_indices": selected_docs,
                             "document_count": len(selected_docs),
                             "avg_similarity": float(avg_similarity),
-                            "representative_docs": [docs[j] for j in selected_docs[:3]],
-                            "similarity_threshold": float(quality_threshold)
+                            "similarity_threshold": float(quality_threshold),
+                            "max_similarity": float(max_sim)
                         })
                         
-                        logger.debug(f"Theme '{theme['name']}' assigned {len(selected_docs)} docs with avg similarity {avg_similarity:.3f}")
+                        logger.info(f"Theme '{theme['name']}' assigned {len(selected_docs)} docs with avg similarity {avg_similarity:.3f}")
                     else:
-                        logger.debug(f"Theme '{theme['name']}' had {len(candidate_docs)} candidates but needed min {min_docs} docs")
+                        logger.info(f"Theme '{theme['name']}' had {len(candidate_docs)} candidates but needed min {min_docs} docs")
                 else:
-                    # Log why no candidates were found
-                    above_threshold_count = sum(1 for sim in theme_similarities if sim >= quality_threshold)
-                    already_assigned_count = sum(1 for j, sim in enumerate(theme_similarities) 
-                                               if sim >= quality_threshold and j in assigned_docs)
-                    logger.debug(f"Theme '{theme['name']}' had {above_threshold_count} docs above threshold "
-                               f"({already_assigned_count} already assigned), available: {above_threshold_count - already_assigned_count}")
+                    logger.info(f"Theme '{theme['name']}' had no unassigned documents above threshold {quality_threshold:.3f}")
             
-            logger.info(f"Refined clustering complete: {len(refined_themes)} themes with variable document counts")
+            logger.info(f"Refined clustering complete: {len(refined_themes)} themes with enhanced quality control")
             
-            # Additional debugging if no themes were generated
             if not refined_themes:
-                logger.warning("No themes were generated during refinement!")
-                logger.info(f"Total potential themes checked: {len(potential_themes)}")
-                logger.info(f"Total documents available: {len(docs)}")
-                logger.info(f"Documents already assigned: {len(assigned_docs)}")
-                
-                # Log a sample of similarity scores for debugging
-                if len(potential_themes) > 0:
-                    sample_theme = potential_themes[0]
-                    sample_sims = similarity_matrix[:, 0]
-                    logger.info(f"Sample theme '{sample_theme['name']}' similarity stats: "
-                               f"min={np.min(sample_sims):.3f}, max={np.max(sample_sims):.3f}, "
-                               f"mean={np.mean(sample_sims):.3f}, median={np.median(sample_sims):.3f}")
+                raise RuntimeError("No themes met enhanced quality thresholds - documents may be too homogeneous or themes too specific")
             
             return refined_themes
             
         except Exception as e:
             logger.error(f"Error in cluster refinement: {e}")
-            # Fallback to initial clustering
-            return self._fallback_to_initial_clustering(docs, initial_topics, initial_probs, potential_themes)
+            raise RuntimeError(f"Cluster refinement failed: {e}") from e
 
-    def _fallback_to_initial_clustering(
-        self, 
-        docs: List[str], 
-        topics: List[int], 
-        probs: np.ndarray, 
-        potential_themes: List[Dict[str, str]]
-    ) -> List[Dict[str, Any]]:
-        """
-        Fallback method using initial BERTopic clustering if refinement fails.
-        
-        Args:
-            docs: Document list
-            topics: Initial topic assignments
-            probs: Initial probabilities
-            potential_themes: Potential themes for naming
-            
-        Returns:
-            List of themes based on initial clustering
-        """
-        try:
-            refined_themes = []
-            unique_topics = [t for t in set(topics) if t != -1]  # Exclude outliers
-            
-            for topic_id in unique_topics:
-                # Find documents in this topic
-                topic_docs_idx = [i for i, t in enumerate(topics) if t == topic_id]
-                if not topic_docs_idx:
-                    continue
-                
-                # Get topic info from BERTopic
-                topic_info = self.topic_model.get_topic(topic_id)
-                topic_words = [word for word, _ in topic_info[:5]] if topic_info else []
-                
-                # Try to match with potential themes or create generic name
-                theme_name = f"Topic {topic_id}: {', '.join(topic_words[:3])}" if topic_words else f"Topic {topic_id}"
-                theme_desc = f"Documents discussing {', '.join(topic_words)}" if topic_words else f"Clustered documents in topic {topic_id}"
-                
-                avg_prob = np.mean([probs[i] for i in topic_docs_idx])
-                
-                refined_themes.append({
-                    "name": theme_name,
-                    "description": theme_desc,
-                    "document_indices": topic_docs_idx,
-                    "document_count": len(topic_docs_idx),
-                    "avg_similarity": float(avg_prob),
-                    "representative_docs": [docs[i] for i in topic_docs_idx[:3]]
-                })
-            
-            return refined_themes
-            
-        except Exception as e:
-            logger.error(f"Fallback clustering failed: {e}")
-            raise RuntimeError(f"Fallback clustering failed: {e}") from e
 
     def _score_and_select_themes(
         self, 
@@ -595,7 +546,7 @@ class DataAnalyzerAgent:
                 
                 theme["confidence_score"] = float(min(1.0, base_confidence))  # Cap at 1.0 and ensure Python float
                 
-                logger.debug(f"Theme '{theme['name']}': similarity={similarity_score:.3f}, quality={quality_score:.3f}, "
+                logger.info(f"Theme '{theme['name']}': similarity={similarity_score:.3f}, quality={quality_score:.3f}, "
                            f"keywords={keyword_score:.3f}, query={query_score:.3f}, final={theme['confidence_score']:.3f}")
             
             # Sort by confidence score and select top themes
@@ -659,37 +610,29 @@ class DataAnalyzerAgent:
                 try:
                     # Create a modified state for this specific theme
                     theme_state = state.copy()
-                    theme_state["refined_query"] = f"{theme['description']} {theme['name']}"
-                    
-                    # Extract keywords from theme representative documents
-                    theme_keywords = []
-                    if "representative_docs" in theme:
-                        # Simple keyword extraction from representative documents
-                        for doc in theme["representative_docs"]:
-                            words = doc.lower().split()
-                            # Filter for meaningful words (basic approach)
-                            meaningful_words = [w for w in words if len(w) > 3 and w.isalpha()]
-                            theme_keywords.extend(meaningful_words[:3])  # Take first 3 from each doc
-                    
-                    # Combine with original keywords
-                    combined_keywords = list(set(state.get("keywords", []) + theme_keywords[:5]))
-                    theme_state["keywords"] = combined_keywords
+                    theme_state["refined_query"] = f"{theme['name']} : {theme['description']}"
                     
                     # Generate boolean query for this theme
                     boolean_query_result = await self.query_generator._generate_boolean_query(
                         refined_query=theme_state["refined_query"],
                         keywords=[],
                         filters=[],
-                        entities=state.get("entities", []),
+                        entities=[],
                         industry=state.get("industry", ""),
                         sub_vertical=state.get("sub_vertical", ""),
                         use_case=state.get("use_case", ""),
                         defaults_applied=state.get("defaults_applied", {})
                     )
                     
-                    # Add boolean query to theme
-                    theme_copy = theme.copy()
-                    theme_copy["boolean_query"] = boolean_query_result or f'"{theme["name"]}"'
+                    # Memory optimization: create clean theme without full document text
+                    theme_copy = {
+                        "name": theme["name"],
+                        "description": theme["description"],
+                        "document_count": theme["document_count"],
+                        "avg_similarity": theme["avg_similarity"],
+                        "confidence_score": theme["confidence_score"],
+                        "boolean_query": boolean_query_result if boolean_query_result else "",
+                    }
                     enhanced_themes.append(theme_copy)
                     
                 except Exception as e:
@@ -729,7 +672,7 @@ class DataAnalyzerAgent:
             if len(documents) < 2:
                 raise ValueError("At least 2 documents required for clustering analysis")
             
-            # Step 2: Generate potential themes from state using LLM with RAG context
+            # Step 2: Generate potential themes from state using LLM
             potential_themes = await self._generate_potential_themes_with_llm(state)
             
             # Step 3: Perform initial clustering
@@ -750,7 +693,7 @@ class DataAnalyzerAgent:
                         "potential_themes_generated": len(potential_themes),
                         "final_themes_selected": 0,
                         "avg_confidence_score": 0.0,
-                        "analysis_method": "hybrid_bertopic_llm_with_rag",
+                        "analysis_method": "hybrid_bertopic_llm",
                         "no_themes_reason": "Documents did not cluster into meaningful themes"
                     }
                 }
@@ -773,7 +716,7 @@ class DataAnalyzerAgent:
                     "potential_themes_generated": len(potential_themes),
                     "final_themes_selected": len(serializable_themes),
                     "avg_confidence_score": float(np.mean([t["confidence_score"] for t in serializable_themes])) if serializable_themes else 0.0,
-                    "analysis_method": "hybrid_bertopic_llm_with_rag"
+                    "analysis_method": "hybrid_bertopic_llm"
                 }
             }
             

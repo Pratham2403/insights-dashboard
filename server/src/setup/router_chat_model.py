@@ -61,7 +61,6 @@ class RouterChatModel(BaseLLM):
         
         # Use environment configuration
         self.environment = "production"
-        print(f"RouterChatModel initialized in {self.environment} environment")
         self.temperature = temperature or settings.TEMPERATURE
         self.max_tokens = max_tokens or settings.MAX_OUTPUT_TOKENS
         

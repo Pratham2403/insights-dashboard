@@ -47,17 +47,38 @@ class Settings(BaseSettings):
     
     # API Configuration
     SPRINKLR_DATA_API_URL: str = Field(
-        default="https://space-prod0.sprinklr.com/ui/rest/reports/query",
+        default="https://space-p0-lst-poc.sprinklr.com/ui/rest/chatgpt/stream/get-mentions/9004/MESSAGE_STREAM_SUMMARIZATION_STREAM/",
         description="Sprinklr API endpoint"
     )
-    SPRINKLR_COOKIES : str = Field(default="SPR_STICKINESS=1749621537.848.68.373109|935c7dcb81a00314ea56a3b1f4989107; JSESSIONID=2552D3D6587DEE68616AB16E127ABAAC; user.env.type=ENTERPRISE; connect.token=eyJ2M1Nlc3Npb25VcGRhdGVkIjoidHJ1ZSIsImFjY2Vzc1Rva2VuIjoiZXlKaGJHY2lPaUpTVXpJMU5pSjkuZXlKemRXSWlPaUpCWTJObGMzTWdWRzlyWlc0Z1IyVnVaWEpoZEdWa0lFSjVJRk53Y21sdWEyeHlJaXdpWTJ4cFpXNTBTV1FpT2pFd01EQXdNRFExTURrc0lteHZaMmx1VFdWMGFHOWtJam9pVTBGTlRDSXNJbTkwWVVsa0lqb2lOamcwT0RBMU4yVXlPV1l4WXpnMk5UWTVaREk0WmpVNElpd2lhWE56SWpvaVUxQlNTVTVMVEZJaUxDSjBlWEFpT2lKS1YxUWlMQ0oxYzJWeVNXUWlPakV3TURBME5qSXhNellzSW5WMWFXUWlPaUkzWWpKaFlUbGpOQzA1TkdRNExUUTVOalV0T0RVeU5TMHlaVFZpT0dFME9XTmpPVE02TVRBMk1UQTJOakUyTmpnNE5ESTBJaXdpWVhWa0lqb2lVMUJTU1U1TFRGSWlMQ0p1WW1ZaU9qRTNORGsxTkRreU5qTXNJbk5qYjNCbElqcGJJbEpGUVVRaUxDSlhVa2xVUlNKZExDSnpaWE56YVc5dVZHbHRaVzkxZENJNk1UQXhNamd3TENKd1lYSjBibVZ5U1dRaU9qa3dNRFFzSW1WNGNDSTZNVGMwT1Rnd09UWTJNeXdpWVhWMGFGUjVjR1VpT2lKVFVGSmZTMFZaWDFCQlUxTmZURTlIU1U0aUxDSjBiMnRsYmxSNWNHVWlPaUpCUTBORlUxTWlMQ0pwWVhRaU9qRTNORGsxTlRBME5qTXNJbXAwYVNJNkluTndjbWx1YTJ4eUlpd2liV2xqY205VFpYSjJhV05sSWpvaWMzQnlJbjAuVWhkZzlIZUcwT093OWhNYlFMRmdOcElpblhMbjd2VFIwa2J0LXdBUzRhMXpQYXZyYjZjdjF2T1E0dHVrZFdocGpWVHZFTndBaVpVQmJFRVRXb2lvckZrNG9Idng4MVEwRllOVTc2U3FEbHdGVkZCakNoRjhKa1BCMllHa0pLeFJhS01oNXNmYm00b09OcmoyYVplVVl4dmVQSHhESktteHgtaEdZNUFzMzlXRDZFYUFBdGIyQ0ZWTlJfMnYwaTRCN3R4MjJqNTRldHdnX3RWZXBRMU1TS1RYbVRhWTRHdkloNElTS21ZOHdlOVlfLXR0OGxpNm8xQ1Brc0d1Slp6d2ZhZmNseVNadWQtQVA0SUxwcGVub3JoX1FNZHF1S1ctWkUzVk1STHVVLXpOZEM2NDJqNG1YYW1Ub3NLV09BZE5qOW9aeUxLcHVJQXRKaFRlb1AydVNnIn0.BNdq1y8/3hydsiCLwre5zRumpCvo7PnS0BgfuWIFRg8; SPR_AT=d0V5SmFhMG5xT1ZGdzVVR212aVdN; connect.sid=s%3AlIAfTTGJuCi_SkjO8Zcjf-3id4-Me-np.Jkz4gjPQfBEXdSxRsRZzK4HN74zCBRfNf%2BnnOxKeBE4; sess-exp-time=Thu, 12 Jun 2025 14:34:02 GMT", description="Sprinklr API cookies for authentication")
-    SPRINKLR_REQUEST_AT : str = Field(default="1749637562791", description="Timestamp for the Sprinklr API request")
-    SPRINKLR_REQUEST_ID: str = Field(default="space-cdc1df87-fbac-42f0-89fe-ecb0f0ba2007", description="Unique request ID for Sprinklr API")
-    SPRINKLR_CSRF_TOKEN: str = Field(default="d0V5SmFhMG5xT1ZGdzVVR212aVdN", description="CSRF token for Sprinklr API requests")
-    SPRINKLR_SENTRY_TRACE: str = Field(default="f78fe4611d08667f91ac92f6d5e6e0b2-80c993c32d637e3f", description="Sentry trace ID for Sprinklr API requests")
+    
+    # Changing headers that can be configured via environment variables
+    SPRINKLR_COOKIES: str = Field(
+        default="SPR_STICKINESS=1749725175.91.67.128084|e805d1f847d7d15b3586fc924e912afa; JSESSIONID=823A3DE37244F1C28716851EAE9D9017; user.env.type=ENTERPRISE; connect.sid=s%3ANiytl1zSEa7hmrYZELAeWFaUSmiam8ZZ.vgbp9TV2ua5Jh1GZojZRg7b7Asb3I7EOH0aqNUYTfH4; SPR_AT=NW5aRjFWSHhKWFhMeUNWMXhDUjBY; connect.token=eyJ2M1Nlc3Npb25VcGRhdGVkIjoidHJ1ZSIsImFjY2Vzc1Rva2VuIjoiZXlKaGJHY2lPaUpTVXpJMU5pSjkuZXlKemRXSWlPaUpCWTJObGMzTWdWRzlyWlc0Z1IyVnVaWEpoZEdWa0lFSjVJRk53Y21sdWEyeHlJaXdpWTJ4cFpXNTBTV1FpT2pFd01EQXdNRFExTURrc0lteHZaMmx1VFdWMGFHOWtJam9pVTBGTlRDSXNJbTkwWVVsa0lqb2lOamcwWVdGbVpqVTRPR1kyT1RJMU1HRXlNV0l5TjJaa0lpd2lhWE56SWpvaVUxQlNTVTVMVEZJaUxDSjBlWEFpT2lKS1YxUWlMQ0oxYzJWeVNXUWlPakV3TURBME5qSXhNellzSW5WMWFXUWlPaUl3TUdJeE56QTJNaTAyWm1ReExUUXpOREl0T1dSaVl5MDBZbVEwTnpRNVptUTVaVFk2TWpnME5URXhOVEV3TURVeU9EZ3dOeUlzSW1GMVpDSTZJbE5RVWtsT1MweFNJaXdpYm1KbUlqb3hOelE1TnpJek9UY3pMQ0p6WTI5d1pTSTZXeUpTUlVGRUlpd2lWMUpKVkVVaVhTd2ljMlZ6YzJsdmJsUnBiV1Z2ZFhRaU9qRXdNVEk0TUN3aWNHRnlkRzVsY2tsa0lqbzVNREEwTENKbGVIQWlPakUzTkRrNU9EUXpOek1zSW1GMWRHaFVlWEJsSWpvaVUxQlNYMHRGV1Y5UVFWTlRYMHhQUjBsT0lpd2lkRzlyWlc1VWVYQmxJam9pUVVORFJWTlRJaXdpYVdGMElqb3hOelE1TnpJMU1UY3pMQ0pxZEdraU9pSnpjSEpwYm10c2NpSXNJbTFwWTNKdlUyVnlkbWxqWlNJNkluTndjaUo5LkpHaWNJZlU2aFlPSkpGTF84aHFLb0VnNVk0c2Q4UjdMb3ZmeW1SRkxBcUNnNUFZSE5UVVN0MXVPMTA1a1FISEFNOFFMWVdrSG5JLVdJVGVMZzAwcUNHX2FVNFl1TUZpcFE0OXNjNGRxMHFKa3RlUHZYcEk2NFZ0Ql9xN2dEcGNiOG9nb24tYmZUbTNLc2RXejd6NE1IWkZtMTNEb2NxLVZMT2dwaV9jVVFZRE5QSVVoX2l2cHFuUHZ5S1pNY0JVRHRRZ1g4M29pZk9RbGdmeFgtZ0VPTlNFRVFHSkNTaEhiYUdaQ283UHNDMC1aeXp2RHdpMUFudTN0cFVmSjBvVmpTbjJUaVJvMkVxV3JHMWZUZm10T1l4ZGVvcmFZR01lemd2UmZWSldReHZFVFhReE8tVUxkTlpObXdQM1QwcXcxM1ZycHhCenJXaHgtcTRsNzcxTlRsQSJ9.IEMmg32vUvX3WZwla/Oxb61/cxOGT07wkiSsVBpzeF8; sess-exp-time=Fri, 13 Jun 2025 14:54:59 GMT",
+        description="Sprinklr API cookies for authentication"
+    )
+    SPRINKLR_X_CSRF_TOKEN: str = Field(
+        default="NW5aRjFWSHhKWFhMeUNWMXhDUjBY",
+        description="CSRF token for Sprinklr API requests"
+    )
+    SPRINKLR_X_REQUEST_ID: str = Field(
+        default="1749725218190",
+        description="Unique request ID for Sprinklr API"
+    )
+    SPRINKLR_X_USER_CONTEXT: str = Field(
+        default="c_9004_1000004509_1000462136",
+        description="User context for Sprinklr API requests"
+    )
+    SPRINKLR_SENTRY_TRACE: str = Field(
+        default="bec78ee0aba94d95b09e2e2f685222e7-bd47340070c6c6ff",
+        description="Sentry trace ID for Sprinklr API requests"
+    )
+    SPRINKLR_BAGGAGE: str = Field(
+        default="sentry-environment=prod0,sentry-release=20.7-2a766f5d3627bed01d9b9eaeac4cbdd5717cc0bf,sentry-public_key=24769b1761314c0f814bde1a0576c6f6,sentry-trace_id=bec78ee0aba94d95b09e2e2f685222e7",
+        description="Baggage header for Sprinklr API requests"
+    )
 
     # MongoDB Configuration for Persistence
-    MONGODB_URI: str = Field(default="mongodb://localhost:27017/insights_dashboard", description="MongoDB connection URI")
+    MONGODB_URI: str = Field(default="mongodb://localhost:27017/", description="MongoDB connection URI")
     MONGODB_DATABASE: str = Field(default="insights_dashboard", description="MongoDB database name")
     MONGODB_COLLECTION: str = Field(default="langgraph_checkpoints", description="MongoDB collection for checkpoints")
 

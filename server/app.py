@@ -232,7 +232,6 @@ async def process_query(query_request: QueryRequest):
                     # The __interrupt__ contains a tuple with the Interrupt object as its first element
                     interrupt_obj = event.get("__interrupt__")[0]  # Access the first element of the tuple
                     interrupt_value = interrupt_obj.value
-                    logger.info(f"📦 Interrupt event data: {interrupt_value}")
                     
                     # Initialize defaults
                     message = "Human input required"
@@ -299,7 +298,8 @@ async def process_query(query_request: QueryRequest):
                     current_state = await workflow.workflow.aget_state(config=config)
 
                     serialized_result = {
-                        "query": current_state.values.get("refined_query", ""),
+                        "query": current_state.values.get("query", []),
+                        "refined_query": current_state.values.get("refined_query", ""),
                         "keywords": current_state.values.get("keywords", []),
                         "filters": current_state.values.get("filters", {}),
                         "data_requirements": current_state.values.get("data_requirements", []),
@@ -322,7 +322,8 @@ async def process_query(query_request: QueryRequest):
             current_state = await workflow.workflow.aget_state(config=config)
             logger.info("✅ Workflow completed - returning current state")
             serialized_result = {
-                "query": current_state.values.get("refined_query", ""),
+                "query": current_state.values.get("query", []),
+                "refined_query": current_state.values.get("refined_query", ""),
                 "keywords": current_state.values.get("keywords", []),
                 "filters": current_state.values.get("filters", {}),
                 "data_requirements": current_state.values.get("data_requirements", []),

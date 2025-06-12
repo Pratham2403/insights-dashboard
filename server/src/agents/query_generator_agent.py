@@ -126,48 +126,55 @@ class QueryGeneratorAgent(LLMAgent):
         try:
 
             system_prompt = f"""
-            You are a Boolean Query Generator for retrieving raw user messages that exactly match the user’s refined intent.
+            You are a Boolean Query Generator for retrieving real-world social-media messages.
 
-            Your output **must** be one single Boolean query string, formatted to:
+            Your task: Output exactly one highly precise Boolean query string that defines the user’s message universe.
 
-            1. **Define the universe first**  
-               • Start with the entity or filter (if any), e.g. `entity: FERRARI` or `source: TWITTER`.  
-               • Then join with `AND`.
+            🧠 Core Goals:
+            1. Capture any **entities** or **filters** first if present in the `refined_query` (e.g., `<entity value>`, `key: value`).
+            2. Enforce **use_case**, **industry**, and **sub_vertical** context by including a few realistic terms defining each.
+            3. Embed **message-level indicators** – everyday expressions or slang from user posts (e.g., `internet ONEAR/10 down`, `slow NEAR/3 speed`, `love`, `frustrated`).
+            4. **Single-Word Terms Only**  
+                • Use only one-word terms wherever possible.  
+                • If you need a phrase of two, bind them with proximity by understanding the appropriat gap (<n>) between them:  
+                  - `NEAR/⟨n⟩` for unordered proximity  
+                  - `ONEAR/⟨n⟩` for ordered proximity  
+                • Never include multi-word phrases without a NEAR/ONEAR operator.
+                • Enclose two-worded terms with parentheses (e.g., `(two NEAR/3 words)`).
+            5. Include **thematic/diagnostic terms** that reflect broader user concerns or issues relevant to the use-case (e.g., `"outage"`, `"delay"`, `"disappointed"`).
 
-            2. **Enforce use‐case, industry & sub‐vertical**  
-               • Select 1–2 strong keywords that express the use‐case (e.g., monitoring, sentiment).  
-               • Select 1–2 keywords for industry/sub‐vertical context (e.g., automotive, manufacturing).  
-               • Join each concept group with `AND`.
+            📌 **Keyword List = Guidance Only:**  
+            - Treat each suggested keyword as optional; include it only if it helps define the query.  
+            - You may split or drop multi-word keywords if needed into one- or two-word terms.  
+            - Use only terms that people actually post in messages.  
+            - Skip any keyword that doesn't help narrow down the user's need.
 
-            3. **Embed message‐level indicators**  
-               • Choose 3–5 everyday terms or short phrases people write (e.g., love, hate, worst experience).  
-               • Group synonyms/variants with `OR` in parentheses: `(hate OR dislike)`.
+            📌 **Context-Driven Term Selection**  
+            • Draw from the user’s use-case, industry, and sub-vertical to pick realistic social-media words (e.g., “outage” for network monitoring, “recall” for automotive).  
+            • Choose terms people actually write on social platforms.
 
-            4. **Use proximity or exclusions**  
-               • Use `NEAR/<n>` or `ONEAR/<n>` to link sentiment to object: e.g. `"hate" NEAR/3 "Ferrari"`.  
-               • Use `NOT` to remove unwanted topics.
+            📌 **Boolean Syntax Rules (CRITICAL):**  
+            - Inline filters with space: `field: VALUE`.  
+            - Use uppercase operators: `AND`, `OR`, `NOT`, `NEAR/⟨n⟩`, `ONEAR/⟨n⟩`.  
+            - Put parentheses only around `OR`, `NEAR`, and `ONEAR` groups.  
+            - **Every** opening `(` must have a matching closing `)`.  
+            - **NOT** clauses must be complete (e.g., `NOT spam`, not just `NOT spa`).
 
-            **Operator rules**  
-            - **AND**: join distinct concepts  
-            - **OR**: within‐group synonyms/variants only  
-            - **NEAR/<n>**, **ONEAR/<n>**: proximity  
-            - **NOT**: exclusion  
+            ✅ **Validation Requirements:**  
+            1. Ensure equal number of opening and closing parentheses.
+            2. Exact two terms required for NEAR and ONEAR operator  
+            3. Ensure NOT clauses are complete with proper syntax.  
+            4. Use a maximum of 3–5 terms or expressions within each parenthesized OR group.  
+            5. Use **NOT** to exclude off-topic words.
+            6. Keep total query length under 500 characters.
 
-            **Syntax**  
-            - Wrap multi‐word phrases in escaped quotes: `\"...\"`  
-            - Inline filters as `field:<space>value`  
-            - Separate every token with spaces  
-            - Use parentheses for OR groups only  
-
-            **Example final query**  
-            entity: FERRARI AND source: TWITTER AND (monitoring OR tracking) AND automotive AND ("hate" NEAR/3 "Ferrari" OR "love" NEAR/3 "Ferrari") NOT "complaint"
-
-            Return **only** the Boolean query string, no explanation.
+            ✅ **Output:** Return **only** the Boolean query string, no explanation or JSON.
+            Example:  
+            `Ferrari AND source: TWITTER AND ((hate NEAR/3 Ferrari) OR (love NEAR/3 Ferrari)) NOT complaint`
             """
 
-
             user_prompt = f"""
-            Generate one Boolean query string for these details:
+            Build a single Boolean query string with the following inputs:
 
             Refined Query:
             {refined_query}
@@ -176,23 +183,24 @@ class QueryGeneratorAgent(LLMAgent):
             - Entity: {entities}
             - Use Case: {use_case}
             - Industry: {industry}
-            - Sub‐Vertical: {sub_vertical}
+            - Sub-Vertical: {sub_vertical}
             - Filters: {json.dumps(filters, indent=2)}
-            - Defaults Applied: {json.dumps(defaults_applied, indent=2)}
 
-            Available Keywords:
+            Available Keywords (guidance):
             {keywords}
 
-            Follow these steps in your query:
-            1. Start with the entity filter (if present) then `AND`.  
-            2. Add use‐case and industry/sub‐vertical keywords, each joined by `AND`.  
-            3. Add a parenthesized group of 3–5 message‐level indicators with `OR`.  
-            4. Use `NEAR/⟨n⟩` or `ONEAR/⟨n⟩` to link sentiment to the entity when beneficial.  
-            5. Use `NOT` to exclude irrelevant terms if needed.  
-            6. Wrap phrases in `\"...\"`, filters as `field: VALUE`, and use uppercase operators.  
-            7. Return only the final Boolean query string.  
-            """
+            Instructions:
+            1. **Start** with any entity or filter clauses (field:<space>value) joined by AND.
+            2. **Add** use_case, industry, and sub-vertical context with 2-3 realistic terms each (only if they help narrow down the user's intent).
+            3. **Insert** a parenthesized OR group of up to 3–5 message indicators (if needed).
+            4. Use `NEAR/⟨n⟩` or `ONEAR/⟨n⟩` in message indicators to tie sentiments to objects or strengthen relevant co-occurrences.
+            5. **Use NOT** to exclude off-topic or irrelevant terms if needed.
+            7. Return **only** the final query string—no extra text.
+            8. **CRITICAL**: Balance all parentheses (`(` and `)`). Count them to make sure they match.
+            9. **CRITICAL**: Ensure NOT clauses are complete.
 
+            Return **only** the Boolean query string that precisely captures the intended message universe. 
+            """
 
 
             messages = [

@@ -109,40 +109,38 @@ flowchart TD
 
 ## Overview
 
-This flow implements a sophisticated hybrid approach that combines unsupervised BERTopic clustering with LLM-enhanced theme refinement. It leverages LLM capabilities to generate natural language theme names and descriptions, and uses RAG (Retrieval-Augmented Generation) to incorporate existing theme knowledge.
+This flow implements a sophisticated hybrid approach that combines unsupervised BERTopic clustering with LLM-enhanced theme refinement. It leverages LLM capabilities to generate natural language theme names and descriptions.
 
 ## Process Description
 
 1. **Data Collection**: Using the Boolean Query Generated, the system fetches data from the Sprinklr API
-2. **Context Enrichment**: The system retrieves relevant themes from the RAG system based on the user's query and keywords
-3. **Potential Theme Generation**: An LLM generates potential themes based on query context and RAG-retrieved themes
-4. **Document Extraction**: Text content is extracted from API hits with enhanced content discovery
-5. **Initial Clustering**: BERTopic performs unsupervised clustering using `all-MiniLM-L6-v2`
-6. **Label-Guided Refinement**: The LLM-generated potential themes are used to guide the clustering through semantic similarity
-7. **Confidence Scoring**: Themes are scored based on their relevance to the original query and document clusters
-8. **Boolean Query Generation**: For each identified theme, an optimized boolean query is generated for further data collection
-9. **Theme Selection**: The top 5-10 themes are selected based on confidence scores and diversity
-10. **Output**: Final themes with names, descriptions, confidence scores, and boolean queries are returned
+2. **Potential Theme Generation**: An LLM generates potential themes based on query context
+3. **Document Extraction**: Text content is extracted from API hits with enhanced content discovery
+4. **Initial Clustering**: BERTopic performs unsupervised clustering using `all-MiniLM-L6-v2`
+5. **Label-Guided Refinement**: The LLM-generated potential themes are used to guide the clustering through semantic similarity
+6. **Confidence Scoring**: Themes are scored based on their relevance to the original query and document clusters
+7. **Boolean Query Generation**: For each identified theme, an optimized boolean query is generated for further data collection
+8. **Theme Selection**: The top 5-10 themes are selected based on confidence scores and diversity
+9. **Output**: Final themes with names, descriptions, confidence scores, and boolean queries are returned
 
 ## Flow Diagram
 
 ```mermaid
 flowchart TD
     A[Boolean Query + State Context] --> B[Fetch Data from API]
-    A --> C[Retrieve Themes from RAG]
-    C --> D[Generate Potential Themes with LLM]
-    B --> E[Extract Documents]
-    E --> F[Initial BERTopic Clustering]
-    F --> G[Refine Clusters with LLM Labels]
-    D --> G
-    G --> H[Score and Select Themes]
-    H --> I[Generate Boolean Queries for Themes]
-    I --> J[Return Enhanced Themes]
+    A --> C[Generate Potential Themes with LLM]
+    B --> D[Extract Documents]
+    D --> E[Initial BERTopic Clustering]
+    E --> F[Refine Clusters with LLM Labels]
+    C --> F
+    F --> G[Score and Select Themes]
+    G --> H[Generate Boolean Queries for Themes]
+    H --> I[Return Enhanced Themes]
 
     subgraph LLM-Enhanced Operations
-    D
-    G
-    I
+    C
+    F
+    H
     end
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
@@ -170,12 +168,12 @@ flowchart TD
 | Feature                   | Flow 1 (BERTopic-only)       | Flow 2 (Hybrid BERTopic-LLM)            |
 | ------------------------- | ---------------------------- | --------------------------------------- |
 | **Models Used**           | SentenceTransformer + BART   | SentenceTransformer + LLM + RAG         |
-| **Theme Generation**      | Statistical (term frequency) | LLM-generated with RAG context          |
+| **Theme Generation**      | Statistical (term frequency) | LLM-generated based on context          |
 | **Theme Descriptions**    | Document summarization       | LLM-crafted descriptions                |
 | **State Context Usage**   | Minimal                      | Extensive (query, keywords, filters)    |
 | **Query Generation**      | None                         | Automated for each theme                |
 | **Quality Control**       | Basic selection              | Confidence scoring & validation         |
-| **External Knowledge**    | None                         | RAG-retrieved themes                    |
+| **External Knowledge**    | None                         | None                                    |
 | **Architectural Pattern** | Linear pipeline              | Multi-stage with feedback loops         |
 | **Fallback Strategy**     | None                         | Reversion to initial clustering         |
 | **Resource Requirements** | Lower                        | Higher (LLM API calls)                  |

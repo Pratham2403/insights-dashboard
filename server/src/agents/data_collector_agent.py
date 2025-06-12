@@ -108,79 +108,67 @@ class DataCollectorAgent(LLMAgent):
                 available_filters = json.load(f)["filters"]
             
 
-            system_prompt = f"""
-            You are a Data Extraction Specialist. Your job is to analyze the user’s refined query and full query context to extract and assess:
+            system_prompt = f"""You are a Data Extraction Specialist. Examine the user’s refined query and full context, then return a single JSON object with the following fields:
+     
+            1. keywords:
+               • 30+ realistic terms that people actually use in social posts or reviews.
+               • Use casual, conversational language (including slang or emotive words), not formal or technical jargon (e.g., “internet down”, “so slow”, “I love it”, “this sucks”, “super angry”).
+               • Cover the use-case, industry, sub-vertical, and any identified entities in an everyday expression style.
+               • **Do not** include any applied filter or entity names in this list.
 
-            1. **keywords**  
-               • A set of ≥30 one- or two-word terms that end users would verbatim write in social-media or review messages.  
-               • Cover the use_case, industry, sub_vertical, and entities from context.  
-               • Exclude any filter values that are applied.
+            2. filters:
+               • Only include exact `field: value` pairs from the provided `available_filters` that are directly and explicitly mentioned in the refined query or the query history.
+               • **Do not assume, infer, or default any filter values unless they are clearly and explicitly specified by the user.**
+               • If a filter is not mentioned, do not include it in the output.
 
-            2. **filters**  
-               • Exact field:<space>value pairs drawn only from the provided `available_filters`.  
-               • Include only those filters explicitly mentioned in the refined query or query history.
+            3. defaults_applied:
+               • List any defaults you have set (e.g., `time_range: LAST_30_DAYS`) because the user did not specify them. Only apply defaults for time_range, and only if not specified by the user.
 
-            3. **data_completeness_score** (0.0–1.0)  
-               • 20%: presence of use_case, industry, sub_vertical, and entity fields in context  
-               • 30%: ≥30 relevant keywords extracted  
-               • 30%: correct application of explicit filters  
-               • 20%: non-empty conversation_summary and defaults_applied  
+            4. data_completeness_score (0.0–1.0):
+               • This score reflects how complete and realistic the data is. Compute it as follows:
+                 - 40%: use-case, industry, sub-vertical, and entity fields are present (non-null).
+                 - 20%: at least 30 realistic, everyday keywords as described above.
+                 - 30%: correct explicit filters included.
+                 - 10%: defaults applied where needed and a non-empty conversation summary.
+               • Emphasize the realism of keywords and completeness of fields in your scoring.
 
-            4. **ready_for_query_generation**  
-               • `false` if any of use_case, industry, sub_vertical, entity, keywords, or filters is missing/invalid or score < 0.7.
+            5. ready_for_query_generation:
+               • `false` if any required element is missing or if data_completeness_score < 0.7; otherwise `true`.
 
-            5. **conversation_summary**  
-               • A concise summary of everything understood so far (queries, intent, context) from the specialist’s perspective.
+            6. conversation_summary:
+               • A 2–3 sentence recap of the conversation: summarize all queries, intents, and context from your perspective.
 
-            6. **defaults_applied**  
-               • Any default filters you applied (e.g., time_range: LAST_30_DAYS).  
+            📌 **Mutually exclude** keywords, filters, entities and defaults_applied (they should not overlap).  
+            📌 **Return only** this JSON object—no extra text.
 
-            📌 **Ensure** keywords, filters, entities and defaults_applied are mutually exclusive sets.  
-            📌 **Return only** this exact JSON object (no extra text):
-
-            {{
-              "keywords": ["..."],
-              "filters": {{ ... }},
-              "defaults_applied": {{ ... }},
-              "data_completeness_score": 0.0,
-              "ready_for_query_generation": true/false,
-              "conversation_summary": "..."
-            }}
-
-            Available Filters: {json.dumps(available_filters, indent=2)}
             """
 
 
 
             user_prompt = f"""
-            Refined Query:
-            {refined_query}
-            
-            Query List:
+            Available Filters: {json.dumps(available_filters, indent=2)}
+
+            Refined Query: {refined_query}
+
+            Query History:
             {json.dumps(query_context.get("query_list", []), indent=2)}
-            
-            Use Case:
-            {json.dumps(query_context.get("use_case", []), indent=2)}
-            
-            Entities:
-            {json.dumps(query_context.get("entities", []), indent=2)}
-            
-            Industry:
-            {json.dumps(query_context.get("industry", []), indent=2)}
-            
-            Sub-Vertical:
-            {json.dumps(query_context.get("sub_vertical", []), indent=2)}
-            
+
+            Use Case: {query_context.get("use_case")}
+            Industry: {query_context.get("industry")}
+            Sub-Vertical: {query_context.get("sub_vertical")}
+            Entities: {query_context.get("entities")}
+
             Instructions:
-            - Extract ≥30 **keywords** that real users would write in messages, covering use_case, industry, sub_vertical, and entities.
-            - **Do not** include any applied filter values in the keywords list.
-            - Select **only** explicit filters (field:<space>value) from the Available Filters.
-            - Apply default time_range: LAST_30_DAYS only if no time_range filter is present.
-            - Compute `data_completeness_score` per system rules.
-            - Set `ready_for_query_generation` to false if any required field (use_case, industry, sub_vertical, entity, keywords, filters) is missing or if score < 0.7.
-            - Summarize the entire conversation so far in `conversation_summary`.
-            - Return exactly one JSON object as per schema; **no** extra text.
-            """
+            - Extract **≥30 real-world message terms** that users might write in social media or reviews, covering the use-case, industry, and sub-vertical.
+            - Keywords should use everyday language and slang; **avoid technical jargon or formal business terms**.
+            - **Exclude** any filters or entity names from the keyword list.
+            - **Do not assume, infer, or default any filter values unless they are clearly and explicitly specified by the user in the refined query or query history.**
+            - Select **only** literal filters (`field: value`) from Available Filters that match the context and are explicitly mentioned.
+            - Apply `time_range: LAST_30_DAYS` as a default only if the user did not specify a time range.
+            - Compute `data_completeness_score` according to the rules above, emphasizing realistic keyword usage and complete context fields.
+            - Set `ready_for_query_generation` to false if any required element is missing or `data_completeness_score` < 0.7.
+            - Summarize the entire conversation in `conversation_summary` (2–3 sentences).
+            - **Return exactly one JSON object** with the fields above, and nothing else."""
 
             
             messages = [

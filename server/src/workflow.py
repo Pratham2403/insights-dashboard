@@ -172,7 +172,7 @@ class SprinklrWorkflow:
         logger.info("🔍 Step 1: Query Refiner Agent")
         logger.info(" ==================== QUERY REFINER STARTED ====================")
         # Log state BEFORE processing
-        logger.info(f"🔍 Logging state before Query Refiner processing {state}")
+        logger.info(f"🔍 Logging state before Query Refiner processing {json.dumps(state)}")
 
         try:
             # Get the current query list from state
@@ -211,10 +211,10 @@ class SprinklrWorkflow:
             result = {
                 "refined_query": refined_query,  # New or updated refined query
                 "data_requirements": query_refinement.get("data_requirements", []),
-                "entities": query_refinement.get("entities", []),
-                "industry": query_refinement.get("industry", ""),
-                "sub_vertical": query_refinement.get("sub_vertical", ""),
-                "use_case": query_refinement.get("use_case", ""),
+                "entities": query_refinement.get("entities", state.get("entities", [])),
+                "industry": query_refinement.get("industry", state.get("industry", "")),
+                "sub_vertical": query_refinement.get("sub_vertical", state.get("sub_vertical", "")),
+                "use_case": query_refinement.get("use_case", state.get("use_case", "")),
                 "messages": [refinement_msg],
                 "current_stage": "query_refined"
             }
@@ -238,8 +238,8 @@ class SprinklrWorkflow:
         logger.info("📊 Step 2: Data Collector Agent")
         logger.info(" ==================== DATA COLLECTOR STARTED ====================")
 
-        logger.info(f"🔍 Logging state before Data Collector processing {state}")
-        
+        logger.info(f"🔍 Logging state before Data Collector processing {json.dumps(state)}")
+
         try:
             refined_query = state.get("refined_query", state.get("query")[-1])
             
@@ -299,7 +299,7 @@ class SprinklrWorkflow:
         logger.info("👤 Step 3: Mandatory HITL Verification (Human-in-the-Loop)")
         logger.info(" ==================== HITL VERIFICATION STARTED ====================")
 
-        logger.info(f"Logging State Before HITL Verification: {state}")
+        logger.info(f"Logging State Before HITL Verification: {json.dumps(state)}")
 
         step = state.get("hitl_step", 1)  # Default to step 1 for normal verification
         logger.info(f"🔢 HITL Step: {step}")
@@ -441,8 +441,8 @@ class SprinklrWorkflow:
         logger.info("🔧 Step 4: Query Generator Agent")
         logger.info(" ==================== BOOLEANQUERY GENERATOR STARTED ====================")
         # Log state BEFORE processing
-        logger.info(f"🔍 Logging state before Query Generator processing {state}")
-        
+        logger.info(f"🔍 Logging state before Query Generator processing {json.dumps(state)}")
+
         try:
             
             # Generate Boolean query using correct method
@@ -474,8 +474,8 @@ class SprinklrWorkflow:
                 "current_stage": "boolean_query_generated"
             }
             
-            # Log state AFTER processing
-            self._log_state_debug("QUERY_GENERATOR_AFTER", {**state, **result})
+
+            
             
             return result
             
@@ -509,8 +509,8 @@ class SprinklrWorkflow:
         logger.info("🛠️ Step 5: Tool Execution")
         logger.info(" ==================== TOOL EXECUTION STARTED ====================")
         # Log state BEFORE processing
-        logger.info(f"🔍 Logging state before Tool Execution processing {state}")
-        
+        logger.info(f"🔍 Logging state before Tool Execution processing {json.dumps(state)}")
+
         try:
             boolean_query = state.get("boolean_query", "")
             
@@ -522,7 +522,7 @@ class SprinklrWorkflow:
             logger.info(f"🛠️ Executing tool with Boolean query: {boolean_query[:100]}")
             
             # Execute the get_sprinklr_data tool using the invoke method (modern LangChain pattern)
-            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 1000})
+            hits = await get_sprinklr_data.ainvoke({"query": boolean_query, "limit": 5000})
             
             logger.info(f"🛠️ Retrieved {len(hits)} hits from Sprinklr API")
             
@@ -536,11 +536,11 @@ class SprinklrWorkflow:
             
             result = {
                 "messages": [tool_msg],
-                "hits_count": len(hits),  # Store only count, not actual hits
-                "tool_execution_completed": True
+                "current_stage": "tool_execution_completed",
+                "next_node": "data_analyzer",  
             }
             
-
+        
             logger.info(f"🛠️ Tool execution completed with {len(hits)} hits")
             
             return result
@@ -560,9 +560,9 @@ class SprinklrWorkflow:
         - Updates themes in state and returns final results
         """
         logger.info("📈 Step 6: Data Analyzer Agent")
-        
-        # Log state BEFORE processing
-        self._log_state_debug("DATA_ANALYZER_BEFORE", state)
+        logger.info(" ==================== DATA ANALYZER STARTED ====================")
+        logger.info(f"🔍 Logging state before Data Analyzer processing {json.dumps(state)}")
+
         
         try:
             # Get hits from workflow instance (NOT from state) to prevent memory explosion
@@ -607,7 +607,6 @@ class SprinklrWorkflow:
             }
             
             # Log state AFTER processing
-            self._log_state_debug("DATA_ANALYZER_AFTER", {**state, **result})
             
             return result
             
@@ -624,6 +623,9 @@ class SprinklrWorkflow:
                 "completed_at": datetime.now().isoformat(),
                 "errors": [str(e)]
             }
+        finally:
+            logger.info(" ==================== DATA ANALYZER COMPLETED ====================")
+            logger.info(f"🔍 Logging FINAL STATE {json.dumps(state)}")
 
     def _serialize_state_for_json(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -654,7 +656,6 @@ class SprinklrWorkflow:
         }
         
         # Log the exact format of the serialized state for debugging
-        logger.info(f"STATE_DUMP: {json.dumps(serialized_state, default=str)}")
         
         return serialized_state
 
@@ -833,7 +834,6 @@ class SprinklrWorkflow:
             config = {"configurable": {"thread_id": thread_id}}
             
             # Get state from memory
-            print(f"Self Workflow: {self}")
             state = await self.workflow.aget_state(config)
             
             return {

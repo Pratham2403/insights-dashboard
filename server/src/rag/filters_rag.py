@@ -60,7 +60,6 @@ class FiltersRAG:
         self.knowledge_base_path = Path(__file__).parent.parent / "knowledge_base"
         
         # Collection names
-        self.themes_collection = "themes_collection"
         self.patterns_collection = "keyword_patterns_collection"
         self.use_cases_collection = "use_cases_collection"
         
@@ -75,12 +74,10 @@ class FiltersRAG:
                 raise RuntimeError("Vector database not available, cannot initialize collections")
             
             # Create collections if they don't exist
-            self.vector_db.create_collection(self.themes_collection)
             self.vector_db.create_collection(self.patterns_collection)
             self.vector_db.create_collection(self.use_cases_collection)
             
             # Load and index data
-            self._load_themes_data()
             self._load_keyword_patterns()
             self._load_use_cases()
             
@@ -97,112 +94,6 @@ class FiltersRAG:
 
 
 
-    def _load_themes_data(self):
-        """Load and index themes data from themes.json file."""
-        if self.vector_db is None:
-            raise RuntimeError("Vector database not available, cannot load themes data")
-            
-        try:
-            # Load themes from themes.json file
-            themes_file = self.knowledge_base_path / "themes.json"
-            
-            if not themes_file.exists():
-                raise FileNotFoundError(f"Themes file not found at: {themes_file}")
-                
-            with open(themes_file, 'r', encoding='utf-8') as f:
-                themes_data = json.load(f)
-            
-            # Extract themes from the JSON structure
-            if not isinstance(themes_data, dict) or "themes" not in themes_data:
-                raise ValueError("Invalid themes.json structure: expected 'themes' key at root level")
-                
-            themes_list = themes_data["themes"]
-            if not isinstance(themes_list, list):
-                raise ValueError("Invalid themes.json structure: 'themes' should be a list")
-                
-            if not themes_list:
-                raise ValueError("No themes found in themes.json file")
-            
-            documents = []
-            metadatas = []
-            ids = []
-            
-            for i, theme in enumerate(themes_list):
-                # Validate theme structure
-                if not isinstance(theme, dict) or "name" not in theme or "description" not in theme:
-                    logger.warning(f"Skipping invalid theme at index {i}: missing name or description")
-                    continue
-                
-                # Extract keywords, handling both list and missing keywords
-                keywords = theme.get("keywords", [])
-                if not isinstance(keywords, list):
-                    keywords = []
-                
-                # Extract related_filters, handling both list and missing filters
-                related_filters = theme.get("related_filters", [])
-                if not isinstance(related_filters, list):
-                    related_filters = []
-                
-                # Extract related_topics for additional context if available
-                related_topics = theme.get("related_topics", [])
-                if not isinstance(related_topics, list):
-                    related_topics = []
-                
-                # Create comprehensive document text for semantic search
-                doc_text = f"{theme['name']}: {theme['description']}"
-                
-                # Add keywords to document text if available
-                if keywords:
-                    doc_text += f" Keywords: {', '.join(keywords)}"
-                
-                # Add related filters to document text if available
-                if related_filters:
-                    doc_text += f" Related Filters: {', '.join(related_filters)}"
-                
-                # Add related topics to document text if available and not empty
-                if related_topics:
-                    # Extract topic names/descriptions for searchable text
-                    topic_text = []
-                    for topic in related_topics:
-                        if isinstance(topic, dict):
-                            if "name" in topic:
-                                topic_text.append(topic["name"])
-                            if "description" in topic:
-                                topic_text.append(topic["description"])
-                        elif isinstance(topic, str):
-                            topic_text.append(topic)
-                    
-                    if topic_text:
-                        doc_text += f" Related Topics: {', '.join(topic_text)}"
-                
-                documents.append(doc_text)
-                
-                # Convert lists to strings for ChromaDB compatibility
-                metadata = {
-                    "name": theme["name"],
-                    "description": theme["description"],
-                    "keywords": ", ".join(keywords) if keywords else "",
-                    "related_filters": ", ".join(related_filters) if related_filters else "",
-                    "related_topics": json.dumps(related_topics) if related_topics else "[]"
-                }
-                metadatas.append(metadata)
-                ids.append(f"theme_{i}")
-            
-            if not documents:
-                raise ValueError("No valid themes found in themes.json file")
-            
-            self.vector_db.add_documents(
-                self.themes_collection,
-                documents=documents,
-                metadatas=metadatas,
-                ids=ids
-            )
-            
-            logger.info(f"Loaded {len(documents)} theme items from themes.json")
-            
-        except Exception as e:
-            logger.error(f"Failed to load themes data: {e}")
-            raise
     
     def _load_keyword_patterns(self):
         """Load and index keyword query patterns."""
@@ -323,50 +214,6 @@ class FiltersRAG:
 
 
 
-    def search_themes(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
-        """
-        Search for relevant themes based on query.
-        
-        Args:
-            query: Search query
-            n_results: Number of results to return
-            
-        Returns:
-            List of relevant theme information
-        """
-        if self.vector_db is None:
-            logger.warning("Vector database not available, returning empty search results")
-            return []
-            
-        try:
-            results = self.vector_db.search_documents(
-                self.themes_collection,
-                query=query,
-                n_results=n_results
-            )
-            
-            return results.get("metadatas", [[]])[0]
-            
-        except Exception as e:
-            logger.error(f"Failed to search themes: {e}")
-            return []
-    
-    def search_relevant_themes(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        """
-        Search for relevant themes based on query (alias for search_themes).
-        
-        This method provides backward compatibility for existing code that expects
-        search_relevant_themes method name.
-        
-        Args:
-            query: Search query
-            top_k: Number of results to return (alias for n_results)
-            
-        Returns:
-            List of relevant theme information
-        """
-        return self.search_themes(query, n_results=top_k)
-    
     def search_keyword_patterns(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
         """
         Search for relevant keyword patterns based on query.
@@ -435,7 +282,6 @@ class FiltersRAG:
         """
         try:
             context = {
-                "themes": self.search_themes(query),
                 "keyword_patterns": self.search_keyword_patterns(query),
                 "use_cases": self.search_use_cases(query)
             }

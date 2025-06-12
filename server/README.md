@@ -228,13 +228,12 @@ A straightforward approach using unsupervised clustering with BERTopic and BART 
 
 A sophisticated hybrid approach combining unsupervised clustering with LLM refinement:
 
-1. Uses RAG to retrieve relevant existing themes based on query context
-2. Generates potential themes using an LLM with RAG context
-3. Performs initial BERTopic clustering on documents
-4. Refines clusters using LLM-generated labels through semantic similarity
-5. Scores themes based on confidence and relevance
-6. Generates boolean queries for each theme
-7. Returns enhanced themes with confidence scores and queries
+1. Generates potential themes using an LLM based on query context
+2. Performs initial BERTopic clustering on documents
+3. Refines clusters using LLM-generated labels through semantic similarity
+4. Scores themes based on confidence and relevance
+5. Generates boolean queries for each theme
+6. Returns enhanced themes with confidence scores and queries
 
 ## Architecture Design Principles
 
