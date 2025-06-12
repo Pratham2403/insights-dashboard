@@ -44,6 +44,8 @@ class DashboardState(TypedDict):
     current_stage: Optional[str]
     workflow_status: Optional[str]
     workflow_started: Optional[str]
+    data_requirements: Optional[List[str]] ### IMPORTANT
+
 
     hitl_step: Optional[int]  ### IMPORTANT - tracks HITL step progression
     user_input: Optional[str]  ### IMPORTANT - current user input
@@ -51,21 +53,20 @@ class DashboardState(TypedDict):
     reason: Optional[str]      ### IMPORTANT - reason for HITL trigger (e.g., "clarification_needed")
     
     # Processing metadata
-    extracted_entities: Optional[List[str]]
-    defaults_applied: Optional[List[str]]
-    data_requirements: Optional[List[str]] ### IMPORTANT
+    entities: Optional[List[str]]
+    industry: Optional[str]
+    sub_vertical: Optional[str]
+    use_case: Optional[str]
+    defaults_applied: Optional[Dict[str, Any]]  # Applied defaults for the query
+    conversation_summary: Optional[str]  # Summary of the conversation
     
     # HITL verification
     human_feedback: Optional[str]
-    needs_human_input: Optional[bool]
     
     # Workflow tracking
-    step_history: Optional[List[str]]
     errors: Optional[List[str]]
-    warnings: Optional[List[str]]
     
-    # Analysis results (simplified) - removed tool_results to prevent memory explosion
-    analysis_results: Optional[Dict[str, Any]]
+
 
 
 def create_initial_state(user_query: str, thread_id: str = None) -> DashboardState:
@@ -84,6 +85,11 @@ def create_initial_state(user_query: str, thread_id: str = None) -> DashboardSta
         filters=None,
         boolean_query=None,
         themes=None,
+        entities=[],
+        industry=None,
+        sub_vertical=None,
+        use_case=None,  
+        
         
         # LangGraph compatibility
         messages=[HumanMessage(content=user_query)],
@@ -93,10 +99,7 @@ def create_initial_state(user_query: str, thread_id: str = None) -> DashboardSta
         current_stage="initial",
         workflow_status="started",
         workflow_started=datetime.now().isoformat(),
-        step_history=[],
         errors=[],
-        warnings=[],
-        extracted_entities=[],
         defaults_applied=[],
         data_requirements=[],
         
@@ -108,6 +111,4 @@ def create_initial_state(user_query: str, thread_id: str = None) -> DashboardSta
         
         # Additional required fields
         human_feedback=None,
-        needs_human_input=None,
-        analysis_results=None
     )

@@ -13,8 +13,6 @@ import logging
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base.agent_base import LLMAgent
-from src.tools.modern_tools import  process_data
-from src.tools.get_tool import get_sprinklr_data
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +24,12 @@ class DataCollectorAgent(LLMAgent):
     """
     
     def __init__(self, llm=None):
-        super().__init__("modern_data_collector", llm)
+        super().__init__("data_collector", llm)
     
     async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Modern data collection workflow.
-        
+        Data collection workflow.
+
         This agent extracts keywords, filters, and data requirements from the refined query.
         It does NOT execute boolean queries - that's for the Query Generator + ToolNode.
         
@@ -41,13 +39,25 @@ class DataCollectorAgent(LLMAgent):
         Returns:
             State updates with extracted keywords, filters, and data requirements
         """
-        self.logger.info("Modern data collector agent invoked")
+        self.logger.info("Data collector agent invoked")
         
-        # Get refined query from state with multiple fallback options
+        # Get Needed State Information
         refined_query = state.get("refined_query", state.get("query")[-1])
-            
-        query_context = state.get("query")
-        
+        query_list = state.get("query")
+        use_case = state.get("use_case", "General Use Case")
+        entities = state.get("entities", [])
+        industry = state.get("industry", "")
+        sub_vertical = state.get("sub_vertical", "")
+        query_context = {
+            "query_list": query_list,
+            "use_case": use_case,
+            "entities": entities,
+            "industry": industry,
+            "sub_vertical": sub_vertical,
+        }
+
+
+
         if not refined_query:
             self.logger.error("No refined query found in state")
         
@@ -62,8 +72,10 @@ class DataCollectorAgent(LLMAgent):
         result = {
             "keywords": extracted_data.get("keywords", []),
             "filters": extracted_data.get("filters", {}),
+            "conversation_summary": extracted_data.get("conversation_summary", ""),
+            "defaults_applied": extracted_data.get("defaults_applied", {}),
             "messages": [AIMessage(
-                content=f"Data extraction complete: {len(extracted_data.get('keywords', []))} keywords, {len(extracted_data.get('filters', {}))} filter types",
+                content=f"Data extraction complete: {len(extracted_data.get('keywords', []))} keywords, {len(extracted_data.get('filters', {}))} filter types and {len(extracted_data.get('defaults_applied', {}))} defaults applied.",
                 name=self.agent_name
             )]
         }
@@ -95,63 +107,81 @@ class DataCollectorAgent(LLMAgent):
             with open(filters_path, "r") as f:
                 available_filters = json.load(f)["filters"]
             
-            # Create extraction prompt
+
             system_prompt = f"""
-            You are a Data Extraction Specialist. Your job is to analyze user queries and refined prompts to extract:
+            You are a Data Extraction Specialist. Your job is to analyze the user’s refined query and full query context to extract and assess:
 
             1. **keywords**  
-               • At least **30 one- or two-word terms** that are **verbatim** matches for what end users might write in UGC (social media, reviews, forums).  
-               • Must include three categories:
-                 1. **Entities/Topics** (e.g., “brand_name”, “product_name”)  
-                 2. **Intent Signals** (e.g., “monitoring”, “insights”, “analysis”)  
-                 3. **Raw Message Indicators** – actual sentiments or experiences (e.g., “love”, “hate”, “never buying again”, “worst experience”, “amazing service”, “broken”, “refund”, “recommend”).  
-               • These are the exact words or short phrases you’d query on in a database to retrieve relevant messages.  
-               • **Do not** limit yourself to abstract business terms—focus on everyday language people use when talking about the brand.
+               • A set of ≥30 one- or two-word terms that end users would verbatim write in social-media or review messages.  
+               • Cover the use_case, industry, sub_vertical, and entities from context.  
+               • Exclude any filter values that are applied.
 
             2. **filters**  
-               • Exact key:value pairs drawn **only** from the provided `available_filters`.  
-               • Do **not** assume or add any filter (time, source, geography) unless it’s literally in the query or context.
+               • Exact field:<space>value pairs drawn only from the provided `available_filters`.  
+               • Include only those filters explicitly mentioned in the refined query or query history.
 
-            3. **data_completeness assessment**  
-               • A score between 0.0–1.0 based on:  
-                 – 30%: coverage of the three keyword categories above  
-                 – 30%: correct use of explicit filters  
-                 – 20%: clarity of user intent via keywords  
-                 – 20%: presence of analysis goals (e.g., “compare,” “track,” “detect issues”)  
+            3. **data_completeness_score** (0.0–1.0)  
+               • 20%: presence of use_case, industry, sub_vertical, and entity fields in context  
+               • 30%: ≥30 relevant keywords extracted  
+               • 30%: correct application of explicit filters  
+               • 20%: non-empty conversation_summary and defaults_applied  
 
-               • Set `"ready_for_query_generation"` to **false** if score < 0.7 or if any category is missing.
+            4. **ready_for_query_generation**  
+               • `false` if any of use_case, industry, sub_vertical, entity, keywords, or filters is missing/invalid or score < 0.7.
 
-            📌 **Return only** the JSON object, nothing else:
+            5. **conversation_summary**  
+               • A concise summary of everything understood so far (queries, intent, context) from the specialist’s perspective.
+
+            6. **defaults_applied**  
+               • Any default filters you applied (e.g., time_range: LAST_30_DAYS).  
+
+            📌 **Ensure** keywords, filters, entities and defaults_applied are mutually exclusive sets.  
+            📌 **Return only** this exact JSON object (no extra text):
 
             {{
-              "keywords": ["..."],        # ≥30 terms across Entities, Intent, Raw Indicators
-              "filters": {{...}},         # only explicit filters
+              "keywords": ["..."],
+              "filters": {{ ... }},
+              "defaults_applied": {{ ... }},
               "data_completeness_score": 0.0,
-              "ready_for_query_generation": true/false
+              "ready_for_query_generation": true/false,
+              "conversation_summary": "..."
             }}
 
             Available Filters: {json.dumps(available_filters, indent=2)}
             """
 
 
+
             user_prompt = f"""
             Refined Query:
             {refined_query}
             
-            Full Query Context:
-            {query_context}
+            Query List:
+            {json.dumps(query_context.get("query_list", []), indent=2)}
+            
+            Use Case:
+            {json.dumps(query_context.get("use_case", []), indent=2)}
+            
+            Entities:
+            {json.dumps(query_context.get("entities", []), indent=2)}
+            
+            Industry:
+            {json.dumps(query_context.get("industry", []), indent=2)}
+            
+            Sub-Vertical:
+            {json.dumps(query_context.get("sub_vertical", []), indent=2)}
             
             Instructions:
-            - Extract **≥30 keywords** including:
-              1. Entities/topics (brand, product)
-              2. Intent signals (monitoring, insights)
-              3. **Raw message indicators**—common sentiment words and phrases people actually post (e.g., love, hate, worst, best, amazing, terrible, broken, recommend, never buying again).  
-            - Use filters **only** if explicitly mentioned.
-            - Do not assume any unstated parameters.
+            - Extract ≥30 **keywords** that real users would write in messages, covering use_case, industry, sub_vertical, and entities.
+            - **Do not** include any applied filter values in the keywords list.
+            - Select **only** explicit filters (field:<space>value) from the Available Filters.
+            - Apply default time_range: LAST_30_DAYS only if no time_range filter is present.
             - Compute `data_completeness_score` per system rules.
-            - Return exactly one JSON object per schema; no extra text.
+            - Set `ready_for_query_generation` to false if any required field (use_case, industry, sub_vertical, entity, keywords, filters) is missing or if score < 0.7.
+            - Summarize the entire conversation so far in `conversation_summary`.
+            - Return exactly one JSON object as per schema; **no** extra text.
             """
-            
+
             
             messages = [
                 SystemMessage(content=system_prompt),

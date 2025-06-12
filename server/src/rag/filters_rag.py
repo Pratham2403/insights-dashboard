@@ -6,7 +6,6 @@ information and context to help agents make better decisions about user queries.
 
 # Purpose:
 - Load and index Sprinklr filter information
-- Provide semantic search capabilities for filters
 - Support query refinement with contextual filter suggestions
 """
 
@@ -61,7 +60,6 @@ class FiltersRAG:
         self.knowledge_base_path = Path(__file__).parent.parent / "knowledge_base"
         
         # Collection names
-        self.filters_collection = "filters_collection"
         self.themes_collection = "themes_collection"
         self.patterns_collection = "keyword_patterns_collection"
         self.use_cases_collection = "use_cases_collection"
@@ -75,15 +73,13 @@ class FiltersRAG:
             # Check if vector_db is available
             if self.vector_db is None:
                 raise RuntimeError("Vector database not available, cannot initialize collections")
-                
-            # Create collections
-            self.vector_db.create_collection(self.filters_collection)
+            
+            # Create collections if they don't exist
             self.vector_db.create_collection(self.themes_collection)
             self.vector_db.create_collection(self.patterns_collection)
             self.vector_db.create_collection(self.use_cases_collection)
             
             # Load and index data
-            self._load_filters_data()
             self._load_themes_data()
             self._load_keyword_patterns()
             self._load_use_cases()
@@ -95,86 +91,12 @@ class FiltersRAG:
             # Re-raise the error so calling code knows initialization failed
             raise
     
-    def _load_filters_data(self):
-        """Load and index Sprinklr filters data."""
-        if self.vector_db is None:
-            raise RuntimeError("Vector database not available, cannot load filters data")
-            
-        try:
-            filters_file = self.knowledge_base_path / "filters.json"
-            
-            # For now, create sample filters data since the file is empty
-            sample_filters = [
-                {
-                    "name": "Brand Mentions",
-                    "description": "Filter to track mentions of specific brands across channels",
-                    "category": "content",
-                    "keywords": ["brand", "mentions", "tracking"]
-                },
-                {
-                    "name": "Sentiment Analysis",
-                    "description": "Filter posts by sentiment (positive, negative, neutral)",
-                    "category": "sentiment",
-                    "keywords": ["sentiment", "positive", "negative", "emotion"]
-                },
-                {
-                    "name": "Channel Filter",
-                    "description": "Filter by social media channels (Twitter, Facebook, Instagram)",
-                    "category": "source",
-                    "keywords": ["twitter", "facebook", "instagram", "channel", "platform"]
-                },
-                {
-                    "name": "Time Period",
-                    "description": "Filter by date ranges and time periods",
-                    "category": "temporal",
-                    "keywords": ["date", "time", "period", "last 30 days", "last week"]
-                },
-                {
-                    "name": "Geographic Location",
-                    "description": "Filter by geographic location and regions",
-                    "category": "location",
-                    "keywords": ["location", "geography", "region", "country", "city"]
-                },
-                {
-                    "name": "Influencer Analysis",
-                    "description": "Filter and analyze influencer content and reach",
-                    "category": "influencer",
-                    "keywords": ["influencer", "reach", "followers", "engagement"]
-                }
-            ]
-            
-            documents = []
-            metadatas = []
-            ids = []
-            
-            for i, filter_item in enumerate(sample_filters):
-                doc_text = f"{filter_item['name']}: {filter_item['description']} Keywords: {', '.join(filter_item['keywords'])}"
-                documents.append(doc_text)
-                
-                # Convert lists to strings for ChromaDB compatibility
-                metadata = {
-                    "name": filter_item["name"],
-                    "description": filter_item["description"],
-                    "keywords": ", ".join(filter_item["keywords"]),
-                    "category": filter_item.get("category", "general"),
-                    "required": filter_item.get("required", False)
-                }
-                metadatas.append(metadata)
-                ids.append(f"filter_{i}")
-            
-            self.vector_db.add_documents(
-                self.filters_collection,
-                documents=documents,
-                metadatas=metadatas,
-                ids=ids
-            )
-            
-            logger.info(f"Loaded {len(documents)} filter items")
-            
-        except Exception as e:
-            logger.error(f"Failed to load filters data: {e}")
-            raise
+
+
     
+
+
+
     def _load_themes_data(self):
         """Load and index themes data from themes.json file."""
         if self.vector_db is None:
@@ -394,51 +316,13 @@ class FiltersRAG:
         except Exception as e:
             logger.error(f"Failed to load use cases: {e}")
             raise
-    
-    def search_filters(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
-        """
-        Search for relevant filters based on query.
-        
-        Args:
-            query: Search query
-            n_results: Number of results to return
-            
-        Returns:
-            List of relevant filter information
-        """
-        if self.vector_db is None:
-            logger.warning("Vector database not available, returning empty search results")
-            return []
-            
-        try:
-            results = self.vector_db.search_documents(
-                self.filters_collection,
-                query=query,
-                n_results=n_results
-            )
-            
-            return results.get("metadatas", [[]])[0]
-            
-        except Exception as e:
-            logger.error(f"Failed to search filters: {e}")
-            return []
-    
-    def search_relevant_filters(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
-        """
-        Search for relevant filters based on query (alias for search_filters).
-        
-        This method provides backward compatibility for existing code that expects
-        search_relevant_filters method name.
-        
-        Args:
-            query: Search query
-            n_results: Number of results to return
-            
-        Returns:
-            List of relevant filter information
-        """
-        return self.search_filters(query, n_results)
-    
+
+
+
+
+
+
+
     def search_themes(self, query: str, n_results: int = 3) -> List[Dict[str, Any]]:
         """
         Search for relevant themes based on query.
@@ -551,7 +435,6 @@ class FiltersRAG:
         """
         try:
             context = {
-                "filters": self.search_filters(query),
                 "themes": self.search_themes(query),
                 "keyword_patterns": self.search_keyword_patterns(query),
                 "use_cases": self.search_use_cases(query)

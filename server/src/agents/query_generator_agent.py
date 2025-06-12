@@ -61,6 +61,12 @@ class QueryGeneratorAgent(LLMAgent):
             refined_query = state.get("refined_query", description)
             keywords = state.get("keywords", [])
             filters = state.get("filters", {})
+            entities = state.get("entities", [])
+            industry = state.get("industry", "")
+            sub_vertical = state.get("sub_vertical", "")
+            use_case = state.get("use_case", "")
+            defaults_applied = state.get("defaults_applied", {})
+
             
             if not refined_query:
                 logger.warning("No refined query found, using keywords only for Boolean query generation")
@@ -70,6 +76,11 @@ class QueryGeneratorAgent(LLMAgent):
                 refined_query=refined_query,
                 keywords=keywords,
                 filters=filters,
+                entities=entities,
+                industry=industry, 
+                sub_vertical=sub_vertical,
+                use_case=use_case,
+                defaults_applied=defaults_applied
             )
             
             if boolean_query:
@@ -94,8 +105,8 @@ class QueryGeneratorAgent(LLMAgent):
         except Exception as e:
             self.logger.error(f"Query generation failed: {e}")
             return {"error": f"Query generation error: {str(e)}"}
-    
-    async def _generate_boolean_query(self, refined_query: str, keywords: List[str], filters: List[Dict]) -> Optional[str]:
+
+    async def _generate_boolean_query(self, refined_query: str, keywords: List[str], filters: List[Dict], entities: List[str], industry: str, sub_vertical: str, use_case: str, defaults_applied: Dict) -> Optional[str]:
         """
         Generate Boolean query using LLM with proper syntax.
         
@@ -103,66 +114,83 @@ class QueryGeneratorAgent(LLMAgent):
             refined_query: User's refined query
             keywords: List of keywords
             filters: List of exact filters to apply
-            
+            entities: List of entities
+            industry: Industry string
+            sub_vertical: Sub-vertical string
+            use_case: Use case string
+            defaults_applied: Dictionary of defaults applied
+
         Returns:
             Boolean query string or None if generation fails
         """
         try:
 
-
-            # Create system prompt with examples
             system_prompt = f"""
-            You are a Boolean Query Generator specialized in retrieving raw user-generated messages from social platforms.
+            You are a Boolean Query Generator for retrieving raw user messages that exactly match the user’s refined intent.
 
-            Your task is to convert a refined intent into one precise Boolean query that returns exactly the user’s messages of interest.
+            Your output **must** be one single Boolean query string, formatted to:
 
-            Key principles:
-            1. **Keyword matching**  
-               • Use only **message-level indicator terms**—words or short phrases people actually write (e.g., love, hate, worst, amazing, defect, never buying again).  
-               • **Do not** use abstract concepts (brand, monitoring, insights).
+            1. **Define the universe first**  
+               • Start with the entity or filter (if any), e.g. `entity: FERRARI` or `source: TWITTER`.  
+               • Then join with `AND`.
 
-            2. **Filter matching**  
-               • Include only **explicit** field:<space>value filters (e.g., source: TWITTER).  
-               • **Do not** invent or assume any filters.
+            2. **Enforce use‐case, industry & sub‐vertical**  
+               • Select 1–2 strong keywords that express the use‐case (e.g., monitoring, sentiment).  
+               • Select 1–2 keywords for industry/sub‐vertical context (e.g., automotive, manufacturing).  
+               • Join each concept group with `AND`.
 
-            Supported operators (uppercase only):  
-            - AND  – both terms required  
-            - OR   – either term acceptable  
-            - NOT  – exclude term  
-            - NEAR – terms appear close together  
-            - ONEAR– terms within a specified distance (e.g., love ONEAR defect)
+            3. **Embed message‐level indicators**  
+               • Choose 3–5 everyday terms or short phrases people write (e.g., love, hate, worst experience).  
+               • Group synonyms/variants with `OR` in parentheses: `(hate OR dislike)`.
 
-            Syntax rules:
-            - Separate every token and operator with spaces.  
-            - Inline filters exactly as field:<space>value (e.g., source: TWITTER).  
-            - Use parentheses to group OR expressions.  
-            - Use NEAR/ONEAR for proximity-based sentiment-object pairs.  
-            - Only include keywords and filters directly from the provided lists.
+            4. **Use proximity or exclusions**  
+               • Use `NEAR/<n>` or `ONEAR/<n>` to link sentiment to object: e.g. `"hate" NEAR/3 "Ferrari"`.  
+               • Use `NOT` to remove unwanted topics.
 
-            Examples:
-            {chr(10).join(self.query_patterns.get('example_queries', []))}
+            **Operator rules**  
+            - **AND**: join distinct concepts  
+            - **OR**: within‐group synonyms/variants only  
+            - **NEAR/<n>**, **ONEAR/<n>**: proximity  
+            - **NOT**: exclusion  
+
+            **Syntax**  
+            - Wrap multi‐word phrases in escaped quotes: `\"...\"`  
+            - Inline filters as `field:<space>value`  
+            - Separate every token with spaces  
+            - Use parentheses for OR groups only  
+
+            **Example final query**  
+            entity: FERRARI AND source: TWITTER AND (monitoring OR tracking) AND automotive AND ("hate" NEAR/3 "Ferrari" OR "love" NEAR/3 "Ferrari") NOT "complaint"
+
+            Return **only** the Boolean query string, no explanation.
             """
 
-            # Create user prompt with context
+
             user_prompt = f"""
-            Generate a Boolean query:
-            
+            Generate one Boolean query string for these details:
+
             Refined Query:
             {refined_query}
-            
+
+            Context:
+            - Entity: {entities}
+            - Use Case: {use_case}
+            - Industry: {industry}
+            - Sub‐Vertical: {sub_vertical}
+            - Filters: {json.dumps(filters, indent=2)}
+            - Defaults Applied: {json.dumps(defaults_applied, indent=2)}
+
             Available Keywords:
             {keywords}
-            
-            Available Filters:
-            {json.dumps(filters, indent=2)}
-            
-            Requirements:
-            - Use **only** the required message-level indicator keywords from the Available Keywords list that will be present in the messages.
-            - Apply **only** those filters explicitly provided, formatted as field:<space>value (e.g., source: TWITTER).
-            - Group related keywords with parentheses and OR.
-            - Use NEAR or ONEAR for sentiment–object proximity (e.g., hate NEAR defect).
-            - Combine terms with uppercase Boolean operators (AND, OR, NOT, NEAR, ONEAR).
-            - Return **only** the final Boolean query string, no explanation.
+
+            Follow these steps in your query:
+            1. Start with the entity filter (if present) then `AND`.  
+            2. Add use‐case and industry/sub‐vertical keywords, each joined by `AND`.  
+            3. Add a parenthesized group of 3–5 message‐level indicators with `OR`.  
+            4. Use `NEAR/⟨n⟩` or `ONEAR/⟨n⟩` to link sentiment to the entity when beneficial.  
+            5. Use `NOT` to exclude irrelevant terms if needed.  
+            6. Wrap phrases in `\"...\"`, filters as `field: VALUE`, and use uppercase operators.  
+            7. Return only the final Boolean query string.  
             """
 
 
@@ -176,10 +204,10 @@ class QueryGeneratorAgent(LLMAgent):
             
             if response:
                 # Clean up the response - remove quotes and extra whitespace
-                boolean_query = response.strip().strip('"').strip("'").strip()
+                boolean_query = response.strip().strip('"').strip("'").strip("`").strip()
                 
                 # Validate that it contains Boolean operators
-                if any(op in boolean_query.upper() for op in ['AND', 'OR', 'NOT', 'NEAR']):
+                if any(op in boolean_query.upper() for op in ['AND', 'OR', 'NOT', 'NEAR', 'ONEAR']):
                     return boolean_query
                 else:
                     # If no Boolean operators, create a simple AND query

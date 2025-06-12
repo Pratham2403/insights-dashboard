@@ -3,7 +3,7 @@ Modern RouterChatModel that supports both GoogleGenerativeAI (development)
 and LLM Router (production) while maintaining full LangChain/LangGraph compatibility.
 """
 
-import json
+import os
 import requests
 import logging
 from typing import Any, Dict, List, Optional, Union, Iterator
@@ -12,6 +12,9 @@ from langchain_core.messages import BaseMessage, AIMessage, HumanMessage, System
 from langchain_core.language_models import BaseLLM
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_google_genai import GoogleGenerativeAI
+from dotenv import load_dotenv
+# Load environment variables
+load_dotenv()
 
 from src.config.settings import settings
 
@@ -58,25 +61,17 @@ class RouterChatModel(BaseLLM):
         
         # Use environment configuration
         self.environment = "production"
+        print(f"RouterChatModel initialized in {self.environment} environment")
         self.temperature = temperature or settings.TEMPERATURE
         self.max_tokens = max_tokens or settings.MAX_OUTPUT_TOKENS
         
         # Configure based on environment
-        if self.environment == "production":
-            # Production: Use LLM Router
-            self.use_router = True
-            self.model_name = model or settings.LLM_ROUTER_MODEL
-            self.router_url = settings.LLM_ROUTER_URL
-            self.client_identifier = settings.LLM_ROUTER_CLIENT_ID
-            self.google_llm = None
-            logger.info(f"RouterChatModel initialized for PRODUCTION with LLM Router: {self.model_name}")
-        else:
+        if self.environment == "development":
             # Development: Use GoogleGenerativeAI
             self.use_router = False
             self.model_name = model or settings.DEFAULT_MODEL_NAME
             self.router_url = None
             self.client_identifier = None
-            
             # Initialize GoogleGenerativeAI
             self.google_llm = GoogleGenerativeAI(
                 model=self.model_name,
@@ -85,6 +80,14 @@ class RouterChatModel(BaseLLM):
                 max_output_tokens=self.max_tokens,
             )
             logger.info(f"RouterChatModel initialized for DEVELOPMENT with GoogleGenerativeAI: {self.model_name}")
+        else:
+            # Production: Use LLM Router
+            self.use_router = True
+            self.model_name = model or settings.LLM_ROUTER_MODEL
+            self.router_url = settings.LLM_ROUTER_URL
+            self.client_identifier = settings.LLM_ROUTER_CLIENT_ID
+            self.google_llm = None
+            logger.info(f"RouterChatModel initialized for PRODUCTION with LLM Router: {self.model_name}")
 
     def _generate(
         self,

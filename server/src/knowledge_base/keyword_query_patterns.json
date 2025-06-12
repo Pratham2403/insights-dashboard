@@ -1,17 +1,41 @@
 {
-    "syntax_keywords": ["AND", "OR", "NOT", "ONEAR", "NEAR"],
-    "example_queries": [
-        "samsungs8 OR s8 OR galaxys8 OR #s8 OR #galaxys8 OR #samsungs8",
-        "Hisense air purifier OR Hisense AND air purifier",
-        "source: TWITTER OR source: FACEBOOK AND ambience"
-        ],
-    "query_patterns": [
-        "{keywords}",
-        "{keywords} AND {keywords}",
-        "{keywords} OR {keywords}",
-        "{keywords} AND NOT {keywords}",
-        "{keywords} OR NOT {keywords}",
-        "{keywords} ONEAR {keywords}",
-        "{keywords} NEAR {keywords}"
-    ]
+  "syntax_keywords": ["AND", "OR", "NOT", "ONEAR", "NEAR"],
+  "example_queries": [
+    "samsungs8 OR s8 OR galaxys8 OR #s8 OR #galaxys8 OR #samsungs8",
+    "Hisense air purifier OR Hisense AND air purifier",
+    "source: TWITTER OR source: FACEBOOK AND ambience",
+    "(\"quarantine\" OR \"self-quarantine\" OR \"quarantined\" OR \"lockdown\" OR \"lock down\" OR \"lock-down\" OR \"#quarantine\" OR \"#selfquarantine\" OR \"#quarantined\" OR \"#lockdown\" OR \"work from home\" OR \"wfh\" OR \"#workfromhome\" OR \"#wfh\" OR \"#remote\" OR \"lockdowns\" OR \"#StayHome\" OR \"#LockdownNow\" OR \"#StayAtHomeOrder\" OR \"#PhysicalDistancing\" OR \"#stayhomechallenge\" OR \"#QuaratineLife\" OR \"#QuarantineActivities\" OR \"self distance\" OR \"social distancing\" OR \"seperation of communities\" OR \"restriction of movement\" OR \"physically isolated\" OR \"#istayathome\" OR \"#CoronavirusLockdown\" OR \"#TotalLockdown\" OR \"#stayinside\" OR \"#ShelterInPlace\" OR \"#MovementControlOrder\" OR \"stay home\" OR \"stay at home\" OR \"staying at home\" OR \"#StayHomeSaveLives\" OR \"#imstayinghome\" OR \"#stayhomestaysafe\" OR \"#staysafestayhome\" OR \"#stayathome\" OR \"#quarantinelife\" OR \"#selfisolation\" OR \"#homequarantine\" OR \"#socialdistancing\" OR \"#StaySafe\" OR \"#StayAtHomeSaveLives\" OR \"#quarantinefood\" OR \"stay indoors\" OR \"#21daysLockdown\" OR \"#StayApartTogether\" OR \"staying apart\" OR \"please stay inside\" OR \"staying home\" OR \"working from home\" OR \"#RemoteWork\" OR \"#newnormal\" OR (\"#new\" AND \"#normal\") OR \"#thisis2020\" OR \"#thenewnormal\" OR \"#thenewnorm\" OR \"#senseofnormalcy\" OR \"#quarantinevibes\" OR \"#quarantinestories\" OR \"#quarantinemood\" OR \"#quarantinedays\" OR \"#quarantined2020\" OR \"#quarantinechallenge\" OR \"#quarantineandchill\" OR \"#quarantine2020\" OR \"#pandemiclife\" OR \"#ournewnormal\" OR \"#normalcy\" OR \"#newwayoflife\" OR \"#newnormalcanbebetter\" OR \"#newnorm\" OR \"#lockeddown\" OR \"#lockdownextended\" OR \"#lockdown2020\" OR \"#homebound\" OR \"#covidlife\" OR \"#coronaquarantine\" OR \"#coronalockdown\" OR \"#breakthechains\" OR \"#BreaktheChain\" OR \"#anewnormal\" OR (\"normalcy\" ONEAR/2 \"restored\") OR ((\"loss\" OR \"close\" OR \"form\" OR \"adjusting\" OR \"find\" OR \"sense\") ONEAR/3 (\"normalcy\" OR \"normal\")) OR \"shifting social norms\" OR \"post quarantine\" OR \"pandemic life\" OR \"new way of life\" OR \"new normal\" OR \"new norm\" OR \"new lease of life\" OR \"movement control\" OR \"#timetochange\")",
+    "((\"note 10\" OR \"note10\") NEAR/3 (phone OR fone OR \"cellphone\")) OR ((samsung OR samsungs OR galaxy) NEAR/3 (note10 OR \"note 10\")) OR (\"#note10\" OR \"#galaxynote10\")",
+    "( \"vacuum cleaner samsung\" OR \"vakum cleaner samsung\" OR \"vacuumcleaner samsung\" OR \"penghisap debu samsung\" OR \"samsung penghisap debu\") NOT ((dijual OR \"Di jual\" OR bekas OR jual))"
+  ],
+  "query_patterns": [
+    "{keywords}",
+    "{keywords} AND {keywords}",
+    "{keywords} OR {keywords}",
+    "{keywords} NOT {keywords}",
+    "{keywords} ONEAR/{length} {keywords}",
+    "{keywords} NEAR/{length} {keywords}"
+  ],
+  "rules": {
+    "AND": {
+      "description": "Search for \"social\" and \"sprinklr\" anywhere within the complete message.",
+      "example": "social AND sprinklr"
+    },
+    "OR": {
+      "description": "Search for \"social\" or \"sprinklr\" anywhere within a complete message.",
+      "example": "social OR sprinklr"
+    },
+    "NOT": {
+      "description": "Search for results that contain \"social media\" but not \"facebook\".",
+      "example": "\"social media\" NOT \"facebook\""
+    },
+    "NEAR": {
+      "description": "Search for \"iphone\" or \"MacBook\" within 5 words of proximity to \"Apple\".",
+      "example": "((Apple) NEAR/5 (iphone OR MacBook))"
+    },
+    "ONEAR": {
+      "description": "Search for \"social media\" and \"facebook\" within 5 words proximity in the order specified (first social media and then facebook).",
+      "example": "\"social media\" ONEAR/5 \"facebook\""
+    }
+  }
 }

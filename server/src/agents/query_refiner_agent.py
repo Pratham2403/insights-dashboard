@@ -26,7 +26,7 @@ class QueryRefinerAgent(LLMAgent):
     """
     
     def __init__(self, llm=None):
-        super().__init__("_query_refiner", llm)
+        super().__init__("query_refiner", llm)
         self.rag_system = FiltersRAG()
     
     async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
@@ -73,24 +73,16 @@ class QueryRefinerAgent(LLMAgent):
         if "error" in refined_data:
             return {"error": refined_data["error"]}
         
-        # Check if the refined query lacks sufficient information for processing
-        # Trigger HITL if confidence is low or extraction readiness is false
-        confidence_score = refined_data.get('confidence_score', 1.0)
-        extraction_ready = refined_data.get('extraction_ready', True)
-        missing_info = refined_data.get('missing_information', [])
         
         result = {
             "query_refinement": refined_data,
-            "messages": [AIMessage(content=f"Query refined: {refined_data.get('refined_query', '')}", name=self.agent_name)]
         }
-        
-        # Set reason for HITL if clarification is needed
-        if confidence_score < 0.7 or not extraction_ready or missing_info:
-            result["reason"] = "clarification_needed"
-            self.logger.info(f"🔄 Query refinement needs clarification - confidence: {confidence_score}, extraction_ready: {extraction_ready}, missing_info: {len(missing_info)}")
-        
+
         return result
-    
+
+
+
+
     async def _get_rag_context(self, query: str) -> Dict[str, Any]:
         """Get RAG context using  pattern."""
         try:
@@ -108,26 +100,43 @@ class QueryRefinerAgent(LLMAgent):
         """Refine query using LLM pattern."""
         
 
-        system_prompt = """You are a Query Refinement Expert for dashboard‐driven data extraction.  
-        Your mission is to turn fragmented user inputs into a single, precise instruction that a dashboard engine can run.  
+        system_prompt = """
+        You are an expert query understanding and refinement engine.
+        
+        Your goal is to deeply analyze the user’s raw query or sequence of queries and extract a clean, structured intent summary.
+        
+        Your response must include the following structured fields:
+        
+        1. refined_query: A single, comprehensive query that captures the user's full intent, combining fragmented thoughts if multiple queries exist.
+        2. data_requirements: A list of clarifying questions the engine would need to ask the user in order to fulfill the refined query accurately.
+        3. entities: The brands, products, companies, or entities the query is focused on (if any otherwise empty list).
+        4. use_case: The primary objective or problem the user wants to solve (e.g., brand monitoring, competitor analysis).
+        5. industry: The broader industry associated with the query (e.g., Automotive, Retail, Technology).
+        6. sub_vertical: The narrower sub-sector of the industry, if applicable (e.g., Automotive Manufacturing, Luxury Fashion).
 
-        Key Responsibilities:  
-        1. Read all prior queries and use‐cases to grasp the user’s ultimate analytics objective.  
-        2. Produce one clear, self‐contained “refined_query” that expresses that objective.  
-        3. Identify any missing entities / parameters or clarification questions as “data_requirements” to avoid retrieval noise later.  
-        4. Remain neutral, factual, and succinct.
-        5. Do NOT assume time ranges, channels, or other parameters unless specified."""
+        INSTRUCTIONS:
+        - If any fields are missing from the query, populate them with null and provide a corresponding clarifying question in `data_requirements`.
+        - Keep all responses neutral, fact-based, and do not guess.
+        - Do not generate output unless all required fields are returned in correct format.
+        
+        Return the output in the following exact JSON format:
+        {
+          "refined_query": "<Comprehensive, single query for dashboard creation>",
+          "data_requirements": [
+            "<Missing field or clarification #1>",
+            "<Missing field or clarification #2>"
+          ],
+          "entities": ["<Entity1 Name>", "<Entity2 Name>"],
+          "use_case": "<Use-Case or null>",
+          "industry": "<Industry or null>",
+          "sub_vertical": "<Sub-Vertical or null>"
+        }
+        """
 
 
 
-        user_prompt = f"""Given the following conversation metadata and queries, output a JSON object ONLY with:
-        1. refined_query:  
-           • A single, comprehensive query capturing the user’s full intent for dashboard creation.
-        2. data_requirements:  
-           • A list of questions the engine needs from the user to fulfill that query and generate a complete Dashaboard(e.g., brand, source, time range, location, etc.).
-        3. conversation_summary:  
-           • A 2–3-sentence synopsis of how this refined query builds on prior context.
 
+        user_prompt = f"""Given the following conversation metadata and queries, output a JSON object ONLY:
         Conversation Context:
         - Is Continuation: {context.get('is_continuation', False)}
         - Query Count: {context.get('query_count', 1)}
@@ -135,6 +144,9 @@ class QueryRefinerAgent(LLMAgent):
         - Queries List: {json.dumps(context.get('query', []), indent=2)}
         - Sample Use Cases (RAG) : {context.get('relevant_usecases', [])}
         - Latest Query: "{query}"
+
+
+        Your task is to analyze the conversation context and queries, then generate a comprehensive refined query, data_requirements, entity, use_case, industry, and sub_vertical that captures the user's intent.
         """
         
         

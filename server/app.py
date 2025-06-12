@@ -33,8 +33,6 @@ from src.utils.api_helpers import (
 
 # Import workflow
 from src.workflow import (
-    process_dashboard_request,
-    handle_user_feedback,
     get_workflow_history,
     SprinklrWorkflow
 )
@@ -98,7 +96,7 @@ workflow_instance = None
 async def startup_event():
     global workflow_instance
     if workflow_instance is None:
-        logger.info("Initializing persistent workflow instance with MongoDB checkpointer...")
+        logger.info("App Startup")
         workflow_instance = SprinklrWorkflow()
         await workflow_instance.async_init()
         logger.info("Workflow instance initialized with MongoDB persistence.")
@@ -163,7 +161,7 @@ async def process_query(query_request: QueryRequest):
     For continuing conversation:
         {
             "query": "<User's Response>",
-            "thread_id": "<conversation_id>"
+            "thread_id": "<thread_id>"
         }
     
     Features:
@@ -217,19 +215,39 @@ async def process_query(query_request: QueryRequest):
                 logger.info(f"🔄 Resuming workflow with Command(resume='{user_query}')")
                 await workflow.workflow.ainvoke(Command(resume=user_query), config=config)
             
+            logger.info(f"📜 Starting workflow with inputs: {inputs} and config: {config}")
+
+
+
+
             # Stream the workflow execution
             async for event in workflow.workflow.astream(inputs, config=config):
                 logger.info(f"📨 Completed Streamed event: {list(event.keys())}")
+
                 # Check for interrupt (HITL) following modern LangGraph pattern
                 if "__interrupt__" in event:
                     logger.info(f"🛑 Workflow interrupted - getting state for details")
                     
-                    # Get current state to extract interrupt information
-                    current_state = await workflow.workflow.aget_state(config=config)
+                    # Extract data directly from the interrupt event
+                    # The __interrupt__ contains a tuple with the Interrupt object as its first element
+                    interrupt_obj = event.get("__interrupt__")[0]  # Access the first element of the tuple
+                    interrupt_value = interrupt_obj.value
+                    logger.info(f"📦 Interrupt event data: {interrupt_value}")
                     
+                    # Initialize defaults
                     message = "Human input required"
                     interrupt_data = {}
                     
+                    # Extract interrupt question and instructions if available
+                    question = interrupt_value.get("question", "Please review the analysis below and approve to continue:")
+                    instructions = interrupt_value.get("instructions", "Reply 'yes' to approve or provide feedback to refine")
+
+
+                    current_state = await workflow.workflow.aget_state(config=config)
+                    # Get current state to extract additional information
+                    logger.info(f"📍 Current state during interrupt: {current_state}")
+
+
                     # Try to get interrupt data from the state's values
                     if hasattr(current_state, 'values') and current_state.values:
                         state_values = current_state.values
@@ -240,14 +258,28 @@ async def process_query(query_request: QueryRequest):
                             keywords = state_values.get('keywords', [])
                             filters = state_values.get('filters', {})
                             data_requirements = state_values.get('data_requirements', [])
+                            defaults_applied = state_values.get('defaults_applied', {})
+                            entities = state_values.get('entities', [])
+                            use_case = state_values.get('use_case', 'General Use Case')
+                            industry = state_values.get('industry', '')
+                            sub_vertical = state_values.get('sub_vertical', '')
+                            conversation_summary = state_values.get('conversation_summary', '')
+
+                            # Combine interrupt event data with state values
                             interrupt_data = {
-                                "question": "Please review the analysis below and approve to continue:",
-                                "step": 1,
+                                "question": question,
+                                "step": interrupt_value.get("step", 1),
                                 "refined_query": refined_query,
                                 "keywords": keywords if keywords else [],
                                 "filters": filters,
                                 "data_requirements": data_requirements if data_requirements else [],
-                                "instructions": "Reply 'yes' to approve or provide feedback to refine"
+                                "defaults_applied": defaults_applied if defaults_applied else {},
+                                "entities": entities if entities else [],
+                                "use_case": use_case,
+                                "industry": industry,
+                                "sub_vertical": sub_vertical,
+                                "conversation_summary": conversation_summary,
+                                "instructions": instructions
                             }
                             message = f"Review analysis: {refined_query[:100]}..."
                     
@@ -263,26 +295,50 @@ async def process_query(query_request: QueryRequest):
                     logger.info("✅ Workflow completed successfully")
                     
                     # Serialize the data_analyzer result to handle AIMessage objects
-                    analyzer_result = event["data_analyzer"]
-                    serialized_result = workflow._serialize_state_for_json(analyzer_result)
-                    
+                    # analyzer_result = event["data_analyzer"]
+                    current_state = await workflow.workflow.aget_state(config=config)
+
+                    serialized_result = {
+                        "query": current_state.values.get("refined_query", ""),
+                        "keywords": current_state.values.get("keywords", []),
+                        "filters": current_state.values.get("filters", {}),
+                        "data_requirements": current_state.values.get("data_requirements", []),
+                        "defaults_applied": current_state.values.get("defaults_applied", {}),
+                        "entities": current_state.values.get("entities", []),
+                        "use_case": current_state.values.get("use_case", "General Use Case"),
+                        "industry": current_state.values.get("industry", ""),
+                        "sub_vertical": current_state.values.get("sub_vertical", ""),
+                        "conversation_summary": current_state.values.get("conversation_summary", ""),
+                        "boolean_query": current_state.values.get("boolean_query", ""),
+                        "themes": current_state.values.get("themes", []),
+                    }
                     return {
                         "status": "completed",
                         "result": serialized_result,
                         "thread_id": thread_id
                     }
             
-            # If stream ends without explicit completion, get current state
+
             current_state = await workflow.workflow.aget_state(config=config)
-            state_values = current_state.values if current_state else {}
             logger.info("✅ Workflow completed - returning current state")
-            
-            # Use the workflow's serialization method to handle AIMessage objects
-            serialized_state = workflow._serialize_state_for_json(state_values)
+            serialized_result = {
+                "query": current_state.values.get("refined_query", ""),
+                "keywords": current_state.values.get("keywords", []),
+                "filters": current_state.values.get("filters", {}),
+                "data_requirements": current_state.values.get("data_requirements", []),
+                "defaults_applied": current_state.values.get("defaults_applied", {}),
+                "entities": current_state.values.get("entities", []),
+                "use_case": current_state.values.get("use_case", "General Use Case"),
+                "industry": current_state.values.get("industry", ""),
+                "sub_vertical": current_state.values.get("sub_vertical", ""),
+                "conversation_summary": current_state.values.get("conversation_summary", ""),
+                "boolean_query": current_state.values.get("boolean_query", ""),
+                "themes": current_state.values.get("themes", []),
+            }
             
             return {
-                "status": "completed",
-                "result": serialized_state,
+                "status": "completed-explicitly",
+                "result": serialized_result,
                 "thread_id": thread_id
             }
 
@@ -336,20 +392,3 @@ async def internal_error_handler(request: Request, exc):
         status_code=500,
         content=create_error_response("Internal Server Error", "Internal server error", 500)
     )
-
-if __name__ == "__main__":
-    import uvicorn
-    try:
-        logger.info("Starting Modern Sprinklr Dashboard API with FastAPI...")
-        host = os.getenv('HOST', '0.0.0.0')
-        port = int(os.getenv('PORT', 8000))
-        uvicorn.run(
-            "app:app",
-            host=host,
-            port=port,
-            reload=True,
-            log_level="info"
-        )
-    except Exception as e:
-        logger.critical(f"Failed to start FastAPI application: {e}")
-        sys.exit(1)

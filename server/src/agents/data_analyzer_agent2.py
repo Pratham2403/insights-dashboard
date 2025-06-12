@@ -678,8 +678,13 @@ class DataAnalyzerAgent:
                     # Generate boolean query for this theme
                     boolean_query_result = await self.query_generator._generate_boolean_query(
                         refined_query=theme_state["refined_query"],
-                        keywords=combined_keywords,
-                        filters=[]
+                        keywords=[],
+                        filters=[],
+                        entities=state.get("entities", []),
+                        industry=state.get("industry", ""),
+                        sub_vertical=state.get("sub_vertical", ""),
+                        use_case=state.get("use_case", ""),
+                        defaults_applied=state.get("defaults_applied", {})
                     )
                     
                     # Add boolean query to theme

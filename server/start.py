@@ -20,19 +20,19 @@ def main():
     port = int(os.getenv('PORT', 8000))
     debug = os.getenv('DEBUG', 'True').lower() == 'true'
     reload = os.getenv('AUTO_RELOAD', 'True').lower() == 'true'
+    # reload = False
     
     logger.info("🚀 Starting Sprinklr Insights Dashboard API with FastAPI")
     logger.info(f"🌐 Server: http://{host}:{port}")
-    logger.info(f"📚 API Docs: http://{host}:{port}/docs")
     logger.info(f"🔧 Debug mode: {debug}")
     logger.info(f"🔄 Auto-reload: {reload}")
     
     try:
         uvicorn.run(
             "app:app",
-            host=host,
+            # host=host,
             port=port,
-            reload="false",
+            reload=reload,
             log_level="info" if not debug else "debug",
             access_log=True
         )

@@ -8,7 +8,6 @@ It initializes ChromaDB for storing and retrieving embeddings used in RAG.
 - Used for RAG context retrieval
 
 # Collections:
-- filters_collection: Stores Sprinklr filter information
 - themes_collection: Stores theme examples and patterns
 - use_cases_collection: Stores complete use case examples
 """
@@ -190,7 +189,6 @@ def initialize_collections():
     Initialize default collections for the application.
     """
     collections_to_create = [
-        "filters_collection",
         "themes_collection", 
         "use_cases_collection",
         "keyword_patterns_collection"
