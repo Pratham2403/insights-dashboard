@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # LLM Router Configuration (for production)
     LLM_ROUTER_URL: str = Field(default="http://qa6-intuitionx-llm-router-v2.sprinklr.com/chat-completion", description="LLM Router API endpoint")
     LLM_ROUTER_CLIENT_ID: str = Field(default="spr-backend-interns-25", description="LLM Router client identifier")
-    LLM_ROUTER_MODEL: str = Field(default="gpt-4o", description="LLM Router model name")
+    LLM_ROUTER_MODEL: str = Field(default="gpt-4o-search-preview", description="LLM Router model name")
     
     # Knowledge Base Paths
     KNOWLEDGE_BASE_PATH: str = Field(default="./src/knowledge_base", description="Knowledge base directory")

@@ -127,7 +127,7 @@ class QueryGeneratorAgent(LLMAgent):
             🎯 OBJECTIVE:
             Generate a query that:
             • Reflects the user’s intent based on the refined query, entity, use-case, industry, and sub-vertical.  
-            • Uses realistic language and phrases people actually post.  
+            • Uses realistic language and words people actually post, speak and write on social media, reviews, and forums (including slang).  
             • Maximizes relevant coverage without over-filtering.
 
             ---
@@ -140,16 +140,16 @@ class QueryGeneratorAgent(LLMAgent):
                - If filters are present, include them as `field: VALUE` and join filters/entities with `AND`.
 
             2. **Define Use-Case / Industry Context**  
-               - Use words or expressions that real users use to talk about the use-case or pain point (e.g., plan, service, refund, quality, wait).  
-               - Include 2–3 **distinct concept groups**, joined by `AND`, that help define the message universe.
+               - Use word or terms that real users use to talk about the use-case or pain point (e.g., plan, service, refund, quality, wait, pricing).  
+               - Include 1 or 2 **distinct concept groups**, joined by `OR` or `AND`, that help define the message universe based on the refined query, entity, use-case, industry, and sub-vertical.
 
             3. **Express Message-Level Indicators**  
                - Use expressions that indicate emotion, complaint, action, outcome, expectation, etc.  
-               - Combine synonymous or similar terms in OR groups: `(slow OR broken OR “not working”)`.  
+               - Combine synonymous or similar terms in OR groups: `(happy OR joyful OR (not NEAR/2 sad))`  
                - If using multi-word ideas, connect them using `NEAR/n` or `ONEAR/n`:
                  - `NEAR/n`: unordered proximity (e.g., “internet NEAR/5 down”)  
                  - `ONEAR/n`: ordered proximity (e.g., “payment ONEAR/3 failed”)  
-               - Do **not** use plain multi-word strings without NEAR/ONEAR.
+               - Do **not** use plain multi-word strings without NEAR/ONEAR. `(slow OR broken OR (not NEAR/2 working))`
 
             ---
 
@@ -174,17 +174,18 @@ class QueryGeneratorAgent(LLMAgent):
             8. Do not use more than:
                - 2 `AND` groups (core concept joins only)  
                - 3 `NEAR/ONEAR` expressions  
-               - 5–7 terms per `OR` group
+               - 3-8 terms per `OR` group
 
             ---
 
             ✅ **FINAL CHECKLIST BEFORE OUTPUT**:
 
-            - Does this reflect the full user intent?
+            - Does the boolean query reflect the full user intent?
             - Are terms written in the way real people talk or post online?
-            - Are NEAR/ONEAR used for precision—not overused?
+            - Are NEAR/ONEAR/AND used for precision—not overused?
+            - The Number of `AND` groups should be minimal (ideally 1-2).
             - Is the query concise, readable, and within length limits?
-            - Are you avoiding overly technical or abstract terms?
+            - You should not be using any formal or business terms unless they are commonly used in public messages.
 
             Return only the final Boolean query string. No explanations or formatting.
 
@@ -213,24 +214,24 @@ class QueryGeneratorAgent(LLMAgent):
             
             1. Start with an OR group of synonyms for each entity (if available):  
                e.g., `(BrandX OR #BrandX OR common alias)`  
-               Then AND any filter(s) using `field: VALUE` format.
-            
-            2. Add use-case / problem context using common social message terms (e.g., refund, wait, pricing, delay).  
+               Then AND any filter(s) if it is relevant to the intent and use-case using `field: VALUE` format.
+
+            2. Add use-case / industry / problem context using common social message terms (e.g., refund, wait, pricing, delay).  
                - Group alternatives with OR  
-               - Join unrelated concepts using `AND`
-            
+               - Join unrelated concepts using `AND` 
             3. Use NEAR/n or ONEAR/n if two terms must appear closely (e.g., “signal NEAR/5 lost”)  
                - Limit total NEAR/ONEAR usage to 2–3  
                - Use `n` between 2–10 based on concept
             
-            4. Use NOT only if the refined query context demands filtering known false matches  
-               - e.g., NOT recharge, NOT customer care
-            
-            5. Don’t use formal or business terms unless people use them casually in public messages.
-            
-            6. Keep query under 500 characters.
-            
-            7. Return only the Boolean query string — no explanations or text.
+            4. Use NOT only if the there is need to remove clear false positives.
+            - Use sparingly and accurately (e.g., “NOT spam” or “NOT NEAR/2 irrelevant”)
+            5. Group synonyms or similar terms with OR, e.g., `(happy OR joyful OR (not NEAR/2 sad))`
+            6. Prevent using AND between soft topics (e.g., telecom AND mobile) — prefer OR or NEAR/10.
+            7. Limit using AND as much as possible, ideally 1-2 groups.
+            8. Don’t use formal or business terms unless people use them casually in public messages.
+            9. Keep query under 500 characters.
+            10. Do not use Two- or more worded strings without NEAR/ONEAR.
+            11. Return only the Boolean query string — no explanations or text.
             """
 
             messages = [

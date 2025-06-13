@@ -4,6 +4,7 @@ import { useDashboardContext } from '../context/DashboardContext';
 import { useChatContext } from '../context/ChatContext';
 import { Dashboard } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { dashboardStorage } from '../services/storageService';
 import dashboardsData from '../data/dashboards.json';
 
 interface SidebarProps {
@@ -18,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         setCurrentDashboard,
         addDashboard,
         removeDashboard,
+        isLoading,
     } = useDashboardContext();
     const { clearMessages } = useChatContext();
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -26,30 +28,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
     useEffect(() => {
         // Initialize dashboards from JSON on first load only
-        if (!initializeRef.current) {
-            dashboardsData.forEach((dashboard) => {
-                addDashboard({
-                    ...dashboard,
-                    createdAt: new Date(dashboard.createdAt),
-                    lastAccessed: new Date(dashboard.lastAccessed),
-                });
-            });
+        if (!initializeRef.current && dashboards.length === 0 && !isLoading) {
+            dashboardStorage.initializeFromStaticData(dashboardsData);
             initializeRef.current = true;
         }
-    }, [addDashboard]);
+    }, [dashboards.length, isLoading]);
 
     const handleDashboardSelect = (dashboard: Dashboard) => {
         if (currentDashboard?.id !== dashboard.id) {
             clearMessages(); // Clear chat when switching dashboards
-            setCurrentDashboard({
-                ...dashboard,
-                lastAccessed: new Date(),
-            });
+            setCurrentDashboard(dashboard);
         }
         onClose();
     };
 
-    const handleCreateDashboard = () => {
+    const handleCreateDashboard = async () => {
         if (newDashboardName.trim()) {
             const newDashboard: Dashboard = {
                 id: uuidv4(),
@@ -63,20 +56,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 lastAccessed: new Date(),
             };
 
-            addDashboard(newDashboard);
+            await addDashboard(newDashboard);
             setNewDashboardName('');
             setShowCreateForm(false);
             handleDashboardSelect(newDashboard);
         }
     };
 
-    const handleDeleteDashboard = (
+    const handleDeleteDashboard = async (
         e: React.MouseEvent,
         dashboardId: string
     ) => {
         e.stopPropagation();
         if (window.confirm('Are you sure you want to delete this dashboard?')) {
-            removeDashboard(dashboardId);
+            await removeDashboard(dashboardId);
         }
     };
 
@@ -116,61 +109,79 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 {/* Dashboard List - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-                    {dashboards.map((dashboard) => {
-                        const isActive = currentDashboard?.id === dashboard.id;
+                    {isLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                        </div>
+                    ) : dashboards.length === 0 ? (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500 text-sm">
+                                No dashboards found
+                            </p>
+                            <p className="text-gray-400 text-xs mt-1">
+                                Create your first dashboard below
+                            </p>
+                        </div>
+                    ) : (
+                        dashboards.map((dashboard) => {
+                            const isActive =
+                                currentDashboard?.id === dashboard.id;
 
-                        return (
-                            <div
-                                key={dashboard.id}
-                                className={`group relative p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                    isActive
-                                        ? 'border-purple-300 bg-purple-50 shadow-sm'
-                                        : 'border-gray-200 bg-white hover:bg-gray-50'
-                                }`}
-                                onClick={() => handleDashboardSelect(dashboard)}
-                            >
-                                <div className="flex items-start space-x-3">
-                                    <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white flex-shrink-0">
-                                        <BarChart3 className="w-5 h-5" />
+                            return (
+                                <div
+                                    key={dashboard.id}
+                                    className={`group relative p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                        isActive
+                                            ? 'border-purple-300 bg-purple-50 shadow-sm'
+                                            : 'border-gray-200 bg-white hover:bg-gray-50'
+                                    }`}
+                                    onClick={() =>
+                                        handleDashboardSelect(dashboard)
+                                    }
+                                >
+                                    <div className="flex items-start space-x-3">
+                                        <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5" />
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <h3
+                                                className={`font-medium truncate ${
+                                                    isActive
+                                                        ? 'text-purple-900'
+                                                        : 'text-gray-900'
+                                                }`}
+                                            >
+                                                {dashboard.name}
+                                            </h3>
+                                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                                {dashboard.description}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-2">
+                                                Last accessed:{' '}
+                                                {dashboard.lastAccessed.toLocaleDateString()}
+                                            </p>
+                                        </div>
+
+                                        {/* Delete button */}
+                                        {dashboard.type === 'custom' && (
+                                            <button
+                                                onClick={(e) =>
+                                                    handleDeleteDashboard(
+                                                        e,
+                                                        dashboard.id
+                                                    )
+                                                }
+                                                className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all duration-200 flex-shrink-0"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <h3
-                                            className={`font-medium truncate ${
-                                                isActive
-                                                    ? 'text-purple-900'
-                                                    : 'text-gray-900'
-                                            }`}
-                                        >
-                                            {dashboard.name}
-                                        </h3>
-                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                            {dashboard.description}
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-2">
-                                            Last accessed:{' '}
-                                            {dashboard.lastAccessed.toLocaleDateString()}
-                                        </p>
-                                    </div>
-
-                                    {/* Delete button */}
-                                    {dashboard.type === 'custom' && (
-                                        <button
-                                            onClick={(e) =>
-                                                handleDeleteDashboard(
-                                                    e,
-                                                    dashboard.id
-                                                )
-                                            }
-                                            className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all duration-200 flex-shrink-0"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    )}
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
 
                 {/* Create New Dashboard - Fixed at bottom */}
