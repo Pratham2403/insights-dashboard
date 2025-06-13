@@ -59,7 +59,6 @@ class QueryGeneratorAgent(LLMAgent):
             
             # Extract required data from state
             refined_query = state.get("refined_query", description)
-            keywords = state.get("keywords", [])
             filters = state.get("filters", {})
             entities = state.get("entities", [])
             industry = state.get("industry", "")
@@ -74,7 +73,7 @@ class QueryGeneratorAgent(LLMAgent):
             # Generate Boolean query with all available data
             boolean_query = await self._generate_boolean_query(
                 refined_query=refined_query,
-                keywords=keywords,
+                keywords=[],
                 filters=filters,
                 entities=entities,
                 industry=industry, 
@@ -91,16 +90,8 @@ class QueryGeneratorAgent(LLMAgent):
                     "messages": [HumanMessage(content=f"Generated Boolean query: {boolean_query}")]
                 }
             else:
-                # Fallback to simple boolean query if generation failed
-                if keywords:
-                    fallback_query = " AND ".join([f'"{keyword}"' for keyword in keywords[:5]])
-                    logger.info(f"Using fallback Boolean query: {fallback_query}")
-                    return {
-                        "boolean_query": fallback_query,
-                        "query_generation_status": "fallback",
-                        "messages": [HumanMessage(content=f"Generated fallback Boolean query: {fallback_query}")]
-                    }
-                return {"error": "Failed to generate Boolean query - no keywords available"}
+                logger.error("Failed to generate Boolean query in Query Generator Agent")
+                return {"error": "Failed to generate Boolean query in Query Generator Agent"}
                 
         except Exception as e:
             self.logger.error(f"Query generation failed: {e}")
@@ -125,83 +116,122 @@ class QueryGeneratorAgent(LLMAgent):
         """
         try:
 
-            system_prompt = f"""
-            You are a Boolean Query Generator for retrieving real-world social-media messages.
 
-            Your task: Output exactly one highly precise Boolean query string that defines the user’s message universe.
+            system_prompt = """
+            You are a Boolean Query Generator designed to retrieve real-world user-generated messages (e.g., social media, reviews, forums) from a database.
 
-            🧠 Core Goals:
-            1. Capture any **entities** or **filters** first if present in the `refined_query` (e.g., `<entity value>`, `key: value`).
-            2. Enforce **use_case**, **industry**, and **sub_vertical** context by including a few realistic terms defining each.
-            3. Embed **message-level indicators** – everyday expressions or slang from user posts (e.g., `internet ONEAR/10 down`, `slow NEAR/3 speed`, `love`, `frustrated`).
-            4. **Single-Word Terms Only**  
-                • Use only one-word terms wherever possible.  
-                • If you need a phrase of two, bind them with proximity by understanding the appropriat gap (<n>) between them:  
-                  - `NEAR/⟨n⟩` for unordered proximity  
-                  - `ONEAR/⟨n⟩` for ordered proximity  
-                • Never include multi-word phrases without a NEAR/ONEAR operator.
-                • Enclose two-worded terms with parentheses (e.g., `(two NEAR/3 words)`).
-            5. Include **thematic/diagnostic terms** that reflect broader user concerns or issues relevant to the use-case (e.g., `"outage"`, `"delay"`, `"disappointed"`).
+            Your task is to return exactly **one highly accurate Boolean query string** that defines the user’s intended message universe.
 
-            📌 **Keyword List = Guidance Only:**  
-            - Treat each suggested keyword as optional; include it only if it helps define the query.  
-            - You may split or drop multi-word keywords if needed into one- or two-word terms.  
-            - Use only terms that people actually post in messages.  
-            - Skip any keyword that doesn't help narrow down the user's need.
+            ---
 
-            📌 **Context-Driven Term Selection**  
-            • Draw from the user’s use-case, industry, and sub-vertical to pick realistic social-media words (e.g., “outage” for network monitoring, “recall” for automotive).  
-            • Choose terms people actually write on social platforms.
+            🎯 OBJECTIVE:
+            Generate a query that:
+            • Reflects the user’s intent based on the refined query, entity, use-case, industry, and sub-vertical.  
+            • Uses realistic language and phrases people actually post.  
+            • Maximizes relevant coverage without over-filtering.
 
-            📌 **Boolean Syntax Rules (CRITICAL):**  
-            - Inline filters with space: `field: VALUE`.  
-            - Use uppercase operators: `AND`, `OR`, `NOT`, `NEAR/⟨n⟩`, `ONEAR/⟨n⟩`.  
-            - Put parentheses only around `OR`, `NEAR`, and `ONEAR` groups.  
-            - **Every** opening `(` must have a matching closing `)`.  
-            - **NOT** clauses must be complete (e.g., `NOT spam`, not just `NOT spa`).
+            ---
 
-            ✅ **Validation Requirements:**  
-            1. Ensure equal number of opening and closing parentheses.
-            2. Exact two terms required for NEAR and ONEAR operator  
-            3. Ensure NOT clauses are complete with proper syntax.  
-            4. Use a maximum of 3–5 terms or expressions within each parenthesized OR group.  
-            5. Use **NOT** to exclude off-topic words.
-            6. Keep total query length under 500 characters.
+            🧠 STRUCTURE & LOGIC:
 
-            ✅ **Output:** Return **only** the Boolean query string, no explanation or JSON.
-            Example:  
-            `Ferrari AND source: TWITTER AND ((hate NEAR/3 Ferrari) OR (love NEAR/3 Ferrari)) NOT complaint`
+            1. **Start with Entities + Filters (if available)**  
+               - For each entity, group synonyms, nicknames, hashtags, and common misspellings using `OR`:  
+                 `(entity OR alias OR #hashtag)`  
+               - If filters are present, include them as `field: VALUE` and join filters/entities with `AND`.
+
+            2. **Define Use-Case / Industry Context**  
+               - Use words or expressions that real users use to talk about the use-case or pain point (e.g., plan, service, refund, quality, wait).  
+               - Include 2–3 **distinct concept groups**, joined by `AND`, that help define the message universe.
+
+            3. **Express Message-Level Indicators**  
+               - Use expressions that indicate emotion, complaint, action, outcome, expectation, etc.  
+               - Combine synonymous or similar terms in OR groups: `(slow OR broken OR “not working”)`.  
+               - If using multi-word ideas, connect them using `NEAR/n` or `ONEAR/n`:
+                 - `NEAR/n`: unordered proximity (e.g., “internet NEAR/5 down”)  
+                 - `ONEAR/n`: ordered proximity (e.g., “payment ONEAR/3 failed”)  
+               - Do **not** use plain multi-word strings without NEAR/ONEAR.
+
+            ---
+
+            ⚙️ BOOLEAN OPERATORS & RULES:
+
+            • `AND`: Only between unrelated concepts (e.g., entity AND intent).  
+            • `OR`: For synonyms, variants, or near-equivalent expressions.  
+            • `NEAR/n` or `ONEAR/n`: Only when semantic closeness matters; max 2–3 expressions.  
+            • `NOT`: To remove clear false positives. Use sparingly and accurately.
+
+            ---
+
+            📌 SYNTAX & VALIDATION RULES:
+
+            1. Wrap multi-word terms with proximity: `(term NEAR/3 term)`  
+            2. Use parentheses only around OR or proximity groups.  
+            3. Ensure every opening `(` has a matching `)`  
+            4. Use UPPERCASE operators only: `AND`, `OR`, `NOT`, `NEAR/n`, `ONEAR/n`  
+            5. Use field filters as `field: VALUE` with a space after the colon  
+            6. Avoid joining soft topics (e.g., telecom AND mobile) — prefer OR or NEAR/10  
+            7. Do not exceed **500 characters** total length.  
+            8. Do not use more than:
+               - 2 `AND` groups (core concept joins only)  
+               - 3 `NEAR/ONEAR` expressions  
+               - 5–7 terms per `OR` group
+
+            ---
+
+            ✅ **FINAL CHECKLIST BEFORE OUTPUT**:
+
+            - Does this reflect the full user intent?
+            - Are terms written in the way real people talk or post online?
+            - Are NEAR/ONEAR used for precision—not overused?
+            - Is the query concise, readable, and within length limits?
+            - Are you avoiding overly technical or abstract terms?
+
+            Return only the final Boolean query string. No explanations or formatting.
+
             """
 
+            
             user_prompt = f"""
-            Build a single Boolean query string with the following inputs:
-
-            Refined Query:
+            Build a single Boolean query string using the following inputs:
+            
+            📌 Refined Query:
             {refined_query}
-
-            Context:
+            
+            📌 Context:
             - Entity: {entities}
             - Use Case: {use_case}
             - Industry: {industry}
             - Sub-Vertical: {sub_vertical}
             - Filters: {json.dumps(filters, indent=2)}
-
-            Available Keywords (guidance):
+            
+            📌 Available Keywords (guidance only):
             {keywords}
-
-            Instructions:
-            1. **Start** with any entity or filter clauses (field:<space>value) joined by AND.
-            2. **Add** use_case, industry, and sub-vertical context with 2-3 realistic terms each (only if they help narrow down the user's intent).
-            3. **Insert** a parenthesized OR group of up to 3–5 message indicators (if needed).
-            4. Use `NEAR/⟨n⟩` or `ONEAR/⟨n⟩` in message indicators to tie sentiments to objects or strengthen relevant co-occurrences.
-            5. **Use NOT** to exclude off-topic or irrelevant terms if needed.
-            7. Return **only** the final query string—no extra text.
-            8. **CRITICAL**: Balance all parentheses (`(` and `)`). Count them to make sure they match.
-            9. **CRITICAL**: Ensure NOT clauses are complete.
-
-            Return **only** the Boolean query string that precisely captures the intended message universe. 
+            
+            ---
+            
+            📋 Instructions:
+            
+            1. Start with an OR group of synonyms for each entity (if available):  
+               e.g., `(BrandX OR #BrandX OR common alias)`  
+               Then AND any filter(s) using `field: VALUE` format.
+            
+            2. Add use-case / problem context using common social message terms (e.g., refund, wait, pricing, delay).  
+               - Group alternatives with OR  
+               - Join unrelated concepts using `AND`
+            
+            3. Use NEAR/n or ONEAR/n if two terms must appear closely (e.g., “signal NEAR/5 lost”)  
+               - Limit total NEAR/ONEAR usage to 2–3  
+               - Use `n` between 2–10 based on concept
+            
+            4. Use NOT only if the refined query context demands filtering known false matches  
+               - e.g., NOT recharge, NOT customer care
+            
+            5. Don’t use formal or business terms unless people use them casually in public messages.
+            
+            6. Keep query under 500 characters.
+            
+            7. Return only the Boolean query string — no explanations or text.
             """
-
 
             messages = [
                 SystemMessage(content=system_prompt),

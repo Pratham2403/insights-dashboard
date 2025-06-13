@@ -198,7 +198,6 @@ class RouterChatModel(BaseLLM):
                 "client_identifier": self.client_identifier,
                 "messages": router_messages,
                 "temperature": self.temperature,
-                "max_tokens": self.max_tokens,
             }
 
             # Make request to LLM Router

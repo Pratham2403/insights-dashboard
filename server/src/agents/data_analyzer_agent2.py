@@ -388,19 +388,19 @@ class DataAnalyzerAgent:
                 theme = potential_themes[theme_idx]
                 theme_similarities = similarity_matrix[:, theme_idx]
                 
-                # Enhanced quality threshold based on distribution analysis
+                # Enhanced quality threshold based on distribution analysis (RELAXED)
                 percentile_90 = np.percentile(theme_similarities, 90)
                 percentile_75 = np.percentile(theme_similarities, 75)
                 percentile_50 = np.percentile(theme_similarities, 50)
                 mean_sim = np.mean(theme_similarities)
                 
-                # High-quality threshold approach for top themes
-                if max_sim >= 0.7:  # High-confidence theme
-                    quality_threshold = max(0.5, percentile_75)
-                elif max_sim >= 0.5:  # Medium-confidence theme
-                    quality_threshold = max(0.4, percentile_50)
+                # Less strict threshold approach to allow more themes
+                if max_sim >= 0.6:  # High-confidence theme (lowered from 0.7)
+                    quality_threshold = max(0.35, percentile_75 * 0.8)  # Reduced threshold
+                elif max_sim >= 0.4:  # Medium-confidence theme (lowered from 0.5)
+                    quality_threshold = max(0.25, percentile_50 * 0.8)  # Reduced threshold
                 else:  # Lower-confidence theme
-                    quality_threshold = max(0.3, mean_sim)
+                    quality_threshold = max(0.2, mean_sim * 0.8)  # Reduced threshold
                 
                 logger.info(f"Theme '{theme['name']}': max_sim={max_sim:.3f}, "
                            f"threshold={quality_threshold:.3f}")
@@ -415,9 +415,9 @@ class DataAnalyzerAgent:
                     # Sort by similarity and apply quality controls
                     candidate_docs.sort(key=lambda x: theme_similarities[x], reverse=True)
                     
-                    # Quality-based document count requirements
-                    min_docs = max(1, int(len(docs) * 0.02))  # At least 2% of documents
-                    max_docs = min(int(len(docs) * 0.4), 500)  # At most 40% of documents or 500 docs
+                    # Quality-based document count requirements (RELAXED)
+                    min_docs = max(1, int(len(docs) * 0.01))  # At least 1% of documents (reduced from 2%)
+                    max_docs = min(int(len(docs) * 0.3), 1000)  # At most 30% of documents or 1000 docs (increased)
 
                     # Take top documents for this theme
                     selected_docs = candidate_docs[:max_docs]
@@ -488,29 +488,29 @@ class DataAnalyzerAgent:
                 similarity_score = float(theme.get("avg_similarity", 0.0))
                 confidence_components.append(similarity_score * 0.5)
                 
-                # 2. Document quality score (20% weight)
-                # Balanced approach: not too few, not too many documents
+                # 2. Document quality score (15% weight - reduced from 20%)
+                # More balanced approach: wider acceptable range
                 doc_count = theme["document_count"]
                 total_docs = len(docs)
                 
-                # Optimal range: 5% to 25% of total documents
-                optimal_min = max(3, int(total_docs * 0.05))
-                optimal_max = int(total_docs * 0.25)
+                # More lenient optimal range: 2% to 35% of total documents (expanded range)
+                optimal_min = max(2, int(total_docs * 0.02))  # Reduced minimum
+                optimal_max = int(total_docs * 0.35)  # Increased maximum
                 
                 if doc_count < optimal_min:
-                    # Too few documents - lower confidence
-                    quality_score = float(doc_count / optimal_min * 0.7)
+                    # Too few documents - but less penalized
+                    quality_score = float(doc_count / optimal_min * 0.8)  # Increased from 0.7
                 elif doc_count > optimal_max:
-                    # Too many documents - might be too generic
+                    # Too many documents - less penalized
                     excess_ratio = (doc_count - optimal_max) / total_docs
-                    quality_score = float(max(0.3, 1.0 - excess_ratio * 2))
+                    quality_score = float(max(0.5, 1.0 - excess_ratio * 1.5))  # Reduced penalty
                 else:
                     # In optimal range - high confidence
                     quality_score = 1.0
                 
-                confidence_components.append(float(quality_score * 0.2))
+                confidence_components.append(float(quality_score * 0.15))  # Reduced weight
                 
-                # 3. Keyword alignment score (20% weight)
+                # 3. Keyword alignment score (25% weight - increased to compensate)
                 keyword_score = 0.0
                 if keywords:
                     theme_text = f"{theme['name']} {theme['description']}".lower()
@@ -524,7 +524,7 @@ class DataAnalyzerAgent:
                             keyword_matches += 0.5  # Partial match
                     
                     keyword_score = float(min(1.0, keyword_matches / len(keywords)))
-                confidence_components.append(float(keyword_score * 0.2))
+                confidence_components.append(float(keyword_score * 0.25))  # Increased weight
                 
                 # 4. Query relevance score (10% weight) 
                 query_score = 0.0
@@ -541,8 +541,8 @@ class DataAnalyzerAgent:
                 base_confidence = sum(confidence_components)
                 
                 # Bonus for themes with similarity threshold data (indicates quality clustering)
-                if "similarity_threshold" in theme and theme["similarity_threshold"] > 0.5:
-                    base_confidence += 0.05  # Small bonus for high-threshold themes
+                if "similarity_threshold" in theme and theme["similarity_threshold"] > 0.3:  # Lowered from 0.5
+                    base_confidence += 0.08  # Increased bonus for high-threshold themes (from 0.05)
                 
                 theme["confidence_score"] = float(min(1.0, base_confidence))  # Cap at 1.0 and ensure Python float
                 
@@ -552,11 +552,11 @@ class DataAnalyzerAgent:
             # Sort by confidence score and select top themes
             themes.sort(key=lambda x: x["confidence_score"], reverse=True)
             
-            # Adjust minimum confidence threshold based on available themes
+            # Adjust minimum confidence threshold based on available themes (MORE LENIENT)
             if themes:
                 max_confidence = float(themes[0]["confidence_score"])
-                # Dynamic threshold: at least 60% of the best theme's confidence
-                dynamic_threshold = float(max(0.4, max_confidence * 0.6))
+                # More lenient dynamic threshold: at least 50% of the best theme's confidence (reduced from 60%)
+                dynamic_threshold = float(max(0.25, max_confidence * 0.5))  # Lowered minimum threshold
                 self.min_confidence_score = float(min(self.min_confidence_score, dynamic_threshold))
             
             # Filter by minimum confidence and select appropriate number
@@ -565,8 +565,8 @@ class DataAnalyzerAgent:
             if len(high_confidence_themes) >= self.min_themes_output:
                 selected_themes = high_confidence_themes[:self.max_themes_output]
             else:
-                # Very lenient fallback - accept any theme with minimal confidence
-                min_acceptable_confidence = 0.2  # Extremely low absolute minimum
+                # More lenient fallback - accept themes with lower confidence
+                min_acceptable_confidence = 0.15  # Further reduced absolute minimum (from 0.2)
                 acceptable_themes = [t for t in themes if t["confidence_score"] >= min_acceptable_confidence]
                 selected_themes = acceptable_themes[:max(self.min_themes_output, len(acceptable_themes))]
                 
@@ -607,21 +607,17 @@ class DataAnalyzerAgent:
             
             enhanced_themes = []
             for theme in themes:
-                try:
-                    # Create a modified state for this specific theme
-                    theme_state = state.copy()
-                    theme_state["refined_query"] = f"{theme['name']} : {theme['description']}"
-                    
+                try: 
                     # Generate boolean query for this theme
                     boolean_query_result = await self.query_generator._generate_boolean_query(
-                        refined_query=theme_state["refined_query"],
-                        keywords=[],
+                        refined_query=theme["description"],
+                        keywords=state.get("keywords", []),
                         filters=[],
                         entities=[],
                         industry=state.get("industry", ""),
                         sub_vertical=state.get("sub_vertical", ""),
-                        use_case=state.get("use_case", ""),
-                        defaults_applied=state.get("defaults_applied", {})
+                        use_case=theme["name"],
+                        defaults_applied={}
                     )
                     
                     # Memory optimization: create clean theme without full document text

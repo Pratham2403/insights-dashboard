@@ -136,32 +136,7 @@ class SprinklrWorkflow:
         
         return compiled_workflow
     
-    def _log_state_debug(self, stage: str, state: DashboardState):
-        """
-        Log the entire state as model_dump() for debugging purposes as per requirements.
-        This logs the multi_agent_system_project_state structure from PROMPT.md
-        """
-        logger.info(f"🔍 ========== {stage.upper()} - COMPLETE STATE DUMP ==========")
-        
-        # Create state dict matching PROMPT.md structure exactly
-        multi_agent_system_project_state = {
-            "query": state.get("query", []),
-            "refined_query": state.get("refined_query", ""),
-            "keywords": state.get("keywords", []),
-            "filters": state.get("filters", {}),
-            "boolean_query": state.get("boolean_query", ""),
-            "themes": state.get("themes", [])
-        }
-        
-        # Log query list details for debugging
-        query_list = state.get("query", [])
-        logger.info(f"📝 Query List Summary: {len(query_list)} total queries")
-        for i, query in enumerate(query_list):
-            logger.info(f"   Query {i+1}: {query[:100]}...")
-        
-        # Log the complete state dump as simple JSON (no beautification)
-        logger.info(f"STATE_DUMP: {json.dumps(multi_agent_system_project_state, default=str)}")
-        logger.info(f"🔍 ========== END {stage.upper()} STATE DUMP ==========\n")
+
 
     async def _query_refiner_node(self, state: DashboardState) -> Dict[str, Any]:
         """
@@ -172,7 +147,7 @@ class SprinklrWorkflow:
         logger.info("🔍 Step 1: Query Refiner Agent")
         logger.info(" ==================== QUERY REFINER STARTED ====================")
         # Log state BEFORE processing
-        logger.info(f"🔍 Logging state before Query Refiner processing {json.dumps(state)}")
+        logger.info(f"🔍 Logging state before Query Refiner processing {state}")
 
         try:
             # Get the current query list from state
@@ -238,7 +213,7 @@ class SprinklrWorkflow:
         logger.info("📊 Step 2: Data Collector Agent")
         logger.info(" ==================== DATA COLLECTOR STARTED ====================")
 
-        logger.info(f"🔍 Logging state before Data Collector processing {json.dumps(state)}")
+        logger.info(f"🔍 Logging state before Data Collector processing {state}")
 
         try:
             refined_query = state.get("refined_query", state.get("query")[-1])
@@ -299,7 +274,7 @@ class SprinklrWorkflow:
         logger.info("👤 Step 3: Mandatory HITL Verification (Human-in-the-Loop)")
         logger.info(" ==================== HITL VERIFICATION STARTED ====================")
 
-        logger.info(f"Logging State Before HITL Verification: {json.dumps(state)}")
+        logger.info(f"Logging State Before HITL Verification: {state}")
 
         step = state.get("hitl_step", 1)  # Default to step 1 for normal verification
         logger.info(f"🔢 HITL Step: {step}")
@@ -441,7 +416,7 @@ class SprinklrWorkflow:
         logger.info("🔧 Step 4: Query Generator Agent")
         logger.info(" ==================== BOOLEANQUERY GENERATOR STARTED ====================")
         # Log state BEFORE processing
-        logger.info(f"🔍 Logging state before Query Generator processing {json.dumps(state)}")
+        logger.info(f"🔍 Logging state before Query Generator processing {state}")
 
         try:
             
@@ -462,7 +437,7 @@ class SprinklrWorkflow:
                     "current_stage": "boolean_query_generated"
                 }
 
-            logger.info(f"🔗 Generated Boolean query: {boolean_query}...")
+            logger.info(f"🔗 Generated Boolean query: {boolean_query}  ...")
             
             query_msg = AIMessage(
                 content=f"Boolean query is generated"
@@ -509,7 +484,7 @@ class SprinklrWorkflow:
         logger.info("🛠️ Step 5: Tool Execution")
         logger.info(" ==================== TOOL EXECUTION STARTED ====================")
         # Log state BEFORE processing
-        logger.info(f"🔍 Logging state before Tool Execution processing {json.dumps(state)}")
+        logger.info(f"🔍 Logging state before Tool Execution processing {state}")
 
         try:
             boolean_query = state.get("boolean_query", "")
@@ -561,7 +536,7 @@ class SprinklrWorkflow:
         """
         logger.info("📈 Step 6: Data Analyzer Agent")
         logger.info(" ==================== DATA ANALYZER STARTED ====================")
-        logger.info(f"🔍 Logging state before Data Analyzer processing {json.dumps(state)}")
+        logger.info(f"🔍 Logging state before Data Analyzer processing {state}")
 
         
         try:
@@ -625,77 +600,8 @@ class SprinklrWorkflow:
             }
         finally:
             logger.info(" ==================== DATA ANALYZER COMPLETED ====================")
-            logger.info(f"🔍 Logging FINAL STATE {json.dumps(state)}")
+            logger.info(f"🔍 Logging FINAL STATE {state}")
 
-    def _serialize_state_for_json(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Serialize state for JSON response following PROMPT.md structure exactly.
-        Returns only the core multi_agent_system_project_state fields as defined in PROMPT.md.
-        
-        This ensures we avoid duplicating data in the API response.
-        """
-        if not state:
-            return {
-                "query": [],
-                "refined_query": None,
-                "keywords": None,
-                "filters": None,
-                "boolean_query": None,
-                "themes": None
-            }
-        
-        # Create a clean dictionary matching PROMPT.md structure exactly
-        # Use comprehensive serialization to handle any nested AIMessage objects
-        serialized_state = {
-            "query": self._serialize_for_json_comprehensive(state.get("query", [])),
-            "refined_query": self._serialize_for_json_comprehensive(state.get("refined_query")),
-            "keywords": self._serialize_for_json_comprehensive(state.get("keywords", [])),
-            "filters": self._serialize_for_json_comprehensive(state.get("filters", {})),
-            "boolean_query": self._serialize_for_json_comprehensive(state.get("boolean_query", "")),
-            "themes": self._serialize_for_json_comprehensive(state.get("themes", []))
-        }
-        
-        # Log the exact format of the serialized state for debugging
-        
-        return serialized_state
-
-    def _serialize_for_json_comprehensive(self, data: Any) -> Any:
-        """
-        Comprehensive serialization that handles AIMessage objects and other non-serializable types.
-        
-        Args:
-            data: Data to serialize (can be dict, list, or any type)
-            
-        Returns:
-            JSON-serializable version of the data
-        """
-        from langchain_core.messages import BaseMessage
-        
-        if isinstance(data, dict):
-            return {key: self._serialize_for_json_comprehensive(value) for key, value in data.items()}
-        elif isinstance(data, (list, tuple)):
-            return [self._serialize_for_json_comprehensive(item) for item in data]
-        elif isinstance(data, BaseMessage):
-            # Convert LangChain messages to serializable format
-            return {
-                "type": data.__class__.__name__,
-                "content": str(data.content),
-                "role": getattr(data, 'role', 'unknown')
-            }
-        elif hasattr(data, '__dict__'):
-            # Handle objects with __dict__ (like custom classes)
-            try:
-                return str(data)
-            except Exception:
-                return f"<{data.__class__.__name__}>"
-        else:
-            # For primitive types and other serializable types
-            try:
-                import json
-                json.dumps(data)  # Test if it's serializable
-                return data
-            except (TypeError, ValueError):
-                return str(data)
 
     async def run_workflow(
         self, 

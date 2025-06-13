@@ -107,42 +107,28 @@ class DataCollectorAgent(LLMAgent):
             with open(filters_path, "r") as f:
                 available_filters = json.load(f)["filters"]
             
+            system_prompt = """
+            You are a Data Extraction Specialist. Examine the user’s refined query and full context, then return a single JSON object with the following fields:
 
-            system_prompt = f"""You are a Data Extraction Specialist. Examine the user’s refined query and full context, then return a single JSON object with the following fields:
-     
             1. keywords:
-               • 30+ realistic terms that people actually use in social posts or reviews.
-               • Use casual, conversational language (including slang or emotive words), not formal or technical jargon (e.g., “internet down”, “so slow”, “I love it”, “this sucks”, “super angry”).
-               • Cover the use-case, industry, sub-vertical, and any identified entities in an everyday expression style.
-               • **Do not** include any applied filter or entity names in this list.
-
+               - 30+ realistic terms that people actually use in social media or reviews (including slang or emotive words).
+               - Use casual, conversational language (not formal or technical). Cover the use-case (network outages), industry context, and user sentiment.
+               - Include phrases reflecting Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues. Do **not** include any filter names or entity names.
             2. filters:
-               • Only include exact `field: value` pairs from the provided `available_filters` that are directly and explicitly mentioned in the refined query or the query history.
-               • **Do not assume, infer, or default any filter values unless they are clearly and explicitly specified by the user.**
-               • If a filter is not mentioned, do not include it in the output.
-
+               - Only include exact `field: value` pairs from `available_filters` that are explicitly and exactly mentioned in the refined query or query history.
+               - Do not infer or include any filters not explicitly given.
             3. defaults_applied:
-               • List any defaults you have set (e.g., `time_range: LAST_30_DAYS`) because the user did not specify them. Only apply defaults for time_range, and only if not specified by the user.
-
+               - List any defaults used (only `time_range: LAST_30_DAYS` if the user did not specify a time range).
             4. data_completeness_score (0.0–1.0):
-               • This score reflects how complete and realistic the data is. Compute it as follows:
-                 - 40%: use-case, industry, sub-vertical, and entity fields are present (non-null).
-                 - 20%: at least 30 realistic, everyday keywords as described above.
-                 - 30%: correct explicit filters included.
-                 - 10%: defaults applied where needed and a non-empty conversation summary.
-               • Emphasize the realism of keywords and completeness of fields in your scoring.
-
+               - Score based on coverage: 40% if use_case, industry, sub-vertical, and entity are present; 20% for ≥30 realistic keywords; 30% for correct filters; 10% for defaults and conversation summary.
+               - Emphasize realism in keywords and completeness of fields.
             5. ready_for_query_generation:
-               • `false` if any required element is missing or if data_completeness_score < 0.7; otherwise `true`.
-
+               - `False` if any required element is missing or data_completeness_score < 0.7; otherwise `True`.
             6. conversation_summary:
-               • A 2–3 sentence recap of the conversation: summarize all queries, intents, and context from your perspective.
+               - A concise 2–3 sentence recap of the conversation (summarize queries, intent, and context).
 
-            📌 **Mutually exclude** keywords, filters, entities and defaults_applied (they should not overlap).  
-            📌 **Return only** this JSON object—no extra text.
-
+            📌 **Mutually exclude** keywords, filters, entities, and defaults_applied. Return **only** the JSON object (no extra text).
             """
-
 
 
             user_prompt = f"""
@@ -159,16 +145,15 @@ class DataCollectorAgent(LLMAgent):
             Entities: {query_context.get("entities")}
 
             Instructions:
-            - Extract **≥30 real-world message terms** that users might write in social media or reviews, covering the use-case, industry, and sub-vertical.
-            - Keywords should use everyday language and slang; **avoid technical jargon or formal business terms**.
-            - **Exclude** any filters or entity names from the keyword list.
-            - **Do not assume, infer, or default any filter values unless they are clearly and explicitly specified by the user in the refined query or query history.**
-            - Select **only** literal filters (`field: value`) from Available Filters that match the context and are explicitly mentioned.
-            - Apply `time_range: LAST_30_DAYS` as a default only if the user did not specify a time range.
-            - Compute `data_completeness_score` according to the rules above, emphasizing realistic keyword usage and complete context fields.
-            - Set `ready_for_query_generation` to false if any required element is missing or `data_completeness_score` < 0.7.
-            - Summarize the entire conversation in `conversation_summary` (2–3 sentences).
-            - **Return exactly one JSON object** with the fields above, and nothing else."""
+            1. **Filter extraction:** List any filters (`field:<space>value`) explicitly present in the refined query or query history.
+            2. **Defaults:** If no time_range is specified, include `time_range: LAST_30_DAYS` in defaults_applied.
+            3. **Keywords:** Generate at least 30 realistic, casual terms covering the use-case context (Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues). Do not include any filter keys or entity names.
+            4. **No assumptions:** Do not infer or add any filters or entities beyond those explicitly given.
+            5. **Scoring:** Compute `data_completeness_score` as specified, focusing on field completeness and keyword realism.
+            6. **Ready:** Set `ready_for_query_generation` to False if any required element is missing or score < 0.7; otherwise True.
+            7. **Summary:** Provide a 2–3 sentence `conversation_summary` of the queries and intent.
+            8. Return **only** the JSON object with fields `keywords`, `filters`, `defaults_applied`, `data_completeness_score`, `ready_for_query_generation`, and `conversation_summary`.
+            """
 
             
             messages = [

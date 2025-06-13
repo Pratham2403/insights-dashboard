@@ -1,0 +1,494 @@
+[
+  {
+    "status": "success",
+    "message": "Query processed successfully",
+    "data": {
+      "status": "completed-explicitly",
+      "result": {
+        "query": [
+          "Monito Real-Time Network Outage Detection via Social Listening."
+        ],
+        "refined_query": "Monitor real-time network outage detection using social listening tools.",
+        "keywords": [
+          "internet down",
+          "network issues",
+          "can't connect",
+          "wifi problems",
+          "signal lost",
+          "service outage",
+          "no bars",
+          "dropped calls",
+          "slow internet",
+          "buffering",
+          "can't stream",
+          "connection lost",
+          "network failure",
+          "service disruption",
+          "outage alert",
+          "network down",
+          "internet problems",
+          "wifi down",
+          "can't go online",
+          "service down",
+          "network crash",
+          "internet outage",
+          "no connection",
+          "signal issues",
+          "can't browse",
+          "network lag",
+          "service interruption",
+          "wifi issues",
+          "internet lag",
+          "network offline",
+          "service failure",
+          "can't load pages"
+        ],
+        "filters": {},
+        "data_requirements": [
+          "What specific social listening tools are being used or considered?",
+          "Which network or service provider is being monitored for outages?",
+          "What is the geographical scope of the network outage detection?"
+        ],
+        "defaults_applied": ["time_range: LAST_30_DAYS"],
+        "entities": [],
+        "use_case": "Network Outage Detection",
+        "industry": "Telecommunications",
+        "sub_vertical": "Network Monitoring",
+        "conversation_summary": "The user is interested in monitoring real-time network outages using social listening tools within the telecommunications industry, specifically focusing on network monitoring. They have not specified any filters, so a default time range of the last 30 days has been applied.",
+        "boolean_query": "(internet NEAR/3 down) OR (network NEAR/3 issues) OR (service NEAR/3 outage) OR (connection NEAR/3 lost) OR (wifi NEAR/3 problems) NOT (spam OR advertisement)",
+        "themes": [
+          {
+            "name": "Customer Experience Impact",
+            "description": "Analyze the effect of network outages on customer experience by examining complaints related to service disruptions and connectivity issues.",
+            "document_count": 49,
+            "avg_similarity": 0.35522565245628357,
+            "confidence_score": 0.45296004845036403,
+            "boolean_query": "(network NEAR/3 outage) AND (service NEAR/3 disruption) AND (connectivity NEAR/3 issue) AND ((complaint NEAR/3 experience) OR (frustrated NEAR/3 service) OR (slow NEAR/3 internet)) NOT spam"
+          },
+          {
+            "name": "Communication Strategy Effectiveness",
+            "description": "Evaluate the effectiveness of communication strategies during network outages by analyzing customer feedback and sentiment to refine approaches.",
+            "document_count": 22,
+            "avg_similarity": 0.3136804401874542,
+            "confidence_score": 0.40718744231594933,
+            "boolean_query": "(outage OR network OR communication) AND (feedback OR sentiment OR strategy) AND (evaluate NEAR/3 effectiveness) AND (customer NEAR/3 feedback) NOT spam"
+          }
+        ]
+      },
+      "thread_id": "6a450917-1b4f-4d4a-b086-9e5ed9d906c3"
+    },
+    "timestamp": "2025-06-12T12:04:55.342182"
+  },
+  {
+    "status": "success",
+    "message": "Query processed successfully",
+    "data": {
+      "status": "completed-explicitly",
+      "result": {
+        "query": [
+          "Monitor Recent Air India Plane Crash That Occured Today in India"
+        ],
+        "refined_query": "Monitor the recent Air India plane crash that occurred today in India.",
+        "keywords": [
+          "plane crash horror",
+          "Air India disaster",
+          "aviation nightmare",
+          "tragic accident",
+          "emergency landing",
+          "pilot error",
+          "airline safety",
+          "passenger panic",
+          "flight chaos",
+          "rescue operation",
+          "crash site",
+          "survivor stories",
+          "black box recovery",
+          "air traffic control",
+          "emotional aftermath",
+          "aviation tragedy",
+          "heartbreaking news",
+          "flight disaster",
+          "safety protocols",
+          "emergency response",
+          "aviation crisis",
+          "passenger safety",
+          "airline accountability",
+          "crash investigation",
+          "aviation incident",
+          "emotional impact",
+          "flight safety concerns",
+          "aviation shock",
+          "tragic news",
+          "airline tragedy",
+          "aviation disaster"
+        ],
+        "filters": {
+          "country": "IN"
+        },
+        "data_requirements": [
+          "What specific details or updates are you looking for regarding the crash?",
+          "Do you need information on the investigation, casualties, or impact on Air India operations?"
+        ],
+        "defaults_applied": ["time_range: LAST_30_DAYS"],
+        "entities": ["Air India"],
+        "use_case": "Monitoring and tracking aviation incidents",
+        "industry": "Aviation",
+        "sub_vertical": "Airline Operations",
+        "conversation_summary": "The user is interested in monitoring the recent Air India plane crash that occurred today in India. The focus is on tracking aviation incidents within the airline operations sub-vertical, specifically related to Air India. The query aims to gather real-time information and reactions from social media and other sources.",
+        "boolean_query": "Air India AND country: IN AND (crash OR disaster OR tragedy) AND (plane NEAR/3 crash) AND (emergency NEAR/3 response) NOT (pilot NEAR/3 error)",
+        "themes": []
+      },
+      "thread_id": "cca32d5e-e9fc-4576-99b5-934980bf96f5"
+    },
+    "timestamp": "2025-06-12T12:20:11.779179"
+  },
+  {
+    "status": "success",
+    "message": "Query processed successfully",
+    "data": {
+      "status": "completed-explicitly",
+      "result": {
+        "query": ["Get eCustomer Sentiment Analysis on 5G Rollout"],
+        "refined_query": "Analyze customer sentiment regarding the 5G rollout.",
+        "keywords": [
+          "5G hype",
+          "signal drop",
+          "super fast internet",
+          "buffering issues",
+          "network glitch",
+          "coverage complaints",
+          "speed test results",
+          "lagging connection",
+          "tech buzz",
+          "data speed",
+          "streaming quality",
+          "upload/download speed",
+          "customer frustration",
+          "service reliability",
+          "brand trust",
+          "user feedback",
+          "network reliability",
+          "tech upgrade",
+          "service expectations",
+          "customer support",
+          "viral tweets",
+          "competitive edge",
+          "false advertising",
+          "misleading claims",
+          "feature demands",
+          "service outage",
+          "network downtime",
+          "customer loyalty",
+          "service comparison",
+          "tech influencers",
+          "signal strength"
+        ],
+        "filters": {},
+        "data_requirements": [
+          "What specific region or market is the 5G rollout sentiment analysis focused on?",
+          "Are there any specific telecom companies involved in the 5G rollout to focus on?"
+        ],
+        "defaults_applied": ["time_range: LAST_30_DAYS"],
+        "entities": [],
+        "use_case": "Customer Experience & Sentiment Analysis",
+        "industry": "Telecommunications",
+        "sub_vertical": "5G Technology",
+        "conversation_summary": "The user requested an analysis of customer sentiment regarding the 5G rollout, focusing on customer experience and sentiment in the telecommunications industry. The intent is to understand public perception and feedback on 5G technology performance and reliability.",
+        "boolean_query": "(5G OR \"fifth generation\" OR #5G) AND (rollout OR deployment OR launch) AND (customer OR user OR consumer) AND (sentiment OR opinion OR feedback OR reaction) AND (experience OR satisfaction OR dissatisfaction OR complaint OR praise) AND (network OR connectivity OR speed OR coverage)",
+        "themes": [
+          {
+            "name": "5G Network Performance Optimization",
+            "description": "Evaluate the technical performance of 5G networks, focusing on speed, reliability, and coverage, to identify and prioritize areas for improvement and investment.",
+            "document_count": 12,
+            "avg_similarity": 0.47001326084136963,
+            "confidence_score": 0.5133937271948784,
+            "boolean_query": "((5G OR \"5G technology\" OR \"5G network\") AND (performance OR speed OR reliability OR coverage) AND (signal OR \"signal strength\" OR \"signal drop\") AND (network OR \"network glitch\" OR \"network reliability\") AND (speed OR \"speed test\" OR \"data speed\" OR \"upload/download speed\") AND (coverage OR \"coverage complaints\") AND (reliability OR \"service reliability\" OR \"network reliability\") AND (improvement OR investment OR \"tech upgrade\"))"
+          },
+          {
+            "name": "Customer Journey Insights",
+            "description": "Analyze the customer journey to pinpoint pain points and moments of delight, facilitating targeted enhancements in the 5G service experience.",
+            "document_count": 4,
+            "avg_similarity": 0.29102420806884766,
+            "confidence_score": 0.3677701685505529,
+            "boolean_query": "(signal NEAR/3 drop OR buffering OR glitch OR coverage OR lagging OR outage OR downtime) AND (customer NEAR/3 frustration OR feedback OR support OR loyalty OR expectations) AND (5G OR superfast OR speed OR streaming OR upload OR download OR reliability OR strength)"
+          },
+          {
+            "name": "Impact of 5G Upgrades",
+            "description": "Examine the impact of 5G technology upgrades on customer satisfaction and operational performance to guide future investment decisions.",
+            "document_count": 46,
+            "avg_similarity": 0.30323705077171326,
+            "confidence_score": 0.34984433183746955,
+            "boolean_query": "(5G OR \"5G technology\" OR \"5G upgrade\" OR \"5G network\") AND ((impact OR effect OR influence) NEAR/3 (customer OR user) NEAR/3 (satisfaction OR feedback OR frustration OR loyalty)) AND ((operational OR network) NEAR/3 (performance OR reliability OR downtime OR outage)) AND ((signal OR coverage OR speed OR buffering OR lagging) NEAR/3 (issues OR complaints OR problems)) AND (investment OR future OR decision OR guide)"
+          },
+          {
+            "name": "Competitive Analysis and Benchmarking",
+            "description": "Conduct a comparative analysis of customer sentiment and network performance against competitors to uncover strategic strengths and weaknesses.",
+            "document_count": 8,
+            "avg_similarity": 0.23391571640968323,
+            "confidence_score": 0.3392159227209707,
+            "boolean_query": "((5G OR \"5G hype\" OR \"5G technology\") AND (signal OR \"signal drop\" OR \"signal strength\") AND (network OR \"network glitch\" OR \"network reliability\" OR \"network downtime\") AND (speed OR \"super fast\" OR \"data speed\" OR \"upload/download speed\") AND (buffering OR \"buffering issues\" OR \"lagging connection\") AND (coverage OR \"coverage complaints\") AND (service OR \"service reliability\" OR \"service outage\" OR \"service expectations\" OR \"service comparison\") AND (customer OR \"customer frustration\" OR \"customer support\" OR \"customer loyalty\") AND (competitive OR \"competitive edge\" OR \"service comparison\") AND (tech OR \"tech buzz\" OR \"tech upgrade\" OR \"tech influencers\") AND (feedback OR \"user feedback\") AND (trust OR \"brand trust\") AND (viral OR \"viral tweets\"))"
+          },
+          {
+            "name": "Feature Demand and Innovation",
+            "description": "Investigate customer demand for specific 5G features to guide product development and marketing strategies, ensuring alignment with market needs.",
+            "document_count": 5,
+            "avg_similarity": 0.28602683544158936,
+            "confidence_score": 0.33317470804337534,
+            "boolean_query": "(5G OR \"5G technology\" OR \"5G network\") AND (feature OR demand OR innovation OR upgrade) AND (customer OR user OR consumer) AND ((signal OR coverage OR speed) NEAR/5 (complaint OR issue OR demand)) AND (feedback OR expectation OR reliability OR trust OR support)"
+          },
+          {
+            "name": "Strategic Market Positioning",
+            "description": "Evaluate the impact of the 5G rollout on brand perception and strategic positioning within the telecommunications market to inform competitive strategies.",
+            "document_count": 17,
+            "avg_similarity": 0.29510387778282166,
+            "confidence_score": 0.3096487130849592,
+            "boolean_query": "(5G OR \"5G hype\" OR \"tech buzz\" OR \"network glitch\" OR \"signal drop\") AND (brand OR perception OR \"strategic positioning\" OR \"competitive edge\") AND (telecommunications OR \"service reliability\" OR \"network reliability\" OR \"customer feedback\" OR \"service expectations\") AND (impact OR \"service comparison\" OR \"customer loyalty\" OR \"tech influencers\" OR \"viral tweets\")"
+          },
+          {
+            "name": "Public Perception and Tech Buzz",
+            "description": "Monitor social media and online discussions to understand public perception and emerging trends related to 5G technology, informing communication strategies.",
+            "document_count": 7,
+            "avg_similarity": 0.2679688334465027,
+            "confidence_score": 0.304145707045832,
+            "boolean_query": "(5G OR \"5G technology\" OR \"5G network\") AND (hype OR \"tech buzz\" OR \"public perception\" OR \"emerging trends\") AND ((signal NEAR/3 drop) OR (super NEAR/3 fast) OR buffering OR glitch OR coverage OR speed OR lagging OR reliability OR outage OR downtime OR strength) AND (customer OR user OR feedback OR support OR frustration OR expectations OR loyalty OR influencers OR viral OR comparison)"
+          },
+          {
+            "name": "Streaming Quality and User Experience",
+            "description": "Evaluate streaming quality metrics to ensure optimal user experience, particularly in high-demand scenarios, enhancing customer satisfaction.",
+            "document_count": 3,
+            "avg_similarity": 0.3074181377887726,
+            "confidence_score": 0.2879026172814831,
+            "boolean_query": "(streaming OR buffering OR lagging OR \"signal drop\" OR \"network glitch\") AND (quality OR experience OR satisfaction OR reliability OR feedback) AND (5G OR \"super fast\" OR \"data speed\" OR \"upload/download\" OR \"signal strength\") NOT (false OR misleading OR outage)"
+          },
+          {
+            "name": "Sentiment Evolution Analysis",
+            "description": "Examine the progression of customer sentiment over time to detect trends and shifts in perception regarding the 5G rollout, enabling proactive strategy adjustments.",
+            "document_count": 2,
+            "avg_similarity": 0.270122230052948,
+            "confidence_score": 0.2711901472845385,
+            "boolean_query": "(5G OR \"5G rollout\" OR \"5G technology\") AND (sentiment OR perception OR feedback OR opinion) AND ((signal OR coverage OR network) NEAR/3 (drop OR glitch OR complaint OR outage OR downtime)) AND ((speed OR connection OR internet) NEAR/3 (fast OR buffering OR lagging OR quality)) AND (customer OR user) AND (trend OR shift OR evolution OR change)"
+          }
+        ]
+      },
+      "thread_id": "f21a5574-bf0f-434e-8c52-d2f5c7da1867"
+    },
+    "timestamp": "2025-06-13T08:49:01.913534"
+  },
+  {
+    "status": "success",
+    "message": "Query processed successfully",
+    "data": {
+      "status": "completed-explicitly",
+      "result": {
+        "query": [
+          "Please do a Competitive Benchmarking of Data Plans",
+          "Use Jio"
+        ],
+        "refined_query": "Conduct a competitive benchmarking analysis of data plans across different telecommunications providers, specifically including Jio.",
+        "keywords": [
+          "data plan comparison",
+          "network speed issues",
+          "signal drop complaints",
+          "customer service frustration",
+          "pricing confusion",
+          "value for money",
+          "unlimited data hype",
+          "coverage problems",
+          "streaming quality",
+          "download speed",
+          "upload speed",
+          "billing errors",
+          "contract terms",
+          "hidden fees",
+          "user satisfaction",
+          "brand loyalty",
+          "provider reliability",
+          "network congestion",
+          "social media buzz",
+          "viral complaints",
+          "competitive edge",
+          "market leader",
+          "service outage",
+          "customer retention",
+          "feature requests",
+          "support ticket delays",
+          "misleading ads",
+          "expectation vs reality",
+          "data cap concerns",
+          "plan upgrades"
+        ],
+        "filters": {},
+        "data_requirements": [],
+        "defaults_applied": ["time_range: LAST_30_DAYS"],
+        "entities": ["Jio"],
+        "use_case": "Competitive Benchmarking",
+        "industry": "Telecommunications",
+        "sub_vertical": "Mobile Data Services",
+        "conversation_summary": "The user requested a competitive benchmarking analysis of data plans, specifically mentioning Jio as a provider to include. The focus is on comparing telecommunications providers in the mobile data services sub-vertical, with an emphasis on customer experience and service performance.",
+        "boolean_query": "(Jio OR #Jio) AND (data NEAR/5 plan OR mobile NEAR/5 plan OR internet NEAR/5 plan) AND (compare OR comparison OR benchmark OR review OR analysis) AND (telecom OR telecommunications OR provider OR carrier)",
+        "themes": [
+          {
+            "name": "Competitive Pricing Strategy Optimization",
+            "description": "Analyze and optimize pricing structures of data plans to identify competitive advantages and areas for cost reduction, ensuring alignment with market demands.",
+            "document_count": 2,
+            "avg_similarity": 0.3371775448322296,
+            "confidence_score": 0.37499902882637126,
+            "boolean_query": "(data plan OR \"data plans\" OR \"mobile data\") AND (pricing OR \"price structure\" OR \"cost reduction\" OR \"value for money\") AND (\"competitive advantage\" OR \"market leader\" OR \"competitive edge\") AND (\"customer satisfaction\" OR \"user satisfaction\" OR \"brand loyalty\") AND (\"signal drop\" OR \"network speed\" OR \"coverage problems\") AND (\"billing errors\" OR \"hidden fees\" OR \"contract terms\")"
+          },
+          {
+            "name": "Network Performance and Reliability Assessment",
+            "description": "Evaluate network speed, reliability, and service quality metrics to identify infrastructure improvement opportunities and enhance user experience.",
+            "document_count": 2,
+            "avg_similarity": 0.31006336212158203,
+            "confidence_score": 0.3466983477274577,
+            "boolean_query": "(network NEAR/5 speed OR \"signal drop\" OR \"coverage problems\") AND (reliability OR \"service outage\" OR \"provider reliability\") AND (\"customer service\" NEAR/5 frustration OR \"user satisfaction\" OR \"streaming quality\")"
+          },
+          {
+            "name": "Geographical Service Coverage Optimization",
+            "description": "Investigate geographical coverage and signal strength to identify underserved areas and strategize network expansion for improved service reach.",
+            "document_count": 2,
+            "avg_similarity": 0.30921125411987305,
+            "confidence_score": 0.3337722937266032,
+            "boolean_query": "(signal NEAR/5 strength OR coverage NEAR/5 problems OR \"network speed issues\" OR \"signal drop complaints\") AND (expansion OR underserved OR \"improved service reach\") AND (telecom OR mobile OR \"data services\")"
+          }
+        ]
+      },
+      "thread_id": "8b76f253-e357-45d7-bfe0-73dd045d5473"
+    },
+    "timestamp": "2025-06-13T09:14:46.589701"
+  },
+  {
+    "status": "success",
+    "message": "Query processed successfully",
+    "data": {
+      "status": "completed-explicitly",
+      "result": {
+        "query": [
+          "Identifying Customer Pain Points in Billing Processes of my Company",
+          "My Company is Samsung",
+          "Industry is Samsung Electronics Industry. That is Pretty Logincal."
+        ],
+        "refined_query": "Identify customer pain points in the billing processes of Samsung to improve customer experience and operational efficiency in the Samsung Electronics industry.",
+        "keywords": [
+          "billing issues",
+          "payment problems",
+          "invoice confusion",
+          "late fees",
+          "overcharged",
+          "refund delays",
+          "customer service frustration",
+          "billing errors",
+          "account discrepancies",
+          "payment gateway issues",
+          "transaction failed",
+          "unexpected charges",
+          "billing cycle confusion",
+          "support unresponsive",
+          "escalation needed",
+          "billing transparency",
+          "customer loyalty",
+          "brand trust",
+          "service reliability",
+          "user experience",
+          "negative reviews",
+          "social media complaints",
+          "billing process improvement",
+          "competitive billing practices",
+          "customer feedback",
+          "billing expectations",
+          "demand for clarity",
+          "billing satisfaction",
+          "billing efficiency",
+          "billing support"
+        ],
+        "filters": {},
+        "data_requirements": [
+          "Clarify the specific sub-vertical within the Samsung Electronics industry."
+        ],
+        "defaults_applied": ["time_range: LAST_30_DAYS"],
+        "entities": ["Samsung"],
+        "use_case": "Identifying and addressing customer pain points in billing processes",
+        "industry": "Samsung Electronics",
+        "sub_vertical": null,
+        "conversation_summary": "The user is focused on identifying customer pain points in Samsung's billing processes to enhance customer experience and operational efficiency within the Samsung Electronics industry. The conversation emphasized the need to understand customer feedback and improve billing transparency and support.",
+        "boolean_query": "(Samsung OR #Samsung) AND (billing OR payment OR invoice) AND (problem OR issue OR complaint OR \"not working\" OR \"too high\" OR \"unexpected charge\") AND (\"customer service\" OR support OR help)",
+        "themes": [
+          {
+            "name": "Customer Support Effectiveness in Billing",
+            "description": "Measure the responsiveness and effectiveness of customer support in resolving billing issues to improve service quality and customer experience.",
+            "document_count": 12,
+            "avg_similarity": 0.2562943994998932,
+            "confidence_score": 0.38648053308327995,
+            "boolean_query": "(billing OR \"payment problems\" OR \"invoice confusion\" OR \"late fees\" OR overcharged OR \"refund delays\" OR \"billing errors\" OR \"account discrepancies\" OR \"payment gateway issues\" OR \"transaction failed\" OR \"unexpected charges\" OR \"billing cycle confusion\") AND (\"customer service\" NEAR/5 frustration OR \"support unresponsive\" OR \"escalation needed\") AND (\"customer experience\" OR \"service quality\" OR \"billing satisfaction\")"
+          },
+          {
+            "name": "Payment Gateway Reliability and Performance",
+            "description": "Assess the reliability, speed, and security of payment gateways to ensure seamless transactions, minimize payment-related complaints, and prevent fraud.",
+            "document_count": 4,
+            "avg_similarity": 0.3140813112258911,
+            "confidence_score": 0.33620732227961225,
+            "boolean_query": "(payment NEAR/3 gateway) AND (reliability OR speed OR security OR \"transaction failed\" OR \"payment problems\" OR \"billing issues\") AND (fraud OR \"unexpected charges\" OR \"overcharged\" OR \"billing errors\" OR \"account discrepancies\") AND (\"customer service\" OR \"support unresponsive\" OR \"escalation needed\")"
+          },
+          {
+            "name": "Billing Cycle and Predictability Optimization",
+            "description": "Analyze billing cycle timelines to identify opportunities for optimization, ensuring timely and predictable billing for improved cash flow management.",
+            "document_count": 19,
+            "avg_similarity": 0.22765155136585236,
+            "confidence_score": 0.32965910901625955,
+            "boolean_query": "(billing NEAR/3 cycle OR \"billing issues\" OR \"payment problems\" OR \"invoice confusion\" OR \"billing errors\" OR \"account discrepancies\") AND (predictable OR timely OR \"cash flow\" OR \"billing transparency\" OR \"billing satisfaction\" OR \"billing efficiency\") AND (\"customer feedback\" OR \"user experience\" OR \"social media complaints\" OR \"negative reviews\")"
+          },
+          {
+            "name": "Competitive Billing Strategy Benchmarking",
+            "description": "Benchmark billing practices against industry competitors to identify areas for differentiation, competitive advantage, and strategic improvements.",
+            "document_count": 10,
+            "avg_similarity": 0.22544105350971222,
+            "confidence_score": 0.3285538600881895,
+            "boolean_query": "(billing OR payment OR invoice OR \"late fees\" OR overcharged OR refund OR \"billing errors\" OR \"account discrepancies\" OR \"unexpected charges\" OR \"billing cycle\" OR \"billing transparency\" OR \"billing satisfaction\") AND (\"customer service\" OR \"customer feedback\" OR \"customer loyalty\" OR \"brand trust\" OR \"user experience\" OR \"negative reviews\" OR \"social media complaints\") AND (\"competitive billing\" OR \"billing process improvement\" OR \"billing efficiency\" OR \"billing support\")"
+          },
+          {
+            "name": "Risk Management in Billing Processes",
+            "description": "Evaluate potential risks such as fraud or data breaches associated with billing processes to implement preventive measures and ensure data security.",
+            "document_count": 5,
+            "avg_similarity": 0.21996045112609863,
+            "confidence_score": 0.31498022556304933,
+            "boolean_query": "(billing OR payment OR invoice) AND (fraud OR \"data breach\" OR \"security risk\") AND (\"billing error\" OR \"overcharged\" OR \"unexpected charges\" OR \"transaction failed\" OR \"account discrepancies\") AND (\"customer service\" OR \"support unresponsive\" OR \"escalation needed\") AND (\"billing process\" OR \"billing transparency\" OR \"billing efficiency\")"
+          },
+          {
+            "name": "Strategic Billing Process Innovations",
+            "description": "Explore and implement innovative technologies and methodologies to enhance billing processes, aligning them with broader business goals and customer expectations.",
+            "document_count": 2,
+            "avg_similarity": 0.2836686670780182,
+            "confidence_score": 0.2826676668723424,
+            "boolean_query": "(billing OR payment OR invoice) AND (issues OR problems OR confusion OR \"late fees\" OR overcharged OR \"refund delays\" OR errors OR discrepancies OR \"gateway issues\" OR \"transaction failed\" OR \"unexpected charges\") AND (\"customer service\" OR support OR \"user experience\" OR \"negative reviews\" OR complaints) AND (\"billing process\" OR \"billing improvement\" OR \"billing efficiency\" OR \"billing satisfaction\")"
+          },
+          {
+            "name": "Billing Process Efficiency and Cost Optimization",
+            "description": "Evaluate the time, resources, and costs associated with billing processes to identify bottlenecks and opportunities for streamlining operations and reducing expenses.",
+            "document_count": 2,
+            "avg_similarity": 0.2905501127243042,
+            "confidence_score": 0.2777750563621521,
+            "boolean_query": "(billing NEAR/3 issues OR payment NEAR/3 problems OR invoice NEAR/3 confusion OR overcharged OR refund NEAR/3 delays OR billing NEAR/3 errors OR account NEAR/3 discrepancies OR unexpected NEAR/3 charges) AND (billing NEAR/3 efficiency OR billing NEAR/3 process OR cost NEAR/3 optimization OR streamline NEAR/3 operations OR reduce NEAR/3 expenses) AND (customer NEAR/3 feedback OR social NEAR/3 media OR negative NEAR/3 reviews)"
+          },
+          {
+            "name": "Customer Sentiment and Loyalty Analysis",
+            "description": "Analyze customer feedback and sentiment to understand the impact of billing experiences on customer loyalty and retention, identifying key areas for improvement.",
+            "document_count": 2,
+            "avg_similarity": 0.21085266768932343,
+            "confidence_score": 0.27625966717799505,
+            "boolean_query": "(billing issues OR payment problems OR invoice confusion OR late fees OR overcharged OR refund delays OR billing errors OR account discrepancies OR unexpected charges OR billing cycle confusion) AND (customer service frustration OR support unresponsive OR escalation needed) AND (customer loyalty OR brand trust OR negative reviews OR social media complaints)"
+          },
+          {
+            "name": "Invoice Accuracy and Clarity Enhancement",
+            "description": "Examine the clarity and accuracy of invoices to reduce customer confusion, minimize billing errors, and improve overall customer satisfaction.",
+            "document_count": 2,
+            "avg_similarity": 0.24191159009933472,
+            "confidence_score": 0.2742891283830007,
+            "boolean_query": "(billing NEAR/3 issues OR payment NEAR/3 problems OR invoice NEAR/3 confusion OR billing NEAR/3 errors OR overcharged OR refund NEAR/3 delays OR account NEAR/3 discrepancies OR unexpected NEAR/3 charges OR billing NEAR/3 cycle NEAR/3 confusion OR billing NEAR/3 transparency OR billing NEAR/3 satisfaction) AND (customer NEAR/3 service NEAR/3 frustration OR support NEAR/3 unresponsive OR escalation NEAR/3 needed OR negative NEAR/3 reviews OR social NEAR/3 media NEAR/3 complaints)"
+          }
+        ]
+      },
+      "thread_id": "3bb3451a-7522-4f3e-a18c-8d998b749386"
+    },
+    "timestamp": "2025-06-13T09:20:07.754108"
+  }
+]

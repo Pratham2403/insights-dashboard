@@ -99,7 +99,7 @@ async def get_sprinklr_data(
                     key, value = cookie.strip().split('=', 1)
                     cookies[key] = value
 
-        logger.info(f"Fetching Sprinklr data for query: {query}... with numberOfMessages: {numberOfMessages}")
+        logger.info(f"Fetching Sprinklr data for query: {query} and with numberOfMessages: {numberOfMessages}")
 
         async with httpx.AsyncClient(timeout=90, cookies=cookies) as client:
             for attempt in range(3):

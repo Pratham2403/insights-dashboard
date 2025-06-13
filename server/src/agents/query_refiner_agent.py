@@ -107,22 +107,23 @@ class QueryRefinerAgent(LLMAgent):
         system_prompt = """
         You are an expert query understanding and refinement engine.
 
-        Your goal is to deeply analyze the user’s raw query or sequence of queries and extract a clean, structured intent summary.
+        Your goal is to deeply analyze the user’s query (and conversation context, if any) and extract a clean, structured intent summary covering all relevant aspects.
+
+        Use chain-of-thought internally: first break down the query by the use case, any specific entities mentioned, and the related industry and sub-vertical. Consider multiple perspectives (Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues) to achieve a 360-degree understanding before formulating the refined query.
 
         Your response must include the following structured fields:
-
-        1. refined_query: A single, comprehensive query that captures the user's full intent, combining fragmented thoughts if multiple queries exist.
-        2. data_requirements: A list of clarifying questions the engine would need to ask the user in order to fulfill the refined query accurately.
-        3. entities: The brands, products, companies, or entities the query is focused on (if any; otherwise use an empty list).
+        1. refined_query: A single, comprehensive query that fully captures the user's intent, combining fragmented thoughts if multiple queries exist.
+        2. data_requirements: A list of clarifying questions needed to fill any missing details (if necessary).
+        3. entities: The list of specific brands, products, companies, or entities the query is focused on (if any; otherwise an empty list).
         4. use_case: The primary objective or problem the user wants to solve.
-        5. industry: The broader industry associated with the user query, entities and use_case (e.g., Automotive, Retail, Technology).
-        6. sub_vertical: The narrower sub-sector of the industry (e.g., Automotive Manufacturing, Luxury Fashion).
+        5. industry: The broader industry related to the user query (e.g., Telecommunications) or null.
+        6. sub_vertical: The narrower sub-sector of that industry (e.g., Network Monitoring) or null.
 
         INSTRUCTIONS:
-        - If any fields that cannot be interpreted from query or context, populate them with null and provide a corresponding clarifying question in `data_requirements`.
-        - Keep all responses neutral, factual, and do not guess unknown information.
+        - If any field cannot be determined from the query or context, set it to null and add a corresponding clarifying question in `data_requirements`.
+        - Keep responses neutral and factual; do not guess unknown information.
         - Do not generate output unless all required fields are returned in the correct format.
-        - Return **only** the JSON object in the exact format below, without additional text or explanation.
+        - Return **only** the JSON object in the exact format below (no additional text or explanation).
 
         Return the output in the following exact JSON format:
         {
@@ -137,9 +138,8 @@ class QueryRefinerAgent(LLMAgent):
             "sub_vertical": "<Sub-Vertical or null>"
         }
         """
-
-
-        user_prompt = f"""Given the following conversation metadata and queries, output a JSON object ONLY:
+        
+        user_prompt = f"""Given the following conversation context and queries, output a JSON object **ONLY**:
 
         Conversation Context:
         - Is Continuation: {context.get('is_continuation', False)}
@@ -151,16 +151,17 @@ class QueryRefinerAgent(LLMAgent):
         - Use Case (If Identified): {context.get('use_case', '')}
         - Industry (If Identified): {context.get('industry', '')}
         - Sub-Vertical (If Identified): {context.get('sub_vertical', '')}
-        - Entities (If Identified): {context.get('entities', [])}
 
         INSTRUCTIONS:
-        1. If there is already an identified use_case, industry, sub-vertical, or entities, determine whether they should remain the same or be updated.
-        2. If any of use case, industry, sub-vertical, or entities are not yet identified, extract or infer them from the user intent, query and context.
-        3. Analyze the conversation context and the latest queries to generate a comprehensive refined query and fill all fields.
-
-        Return **only** a JSON object with the fields `refined_query`, `data_requirements`, `entities`, `use_case`, `industry`, and `sub_vertical` as defined above. Do not output any additional text or explanations.
+        1. Determine the use case from the user's queries.
+        2. Identify any specific entities (brands, products, etc.) mentioned explicitly and correctly.
+        3. Identify the industry and sub-vertical context.
+        4. Consider multiple facets of the problem (e.g., Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues) to capture a comprehensive intent.
+        5. Craft the `refined_query` incorporating all these aspects.
+        6. If any field is unclear or missing, set it to null and include a clarifying question in `data_requirements`.
+        7. Return **only** a JSON object with fields `refined_query`, `data_requirements`, `entities`, `use_case`, `industry`, and `sub_vertical`. Do not output any additional text.
         """
-        
+
         
 
         try:
