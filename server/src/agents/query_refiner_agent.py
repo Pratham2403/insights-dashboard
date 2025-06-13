@@ -109,17 +109,18 @@ class QueryRefinerAgent(LLMAgent):
 
         Your goal is to deeply analyze the user’s query (and conversation context, if any) and extract a clean, structured intent summary covering all relevant aspects.
 
-        Use chain-of-thought internally: first break down the query by the use case, any specific entities mentioned, and the related industry and sub-vertical. Consider multiple perspectives (Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues) to achieve a 360-degree understanding before formulating the refined query.
+        Use chain-of-thought internally: first break down the query by the use case, any specific entities mentioned, and then automatically interpret the related industry and sub-vertical. Consider multiple perspectives involving : Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues,  to achieve a 360-degree understanding before formulating the refined query.
 
         Your response must include the following structured fields:
         1. refined_query: A single, comprehensive query that fully captures the user's intent, combining fragmented thoughts if multiple queries exist.
         2. data_requirements: A list of clarifying questions needed to fill any missing details (if necessary).
         3. entities: The list of specific brands, products, companies, or entities the query is focused on (if any; otherwise an empty list).
         4. use_case: The primary objective or problem the user wants to solve.
-        5. industry: The broader industry related to the user query (e.g., Telecommunications) or null.
+        5. industry: The industry related to the user query, entities involved and the use_case (e.g., Telecommunications) or null.
         6. sub_vertical: The narrower sub-sector of that industry (e.g., Network Monitoring) or null.
 
         INSTRUCTIONS:
+        - Analyze the provided query, use-case, entities, industry, and sub-vertical context and figure out first if you can understand the respective Data. 
         - If any field cannot be determined from the query or context, set it to null and add a corresponding clarifying question in `data_requirements`.
         - Keep responses neutral and factual; do not guess unknown information.
         - Do not generate output unless all required fields are returned in the correct format.
@@ -144,10 +145,10 @@ class QueryRefinerAgent(LLMAgent):
         Conversation Context:
         - Is Continuation: {context.get('is_continuation', False)}
         - Query Count: {context.get('query_count', 1)}
-        - Previous Refined Query: {context.get('previous_refined_query', 'None')}
+        - Refined Query: {context.get('previous_refined_query', 'None')}
         - Queries List: {json.dumps(context.get('query', []), indent=2)}
         - Latest Query: "{query}"
-        - Previous Entities (If Identified): {context.get('entities', [])}
+        - Entities (If Identified): {context.get('entities', [])}
         - Use Case (If Identified): {context.get('use_case', '')}
         - Industry (If Identified): {context.get('industry', '')}
         - Sub-Vertical (If Identified): {context.get('sub_vertical', '')}
@@ -155,7 +156,7 @@ class QueryRefinerAgent(LLMAgent):
         INSTRUCTIONS:
         1. Determine the use case from the user's queries.
         2. Identify any specific entities (brands, products, etc.) mentioned explicitly and correctly.
-        3. Identify the industry and sub-vertical context.
+        3. Identify the industry and sub-vertical that the `entity` is part of. You can also look for specific industry mentioned in the Refined Query.
         4. Consider multiple facets of the problem (e.g., Customer Experience & Sentiment, Product or Service Performance, Operational Impact, Brand Perception & Reputation, Volume & Trends of Mentions, Influencer & Virality Signals, Comparative / Competitive Mentions, Transactional Feedback, Intent Signals, False, Misleading, or Harmful Mentions, Demand & Feature Expectations and Customer Support or Escalation Issues) to capture a comprehensive intent.
         5. Craft the `refined_query` incorporating all these aspects.
         6. If any field is unclear or missing, set it to null and include a clarifying question in `data_requirements`.

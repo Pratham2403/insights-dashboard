@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { DashboardState } from '../types';
 
 export interface ChatRequest {
     query: string;
@@ -11,271 +13,289 @@ export interface ChatResponse {
     thread_id: string;
     reasoning_config?: string;
     timestamp: string;
+    dashboard_state?: DashboardState | null;
     status?: string;
     interrupt_data?: any;
     result?: any;
-    workflow_state?: any; // Added for workflow state tracking
+    message?: string;
 }
 
-export interface BackendResponse {
-    status: string;
-    message: string;
-    data: {
-        status: string;
-        result?: any;
-        thread_id: string;
-        interrupt_data?: any;
-    };
-    timestamp: string;
-}
-
+// Backend API service for Sprinklr Dashboard
 class ChatApiService {
-    private baseURL = 'http://localhost:8000/api'; // Backend API endpoint
-    private axiosInstance = axios.create({
-        baseURL: this.baseURL,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    private baseURL = 'http://localhost:8000'; // Backend API endpoint
 
     async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-        // Security: Validate thread_id format if provided
-        if (request.thread_id && !this.isValidThreadId(request.thread_id)) {
-            throw new Error('Invalid thread_id format');
-        }
-
         try {
-            const payload = {
-                query: request.query,
-                thread_id: request.thread_id || null,
-            };
-
-            console.log('📤 Sending request to backend:', payload);
-
-            const response = await this.axiosInstance.post<BackendResponse>(
-                '/process',
-                payload
+            // Call the actual backend API
+            const response = await axios.post(
+                `${this.baseURL}/api/process`,
+                {
+                    query: request.query,
+                    thread_id: request.thread_id || undefined,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
             );
 
-            console.log('📥 Backend response:', response.data);
+            const data = response.data;
 
-            const backendData = response.data.data;
+            if (data.status === 'success' && data.data) {
+                const resultData = data.data;
 
-            // Handle different response types from backend
-            if (backendData.status === 'waiting_for_input') {
-                // HITL interaction required
-                return {
-                    response: this.formatHITLResponse(
-                        backendData.interrupt_data
-                    ),
-                    thread_id: backendData.thread_id,
-                    reasoning_config: 'dashboard-workflow',
-                    timestamp: response.data.timestamp,
-                    status: 'waiting_for_input',
-                    interrupt_data: backendData.interrupt_data,
-                    workflow_state: backendData.result || {}, // Include any available state
-                };
-            } else if (backendData.status === 'completed') {
-                // Workflow completed
-                return {
-                    response: this.formatCompletedResponse(backendData.result),
-                    thread_id: backendData.thread_id,
-                    reasoning_config: 'dashboard-workflow',
-                    timestamp: response.data.timestamp,
-                    status: 'completed',
-                    result: backendData.result,
-                    workflow_state: backendData.result,
-                };
+                // Handle different response types from backend
+                if (resultData.status === 'waiting_for_input') {
+                    // HITL (Human-in-the-Loop) response
+                    return {
+                        response: this.formatHITLResponse(resultData),
+                        thread_id: resultData.thread_id,
+                        reasoning_config: 'hitl-verification',
+                        timestamp: new Date().toISOString(),
+                        dashboard_state:
+                            this.convertToClientDashboardState(resultData),
+                        status: 'waiting_for_input',
+                        interrupt_data: resultData.interrupt_data,
+                        message: resultData.message,
+                    };
+                } else if (
+                    resultData.status === 'completed' ||
+                    resultData.status === 'completed-explicitly'
+                ) {
+                    // Workflow completed response
+                    return {
+                        response: this.formatCompletedResponse(
+                            resultData.result
+                        ),
+                        thread_id: resultData.thread_id,
+                        reasoning_config: 'analysis-complete',
+                        timestamp: new Date().toISOString(),
+                        dashboard_state: this.convertToClientDashboardState(
+                            resultData.result
+                        ),
+                        status: 'completed',
+                        result: resultData.result,
+                    };
+                } else {
+                    // Default processing response
+                    return {
+                        response: 'Processing your request...',
+                        thread_id: resultData.thread_id || uuidv4(),
+                        reasoning_config: 'processing',
+                        timestamp: new Date().toISOString(),
+                        dashboard_state:
+                            this.convertToClientDashboardState(resultData),
+                    };
+                }
             } else {
-                // Default case
-                return {
-                    response: response.data.message || 'Processing completed',
-                    thread_id: backendData.thread_id,
-                    reasoning_config: 'dashboard-workflow',
-                    timestamp: response.data.timestamp,
-                    status: backendData.status,
-                    workflow_state: backendData.result || {},
-                };
+                throw new Error('Invalid response from backend');
             }
-        } catch (error: any) {
-            console.error('❌ Error communicating with backend:', error);
+        } catch (error) {
+            console.error('Backend API error:', error);
 
-            if (error.response) {
-                throw new Error(
-                    `Backend error: ${
-                        error.response.data?.message ||
-                        error.response.statusText
-                    }`
-                );
-            } else if (error.request) {
-                throw new Error(
-                    'Unable to connect to backend service. Please ensure the server is running.'
-                );
-            } else {
-                throw new Error(`Request error: ${error.message}`);
-            }
+            // Fallback response on error
+            return {
+                response: `I encountered an error while processing your request: ${
+                    error instanceof Error ? error.message : 'Unknown error'
+                }. Please try again.`,
+                thread_id: request.thread_id || uuidv4(),
+                timestamp: new Date().toISOString(),
+                dashboard_state: null,
+            };
         }
     }
 
-    private isValidThreadId(threadId: string): boolean {
-        // UUID v4 format validation
-        const uuidRegex =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        return uuidRegex.test(threadId);
-    }
+    private formatHITLResponse(data: any): string {
+        const interruptData = data.interrupt_data || {};
 
-    private formatHITLResponse(interruptData: any): string {
-        if (!interruptData) {
-            return 'Please provide feedback to continue the analysis.';
+        let response = `## Review Required\n\n`;
+
+        // Show only Review Analysis, Data Requirements, Refined Query, Conversation Summary, Instructions
+
+        // 1. Review Analysis (if available)
+
+        // 3. Refined Query
+        if (interruptData.refined_query) {
+            response += `**Refined Query:** ${interruptData.refined_query}\n\n`;
         }
 
-        const {
-            question,
-            refined_query,
-            keywords,
-            filters,
-            data_requirements,
-            instructions,
-        } = interruptData;
-
-        let response = `${question || 'Please review the analysis below:'}\n\n`;
-
-        if (refined_query) {
-            response += `**Refined Query:** ${refined_query}\n\n`;
+        // 4. Conversation Summary
+        if (interruptData.conversation_summary) {
+            response += `**Conversation Summary:** ${interruptData.conversation_summary}\n\n`;
         }
 
-        if (keywords && keywords.length > 0) {
-            response += `**Keywords Identified:** ${keywords.join(', ')}\n\n`;
+        // 2. Data Requirements
+        if (
+            interruptData.data_requirements &&
+            interruptData.data_requirements.length > 0
+        ) {
+            response += `**Data Requirements:**\n${interruptData.data_requirements
+                .map((req: string) => `- ${req}`)
+                .join('\n')}\n\n`;
         }
 
-        if (filters && Object.keys(filters).length > 0) {
-            response += `**Filters Applied:**\n`;
-            Object.entries(filters).forEach(([key, value]) => {
-                response += `- ${key}: ${value}\n`;
-            });
-            response += '\n';
-        }
-
-        if (data_requirements && data_requirements.length > 0) {
-            response += `**Data Requirements:**\n`;
-            data_requirements.forEach((req: string) => {
-                response += `- ${req}\n`;
-            });
-            response += '\n';
-        }
-
-        response +=
-            instructions ||
-            "Reply 'yes' to approve or provide feedback to refine the analysis.";
+        // 5. Instructions (always last)
+        response += `**Instructions:** ${
+            interruptData.instructions ||
+            "Reply 'yes' to approve or provide feedback to refine"
+        }`;
 
         return response;
     }
 
     private formatCompletedResponse(result: any): string {
-        if (!result) {
-            return 'Analysis completed successfully.';
+        let response = `## Analysis Complete! 🎉\n\n`;
+
+        // Show only a summary message since themes will be displayed beautifully in the UI
+        if (result.themes && result.themes.length > 0) {
+            response += `**Discovered ${result.themes.length} Key Themes**\n\n`;
+            response += `I've analyzed your data and identified ${result.themes.length} significant themes. Each theme includes detailed insights, confidence metrics, and optimized boolean queries for further exploration.\n\n`;
         }
 
-        // Handle different result structures from the backend
-        if (typeof result === 'string') {
-            return result;
-        }
-
-        if (result.analysis_results) {
-            return this.formatAnalysisResults(result.analysis_results);
-        }
-
-        if (result.themes && Array.isArray(result.themes)) {
-            return this.formatThemesResponse(result.themes);
-        }
-
+        // 2. Boolean Query Generated
         if (result.boolean_query) {
-            return `Analysis completed with query: ${result.boolean_query}`;
+            response += `**Main Analysis Query:** \`${result.boolean_query}\`\n\n`;
         }
 
-        // Fallback: stringify the result in a readable format
-        return (
-            'Analysis completed. Here are the key insights from your data:\n\n' +
-            JSON.stringify(result, null, 2).slice(0, 1000) +
-            '...'
-        );
-    }
-
-    private formatAnalysisResults(analysisResults: any): string {
-        let response = '## Analysis Results\n\n';
-
-        if (analysisResults.insights) {
-            response += '### Key Insights\n';
-            if (Array.isArray(analysisResults.insights)) {
-                analysisResults.insights.forEach(
-                    (insight: string, index: number) => {
-                        response += `${index + 1}. ${insight}\n`;
-                    }
-                );
-            } else {
-                response += `${analysisResults.insights}\n`;
-            }
-            response += '\n';
-        }
-
-        if (analysisResults.recommendations) {
-            response += '### Recommendations\n';
-            if (Array.isArray(analysisResults.recommendations)) {
-                analysisResults.recommendations.forEach(
-                    (rec: string, index: number) => {
-                        response += `${index + 1}. ${rec}\n`;
-                    }
-                );
-            } else {
-                response += `${analysisResults.recommendations}\n`;
-            }
-            response += '\n';
-        }
-
-        if (analysisResults.metrics) {
-            response += '### Key Metrics\n';
-            Object.entries(analysisResults.metrics).forEach(([key, value]) => {
-                response += `- **${key}**: ${value}\n`;
-            });
-            response += '\n';
-        }
+        // Final message
+        response += `Your comprehensive analysis is now complete and ready for exploration! 🚀`;
 
         return response;
     }
 
-    private formatThemesResponse(themes: any[]): string {
-        let response = '## Dashboard Themes Analysis\n\n';
+    private convertToClientDashboardState(data: any): DashboardState | null {
+        if (!data) return null;
 
-        themes.forEach((theme, index) => {
-            response += `### Theme ${index + 1}: ${
-                theme.name || `Theme ${index + 1}`
-            }\n`;
-            if (theme.description) {
-                response += `${theme.description}\n`;
-            }
-            if (theme.boolean_query) {
-                response += `**Query**: ${theme.boolean_query}\n`;
-            }
-            if (theme.keywords && theme.keywords.length > 0) {
-                response += `**Keywords**: ${theme.keywords.join(', ')}\n`;
-            }
-            response += '\n';
-        });
+        // Handle interrupt data structure
+        const sourceData = data.interrupt_data || data;
 
-        return response;
+        return {
+            query: Array.isArray(sourceData.query)
+                ? sourceData.query
+                : sourceData.query
+                ? [sourceData.query]
+                : [data.message || ''],
+            refined_query: sourceData.refined_query || '',
+            keywords: Array.isArray(sourceData.keywords)
+                ? sourceData.keywords
+                : [],
+            filters: sourceData.filters || {},
+            boolean_query: sourceData.boolean_query || '',
+            themes: Array.isArray(sourceData.themes) ? sourceData.themes : [],
+            messages: [],
+            thread_id: data.thread_id,
+            current_stage: sourceData.current_stage || 'processing',
+            workflow_status: sourceData.workflow_status || 'active',
+            workflow_started:
+                sourceData.workflow_started || new Date().toISOString(),
+            data_requirements: Array.isArray(sourceData.data_requirements)
+                ? sourceData.data_requirements
+                : [],
+            hitl_step: sourceData.step || sourceData.hitl_step || 1,
+            user_input: sourceData.user_input || '',
+            next_node: sourceData.next_node || 'analysis',
+            reason: sourceData.reason || 'processing_query',
+            entities: Array.isArray(sourceData.entities)
+                ? sourceData.entities
+                : [],
+            industry: sourceData.industry || '',
+            sub_vertical: sourceData.sub_vertical || '',
+            use_case: sourceData.use_case || '',
+            defaults_applied: sourceData.defaults_applied || {},
+            conversation_summary: sourceData.conversation_summary || '',
+            human_feedback: sourceData.human_feedback,
+            errors: Array.isArray(sourceData.errors) ? sourceData.errors : [],
+        };
     }
 
-    async getHistory(threadId: string): Promise<any> {
+    // Thread management utilities
+    getStoredThreadId(dashboardId: string): string | null {
         try {
-            const response = await this.axiosInstance.get(
-                `/history/${threadId}`
+            return localStorage.getItem(`chat_thread_${dashboardId}`);
+        } catch (error) {
+            console.error('Error accessing localStorage:', error);
+            return null;
+        }
+    }
+
+    storeThreadId(dashboardId: string, threadId: string): void {
+        try {
+            localStorage.setItem(`chat_thread_${dashboardId}`, threadId);
+        } catch (error) {
+            console.error('Error storing thread ID:', error);
+        }
+    }
+
+    clearStoredThreadId(dashboardId: string): void {
+        try {
+            localStorage.removeItem(`chat_thread_${dashboardId}`);
+        } catch (error) {
+            console.error('Error clearing thread ID:', error);
+        }
+    }
+
+    getStoredMessages(dashboardId: string): any[] {
+        try {
+            const stored = localStorage.getItem(`chat_messages_${dashboardId}`);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error accessing stored messages:', error);
+            return [];
+        }
+    }
+
+    storeMessages(dashboardId: string, messages: any[]): void {
+        try {
+            localStorage.setItem(
+                `chat_messages_${dashboardId}`,
+                JSON.stringify(messages)
             );
-            return response.data;
-        } catch (error: any) {
-            console.error('❌ Error fetching history:', error);
-            throw new Error(
-                `Failed to fetch conversation history: ${error.message}`
+        } catch (error) {
+            console.error('Error storing messages:', error);
+        }
+    }
+
+    clearStoredMessages(dashboardId: string): void {
+        try {
+            localStorage.removeItem(`chat_messages_${dashboardId}`);
+        } catch (error) {
+            console.error('Error clearing messages:', error);
+        }
+    }
+
+    // Dashboard state management utilities
+    getStoredDashboardState(dashboardId: string): DashboardState | null {
+        try {
+            const stored = localStorage.getItem(
+                `chat_dashboard_state_${dashboardId}`
             );
+            return stored ? JSON.parse(stored) : null;
+        } catch (error) {
+            console.error('Error accessing stored dashboard state:', error);
+            return null;
+        }
+    }
+
+    storeDashboardState(
+        dashboardId: string,
+        dashboardState: DashboardState
+    ): void {
+        try {
+            localStorage.setItem(
+                `chat_dashboard_state_${dashboardId}`,
+                JSON.stringify(dashboardState)
+            );
+        } catch (error) {
+            console.error('Error storing dashboard state:', error);
+        }
+    }
+
+    clearStoredDashboardState(dashboardId: string): void {
+        try {
+            localStorage.removeItem(`chat_dashboard_state_${dashboardId}`);
+        } catch (error) {
+            console.error('Error clearing dashboard state:', error);
         }
     }
 }

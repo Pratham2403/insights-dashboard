@@ -364,12 +364,18 @@ async def get_history(thread_id: str):
     
     try:
         # Modern history retrieval - built-in persistence
-        history = await get_workflow_history(thread_id)
-        
+        config = {"configurable": {"thread_id": thread_id}}
+        workflow = get_workflow()
+        if not workflow:
+            raise HTTPException(status_code=500, detail="Workflow instance not initialized")
+        logger.info(f"Fetching history for thread ID: {thread_id}")
+        state = (await workflow.workflow.aget_state(config=config)).values
+
+        logger.info(f"Current state for thread {thread_id}: {state}")
+
         return create_success_response({
             "thread_id": thread_id,
-            "messages": history,
-            "count": len(history)
+            "state": state,
         }, "History retrieved")
     except Exception as e:
         logger.error(f"Error retrieving history: {e}")

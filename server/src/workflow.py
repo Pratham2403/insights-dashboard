@@ -740,8 +740,8 @@ class SprinklrWorkflow:
             config = {"configurable": {"thread_id": thread_id}}
             
             # Get state from memory
-            state = await self.workflow.aget_state(config)
-            
+            state = await self.workflow.workflow.aget_state(config)
+            logger.info(f"📜 Retrieved state for thread {thread_id}: {state}")
             return {
                 "thread_id": thread_id,
                 "status": "retrieved",

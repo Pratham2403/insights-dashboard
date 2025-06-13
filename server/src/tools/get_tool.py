@@ -43,7 +43,6 @@ async def get_sprinklr_data(
         
         # Generate unique request ID and key
         request_key = "25fac0b8-b533-4959-9434-c8d230eb539d"
-        logger.info(f"DEBUG: Baggage : {settings.SPRINKLR_BAGGAGE}")
         # Hardcoded headers as per api-communication.md - DO NOT CHANGE
         headers = {
             'accept': 'text/event-stream',

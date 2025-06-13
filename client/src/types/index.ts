@@ -12,38 +12,6 @@ export interface ChatMessage {
     isUser: boolean;
     timestamp: Date;
     threadId?: string;
-    status?: 'waiting_for_input' | 'completed' | 'processing';
-    interruptData?: HITLInterruptData;
-    workflowState?: WorkflowState;
-}
-
-export interface HITLInterruptData {
-    question?: string;
-    step?: number;
-    refined_query?: string;
-    keywords?: string[];
-    filters?: Record<string, any>;
-    data_requirements?: string[];
-    instructions?: string;
-    reason?: string;
-}
-
-export interface WorkflowState {
-    query?: string[];
-    refined_query?: string;
-    keywords?: string[];
-    filters?: Record<string, any>;
-    boolean_query?: string;
-    themes?: Array<{
-        name?: string;
-        description?: string;
-        boolean_query?: string;
-        keywords?: string[];
-    }>;
-    data_requirements?: string[];
-    analysis_results?: Record<string, any>;
-    hitl_step?: number;
-    current_stage?: string;
 }
 
 export interface Dashboard {
@@ -132,20 +100,59 @@ export interface ReasoningStepConfig {
     heading: string;
     content: string;
     duration: number;
-    state_field?: string;
-    is_hitl?: boolean;
 }
 
 export interface ChatContextType {
     threadId: string | null;
     messages: ChatMessage[];
     isLoading: boolean;
-    workflowState: WorkflowState | null;
-    currentStep: number;
-    setThreadId: (threadId: string | null) => void;
+    dashboardState: DashboardState | null;
+    isReopenedDashboard: boolean;
+    setThreadId: (threadId: string | null, dashboardId?: string) => void;
     addMessage: (message: ChatMessage) => void;
     setLoading: (loading: boolean) => void;
-    clearMessages: () => void;
-    updateWorkflowState: (state: Partial<WorkflowState>) => void;
-    setCurrentStep: (step: number) => void;
+    clearMessages: (dashboardId?: string) => void;
+    setDashboardState: (state: DashboardState | null) => void;
+    loadDashboardContext: (dashboardId: string) => void;
+    setCurrentDashboard: (dashboardId: string | null) => void;
+}
+
+// Backend State Interface - Updated to match states.py exactly
+export interface DashboardState {
+    // Core fields as per PROMPT.md and states.py
+    query: string[]; // List of queries for conversation
+    refined_query?: string; // Refined query string
+    keywords?: string[]; // Extracted keywords list
+    filters?: Record<string, any>; // Filter mappings
+    boolean_query?: string; // Generated boolean query
+    themes?: Array<Record<string, any>>; // Generated themes with boolean queries
+
+    // LangGraph compatibility (required)
+    messages: any[]; // BaseMessage sequence
+
+    // Additional tracking fields
+    thread_id?: string;
+    current_stage?: string;
+    workflow_status?: string;
+    workflow_started?: string;
+    data_requirements?: string[];
+
+    hitl_step?: number; // tracks HITL step progression
+    user_input?: string; // current user input
+    next_node?: string; // next node to route to
+    reason?: string; // reason for HITL trigger (e.g., "clarification_needed")
+
+    // Processing metadata
+    entities?: string[];
+    industry?: string;
+    sub_vertical?: string;
+    use_case?: string;
+    defaults_applied?: Record<string, any>; // Applied defaults for the query (changed from string[] to Record)
+    conversation_summary?: string; // Summary of the conversation
+
+    // HITL verification
+    human_feedback?: string;
+
+    // Workflow tracking
+    errors?: string[];
 }
