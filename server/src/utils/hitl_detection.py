@@ -7,7 +7,7 @@ All analysis is for informational purposes only - explicit human approval is alw
 
 import re
 import logging
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,69 @@ REFINEMENT_NEEDED_PATTERNS = [
     r'\b(last|past|previous|next|recent)\s+\d+\s+(day|week|month|year)s?\b',  # Time periods like "last 6 months"
     r'\b(from|to|since|until|before|after)\s+\d+\b',  # Date ranges
     r'\b(instead|rather|prefer|better|different)\b',  # Preference indicators
+]
+
+# Theme modification patterns - Enhanced for better detection
+THEME_MODIFICATION_PATTERNS = {
+    "add_theme": [
+        r'\b(add|create|include|insert|new)\s+(?:a\s+)?theme\b',
+        r'\b(add|create|include|insert)\s+(?:another|new|additional|more)\s+(?:theme|topic|category)\b',
+        r'\b(i(?:\'d| would)\s+like\s+to\s+add|can\s+you\s+add|please\s+add)\b.*\b(theme|topic|category)\b',
+        r'\b(missing|forgot|need)\s+(?:a\s+)?theme\s+(?:for|about|on)\b',
+        r'\b(also\s+include|additionally\s+add)\b.*\b(theme|topic)\b',
+        r'\bi\s+need\s+a\s+theme\s+about\b',
+        r'\b(generate|make)\s+(?:a\s+)?(?:new\s+)?theme\s+(?:for|about|on)\b',
+    ],
+    "remove_theme": [
+        r'\b(remove|delete|exclude|drop|eliminate)\s+(?:the\s+)?.*?\btheme\b',
+        r'\b(don\'t\s+need|not\s+interested\s+in|not\s+relevant)\b.*\b(theme|topic)\b',
+        r'\b(take\s+out|get\s+rid\s+of)\b.*\b(theme|topic)\b',
+        r'\b(unnecessary|irrelevant|useless)\s+theme\b',
+        r'\b(?:the\s+)?(?:\w+\s+)*theme.*(?:should\s+be\s+)?(?:removed|deleted|excluded)\b',
+        r'\bremove\s+(?:the\s+)?(?:\w+\s+)*theme\b',
+        r'\bdelete\s+(?:the\s+)?(?:\w+\s+)*theme\b',
+        r'\bget\s+rid\s+of\s+(?:the\s+)?(?:\w+\s+)*(?:theme|topic|category)\b',
+        r'\bget\s+rid\s+of\s+(?:\w+\s+)*(?:satisfaction|issues|pricing|billing|customer|product)',
+    ],
+    "modify_theme": [
+        r'\b(modify|change|update|edit|alter|adjust)\s+(?:the\s+)?.*?\btheme\b',
+        r'\b(rename|retitle|relabel)\s+(?:the\s+)?theme\b',
+        r'\b(?:the\s+)?(?:\w+\s+)*theme.*(?:should\s+be\s+)?(?:changed|modified|updated)\b',
+        r'\b(improve|enhance|refine)\s+(?:the\s+)?theme\b',
+        r'\b(make\s+(?:the\s+)?theme\s+more)\b',
+        r'\b(rephrase|reword)\s+(?:the\s+)?theme\b',
+        r'\bmodify\s+(?:the\s+)?(?:\w+\s+)*theme\b',
+        r'\bchange\s+(?:the\s+)?(?:\w+\s+)*theme\b',
+        r'\bupdate\s+(?:the\s+)?(?:\w+\s+)*theme\b',
+        r'\bupdate\s+(?:the\s+)?(?:\w+\s+)*(?:description|title|name|label)',
+        r'\bchange\s+(?:the\s+)?(?:\w+\s+)*(?:description|title|name|label)',
+    ],
+    "create_sub_theme": [
+        r'\b(sub(?:-|\s)?theme|sub(?:-|\s)?topic|sub(?:-|\s)?category)\b',
+        r'\b(break\s+(?:down|up)|split|divide)\s+(?:the\s+)?.*?\btheme\b',
+        r'\b(more\s+granular|more\s+detailed|more\s+specific)\s+(?:analysis|themes|breakdown)\b',
+        r'\b(children\s+themes?|child\s+themes?|nested\s+themes?)\b',
+        r'\b(drill\s+down|go\s+deeper)\s+(?:into|on)\b.*\b(theme|topic)\b',
+        r'\b(categorize|organize|group)\s+(?:the\s+)?(?:data|content)\s+(?:under|within)\b.*\b(theme|topic)\b',
+        r'\bcreate\s+sub(?:-|\s)?themes?\s+for\b',
+        r'\bbreak\s+down\s+(?:the\s+)?(?:\w+\s+)*theme\b',
+        r'\bgenerate\s+children\s+themes?\s+for\b',
+    ]
+}
+
+# Extract target theme patterns - Enhanced for better extraction
+THEME_TARGET_PATTERNS = [
+    r'\btheme\s+(?:named|called|about|titled|labeled)\s+["\']?([^"\']+)["\']?\b',
+    r'\b["\']([^"\']+)["\']?\s+theme\b',
+    r'\bthe\s+([^,\.!?]+)\s+theme\b',
+    r'\btheme\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b',
+    r'\b(?:remove|delete|modify|change|update)\s+(?:the\s+)?([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\s+theme\b',
+    r'\b([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\s+theme\s+(?:should|needs|must)\b',
+    r'\bfor\s+([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\s+theme\b',
+    r'\babout\s+([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\s+(?:theme|topic)\b',
+    r'\bfor\s+([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\b(?=\s*$)',  # "for product issues" at end
+    r'\bget\s+rid\s+of\s+([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\b',  # "get rid of customer satisfaction"
+    r'\bupdate\s+(?:the\s+)?([^,\.!?\s]+(?:\s+[^,\.!?\s]+)*)\s+(?:description|title|name|label)\b',
 ]
 
 def detect_approval_intent(query: str) -> Dict[str, Any]:
@@ -199,4 +262,126 @@ def determine_hitl_action(query: str, conversation_context: Dict[str, Any] = Non
         "approval_analysis": approval_result,
         "is_continuation": is_continuation,
         "confidence": approval_result["confidence"]
+    }
+
+def detect_theme_modification_intent(query: str) -> Dict[str, Any]:
+    """
+    Detect theme modification intent from user query.
+    
+    Args:
+        query: User's input query
+        
+    Returns:
+        Dict containing:
+        - intent: str - Type of modification (add, remove, modify, create_sub_theme, none)
+        - confidence: str - Level of confidence (high/medium/low)
+        - target_theme: str - Identified target theme if any
+        - details: str - Extracted modification details
+        - matched_patterns: List[str] - Patterns that matched
+    """
+    if not query or not isinstance(query, str):
+        return {
+            "intent": "none",
+            "confidence": "none",
+            "target_theme": None,
+            "details": query,
+            "matched_patterns": []
+        }
+    
+    normalized_query = query.lower().strip()
+    
+    # Check each modification type
+    for intent_type, patterns in THEME_MODIFICATION_PATTERNS.items():
+        for pattern in patterns:
+            if re.search(pattern, normalized_query, re.IGNORECASE):
+                # Extract target theme if mentioned
+                target_theme = extract_target_theme(query)
+                
+                logger.info(f"🎯 Theme modification intent detected: {intent_type}")
+                return {
+                    "intent": intent_type,
+                    "confidence": "high",
+                    "target_theme": target_theme,
+                    "details": query.strip(),
+                    "matched_patterns": [pattern]
+                }
+    
+    # If no specific theme modification patterns, check for general modification
+    if any(re.search(pattern, normalized_query, re.IGNORECASE) for pattern in REFINEMENT_NEEDED_PATTERNS):
+        return {
+            "intent": "modify",  # Default to modify for general changes
+            "confidence": "medium",
+            "target_theme": extract_target_theme(query),
+            "details": query.strip(),
+            "matched_patterns": ["general_modification"]
+        }
+    
+    return {
+        "intent": "none",
+        "confidence": "none",
+        "target_theme": None,
+        "details": query,
+        "matched_patterns": []
+    }
+
+def extract_target_theme(query: str) -> Optional[str]:
+    """
+    Extract the target theme name from user query.
+    
+    Args:
+        query: User's input query
+        
+    Returns:
+        Extracted theme name or None if not found
+    """
+    if not query:
+        return None
+    
+    # Try each pattern to extract theme name
+    for pattern in THEME_TARGET_PATTERNS:
+        match = re.search(pattern, query, re.IGNORECASE)
+        if match:
+            theme_name = match.group(1).strip()
+            # Clean up common artifacts
+            theme_name = re.sub(r'\s+', ' ', theme_name)  # Normalize whitespace
+            theme_name = theme_name.strip('.,!?')  # Remove trailing punctuation
+            if len(theme_name) > 2:  # Avoid single letters or very short matches
+                logger.info(f"🎯 Extracted target theme: '{theme_name}'")
+                return theme_name
+    
+    return None
+
+def analyze_theme_query_context(query: str, themes: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Comprehensive analysis of user query in theme context.
+    
+    Args:
+        query: User's input query
+        themes: Current themes for context
+        
+    Returns:
+        Complete analysis including approval, modification intent, and routing decision
+    """
+    approval_analysis = detect_approval_intent(query)
+    modification_analysis = detect_theme_modification_intent(query)
+    
+    # Determine primary action
+    if modification_analysis["intent"] != "none":
+        primary_action = "theme_modification"
+        routing_decision = "theme_modifier"
+    elif approval_analysis["is_approval"] and approval_analysis["confidence"] in ["high", "medium"]:
+        primary_action = "approval"
+        routing_decision = "continue"
+    else:
+        primary_action = "standard_verification"
+        routing_decision = "theme_hitl_verification"
+    
+    return {
+        "primary_action": primary_action,
+        "routing_decision": routing_decision,
+        "approval_analysis": approval_analysis,
+        "modification_analysis": modification_analysis,
+        "confidence": max(approval_analysis.get("confidence", "none"), 
+                         modification_analysis.get("confidence", "none")),
+        "reasoning": f"Primary action: {primary_action}, Intent: {modification_analysis['intent']}"
     }

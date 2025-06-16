@@ -44,7 +44,7 @@ class LLMSetup:
     
     def __init__(self):
         """Initialize LLM Setup with environment configuration."""
-        self.environment = "production"
+        self.environment = settings.ENVIRONMENT
         logger.info(f"LLMSetup initialized for environment: {self.environment}")
 
     def get_llm(self, temperature: Optional[float] = None, max_tokens: Optional[int] = None) -> "RouterChatModel":

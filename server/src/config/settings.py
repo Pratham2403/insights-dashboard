@@ -26,8 +26,8 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore"
     )
-    ENVIRONMENT: str = Field(default="production", description="Application environment (development/production)")
-    
+    ENVIRONMENT: str = Field(default=os.getenv("ENVIRONMENT", "production"), description="Application environment (development/production)")
+
     # LLM Configuration (Primary)
     GOOGLE_API_KEY: str = Field(..., description="Google API key for LLM access")
     DEFAULT_MODEL_NAME: str = Field(default="gemini-2.0-flash", description="Default LLM model name")

@@ -36,8 +36,9 @@ from src.tools.get_tool import get_sprinklr_data
 from src.agents.query_refiner_agent import QueryRefinerAgent
 from src.agents.data_collector_agent import DataCollectorAgent
 from src.agents.data_analyzer_agent2 import DataAnalyzerAgent
-from src.agents.query_generator_agent import  QueryGeneratorAgent
-from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action
+from src.agents.query_generator_agent import QueryGeneratorAgent
+from src.agents.theme_modifier_agent import ThemeModifierAgent
+from src.utils.hitl_detection import detect_approval_intent, determine_hitl_action, analyze_theme_query_context
 from src.persistence.mongodb_checkpointer import get_async_mongodb_checkpointer
 import asyncio
 
@@ -75,6 +76,7 @@ class SprinklrWorkflow:
         self.data_collector = DataCollectorAgent(self.llm)
         self.data_analyzer = DataAnalyzerAgent(self.llm) 
         self.query_generator = QueryGeneratorAgent(self.llm)
+        self.theme_modifier_agent = ThemeModifierAgent(self.llm)
         
         # Setup tools
         self.tools = [get_sprinklr_data]
@@ -107,6 +109,10 @@ class SprinklrWorkflow:
         workflow.add_node("tools", self._tool_execution_node)  # Use custom tool node
         workflow.add_node("data_analyzer", self._data_analyzer_node)
         
+        # Add Theme HITL nodes
+        workflow.add_node("theme_hitl_verification", self._theme_hitl_verification_node)
+        workflow.add_node("theme_modifier", self._theme_modifier_node)
+        
         # Define the exact architecture flow
         workflow.add_edge(START, "query_refiner")
         workflow.add_edge("query_refiner", "data_collector")
@@ -124,18 +130,35 @@ class SprinklrWorkflow:
         
         workflow.add_edge("query_generator", "tools")
         workflow.add_edge("tools", "data_analyzer")
-        workflow.add_edge("data_analyzer", END)
+        
+        # Add Theme HITL flow after data analyzer
+        workflow.add_edge("data_analyzer", "theme_hitl_verification")
+        
+        # Theme HITL can continue or modify themes
+        workflow.add_conditional_edges(
+            "theme_hitl_verification",
+            self._should_continue_theme_hitl,
+            {
+                "continue": END,
+                "modify": "theme_modifier",
+                "refine": "data_analyzer"
+            }
+        )
+        
+        # Theme modifier goes back to theme HITL for verification
+        workflow.add_edge("theme_modifier", "theme_hitl_verification")
         
         # Use MongoDB checkpointer for persistence
         compiled_workflow = workflow.compile(
             checkpointer=self.checkpointer
         )
         
-        logger.info("📋 Workflow compiled with MongoDB checkpointer")
+        logger.info("📋 Workflow compiled with MongoDB checkpointer and Theme HITL nodes")
         logger.info(f"📊 Workflow nodes: {list(workflow.nodes.keys()) if hasattr(workflow, 'nodes') else 'Unknown'}")
         
         return compiled_workflow
     
+
 
 
     async def _query_refiner_node(self, state: DashboardState) -> Dict[str, Any]:
@@ -311,13 +334,19 @@ class SprinklrWorkflow:
             }
             
             # Use interrupt to capture user input
-            user_response = interrupt(verification_data)
+            interrupt(verification_data)
+            
+            # After resume, check for user input in the state
+            user_input = state.get("user_input")
+            if not user_input:
+                # If no user input, stay in verification step
+                return {"hitl_step": 1}
             
             # Process the user response directly after interrupt
-            logger.info(f"📝 Processing user response: '{user_response}'")
+            logger.info(f"📝 Processing user response: '{user_input}'")
             
             # Use dynamic positive and negative analysis from our system
-            approval_analysis = detect_approval_intent(user_response)
+            approval_analysis = detect_approval_intent(user_input)
             logger.info(f"🤖 Dynamic Analysis Result: {approval_analysis}")
             
             # Process response based on analysis (following helper_hitl_demo_code.py pattern)
@@ -333,7 +362,7 @@ class SprinklrWorkflow:
                 # For clarifications/new requirements, replace the original query entirely
                 # This prevents duplication and loop conditions
                 return {
-                    "query": [user_response],  # Replace with fresh user input as list
+                    "query": [user_input],  # Replace with fresh user input as list
                     "hitl_step": 0,  # Reset for next iteration
                     "next_node": "query_refiner",  # Route to query refiner for fresh processing
                     "current_stage": "query_received"  # Reset stage to start fresh
@@ -376,8 +405,7 @@ class SprinklrWorkflow:
         
 
         logger.info(" ==================== HITL VERIFICATION COMPLETED ====================")
-
-    
+   
     def _should_continue_hitl(self, state: DashboardState) -> str : 
         """
         Decision logic for HITL workflow routing following helper_hitl_demo_code.py pattern.
@@ -405,8 +433,6 @@ class SprinklrWorkflow:
         logger.warning("⚠️ No explicit routing found from HITL node - defaulting to refine for safety")
         return "refine"
     
-
-
     async def _query_generator_node(self, state: DashboardState) -> Dict[str, Any]:
         """
         Step 4: Query Generator Agent  
@@ -471,8 +497,6 @@ class SprinklrWorkflow:
                 return {"messages": [error_msg], "errors": [str(e)]}
         finally:
             logger.info(" ==================== BOOLEANQUERY GENERATOR COMPLETED ====================")
-
-
 
     async def _tool_execution_node(self, state: DashboardState) -> Dict[str, Any]:
         """
@@ -601,6 +625,295 @@ class SprinklrWorkflow:
         finally:
             logger.info(" ==================== DATA ANALYZER COMPLETED ====================")
             logger.info(f"🔍 Logging FINAL STATE {state}")
+
+
+
+    async def _theme_hitl_verification_node(self, state: DashboardState) -> Dict[str, Any]:
+        """
+        Theme HITL Verification Node after Data Analyzer Agent
+        - Implements human-in-the-loop verification for themes
+        - Uses interrupt() to pause execution for user input
+        - Analyzes user intent for theme modifications
+        """
+        logger.info("🎨 Theme HITL Verification - Human-in-the-Loop for Themes")
+        logger.info(" ==================== THEME HITL VERIFICATION STARTED ====================")
+        
+        try:
+            themes = state.get("themes", [])
+            step = state.get("theme_hitl_step", 1)
+            
+            logger.info(f"🔢 Theme HITL Step: {step}")
+            logger.info(f"📊 Number of themes to review: {len(themes)}")
+            
+            # Step 1: Present themes for user review
+            if step == 1:
+                logger.info("📋 Step 1: Presenting themes for user review")
+                
+                # Format themes for user review
+                themes_summary = self._format_themes_for_review(themes)
+                
+                verification_data = {
+                    "question": "Please review the generated themes below and provide feedback:",
+                    "themes": themes_summary,
+                    "step": 1,
+                    "instructions": """
+You can:
+• Type 'yes' or 'approve' to proceed with these themes
+• Request modifications like:
+  - "Add a theme about customer complaints"
+  - "Remove the pricing theme"  
+  - "Modify the service theme to focus on support quality"
+  - "Create sub-themes for the product feedback theme"
+• Ask for clarifications or adjustments
+
+What would you like to do?
+                    """.strip()
+                }
+                
+                # Use interrupt to pause execution for user input
+                interrupt(verification_data)
+                
+                # After resume, check for user input in the state
+                user_input = state.get("user_input")
+                if not user_input:
+                    # If no user input, stay in verification step
+                    return {"theme_hitl_step": 1}
+                
+                logger.info(f"📝 User response received: '{user_input}'")
+                
+                # Analyze user response using enhanced HITL detection
+                analysis = analyze_theme_query_context(user_input, themes)
+                
+                logger.info(f"🤖 Theme analysis result: {analysis}")
+                
+                # Route based on analysis
+                if analysis["primary_action"] == "approval":
+                    logger.info("✅ User approved themes - proceeding to completion")
+                    return {
+                        "theme_hitl_step": 0,  # Reset for next time
+                        "next_node": "continue",
+                        "workflow_status": "completed",
+                        "completed_at": datetime.now().isoformat(),
+                        "messages": [AIMessage(content="Themes approved by user. Analysis complete.")]
+                    }
+                    
+                elif analysis["primary_action"] == "theme_modification":
+                    logger.info("🔧 User requested theme modifications")
+                    modification_data = analysis["modification_analysis"]
+                    
+                    return {
+                        "theme_hitl_step": 2,  # Move to modification step
+                        "theme_modification_intent": modification_data["intent"],
+                        "target_theme": modification_data["target_theme"],
+                        "theme_modification_details": user_input,
+                        "original_themes": themes.copy(),  # Backup original themes
+                        "next_node": "modify",
+                        "user_input": user_input
+                    }
+                    
+                else:
+                    logger.info("📋 User provided general feedback - staying in verification")
+                    return {
+                        "theme_hitl_step": 1,  # Stay in verification 
+                        "next_node": "refine",  # Go back to data analyzer for refinement
+                        "user_input": user_input,
+                        "messages": [HumanMessage(content=user_input)]
+                    }
+            
+            # Step 2: Handle post-modification verification
+            elif step == 2:
+                logger.info("🔄 Step 2: Post-modification verification")
+                
+                verification_data = {
+                    "question": "Please review the updated themes:",
+                    "themes": self._format_themes_for_review(themes),
+                    "step": 2,
+                    "instructions": "Are you satisfied with the theme modifications? Reply 'yes' to proceed or request further changes."
+                }
+                
+                # Use interrupt to pause execution for user input
+                interrupt(verification_data)
+                
+                # After resume, check for user input in the state
+                user_input = state.get("user_input")
+                if not user_input:
+                    # If no user input, stay in verification step
+                    return {"theme_hitl_step": 2}
+                
+                # Analyze response
+                analysis = analyze_theme_query_context(user_input, themes)
+                
+                if analysis["primary_action"] == "approval":
+                    logger.info("✅ User approved modified themes")
+                    return {
+                        "theme_hitl_step": 0,
+                        "next_node": "continue",
+                        "workflow_status": "completed",
+                        "completed_at": datetime.now().isoformat(),
+                        "messages": [AIMessage(content="Modified themes approved. Analysis complete.")]
+                    }
+                elif analysis["primary_action"] == "theme_modification":
+                    logger.info("🔧 User requested additional modifications")
+                    modification_data = analysis["modification_analysis"]
+                    
+                    return {
+                        "theme_hitl_step": 2,  # Stay in modification loop
+                        "theme_modification_intent": modification_data["intent"],
+                        "target_theme": modification_data["target_theme"],
+                        "theme_modification_details": user_input,
+                        "next_node": "modify",
+                        "user_input": user_input
+                    }
+                else:
+                    logger.info("📋 User provided feedback - going back for refinement")
+                    return {
+                        "theme_hitl_step": 1,
+                        "next_node": "refine",
+                        "user_input": user_input,
+                        "messages": [HumanMessage(content=user_input)]
+                    }
+            
+            # Default fallback
+            else:
+                logger.warning(f"⚠️ Unknown theme HITL step: {step}")
+                return {
+                    "theme_hitl_step": 1,
+                    "next_node": "continue"
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Theme HITL verification error: {e}")
+            return {
+                "theme_hitl_step": 0,
+                "next_node": "continue",
+                "errors": [f"Theme HITL error: {str(e)}"],
+                "messages": [AIMessage(content=f"Error in theme verification: {str(e)}")]
+            }
+        finally:
+            logger.info(" ==================== THEME HITL VERIFICATION COMPLETED ====================")
+    
+    
+    def _should_continue_theme_hitl(self, state: DashboardState) -> str:
+        """
+        Decision logic for theme HITL workflow routing
+        Routes based on next_node field set by theme HITL verification node.
+        
+        Returns:
+        - "continue": Proceed to final results
+        - "modify": Go to Theme Modifier Agent  
+        - "refine": Go back to Data Analyzer Agent for refinement
+        """
+        next_node = state.get("next_node", "continue")
+        
+        logger.info(f"🔀 Theme HITL routing decision: {next_node}")
+        
+        # Route based on next_node field
+        if next_node == "modify":
+            return "modify"
+        elif next_node == "refine":
+            return "refine"
+        else:
+            return "continue"
+    
+    
+    async def _theme_modifier_node(self, state: DashboardState) -> Dict[str, Any]:
+        """
+        Theme Modifier Node after Theme HITL Verification
+        - Allows user to modify themes based on HITL feedback
+        - Uses Theme Modifier Agent for supervised theme manipulation
+        """
+        logger.info("🔧 Theme Modifier Agent - Processing Theme Modifications")
+        logger.info(" ==================== THEME MODIFIER STARTED ====================")
+        
+        try:
+            # Initialize Theme Modifier Agent if not already done
+            if not hasattr(self, 'theme_modifier_agent'):
+                self.theme_modifier_agent = ThemeModifierAgent()
+            
+            # Get modification parameters from state
+            intent = state.get("theme_modification_intent", "modify")
+            current_themes = state.get("themes", [])
+            user_request = state.get("theme_modification_details", "")
+            target_theme = state.get("target_theme")
+            
+            logger.info(f"🎯 Modification intent: {intent}")
+            logger.info(f"🎯 Target theme: {target_theme}")
+            logger.info(f"📝 User request: {user_request}")
+            
+            # Get original data if available for re-clustering
+            context_data = getattr(self, '_current_hits', None)
+            if context_data and isinstance(context_data, list):
+                # Extract text content for theme analysis
+                docs = [hit.get('message', '') for hit in context_data if hit.get('message')]
+            else:
+                docs = None
+            
+            # Process the modification
+            result = await self.theme_modifier_agent.process_theme_modification(
+                intent=intent,
+                current_themes=current_themes,
+                user_request=user_request,
+                target_theme=target_theme,
+                context_data=docs
+            )
+            
+            if result["success"]:
+                logger.info(f"✅ Theme modification successful: {result.get('message')}")
+                
+                # Update state with modified themes
+                return {
+                    "themes": result["themes"],
+                    "theme_hitl_step": 2,  # Go to post-modification verification
+                    "current_stage": "theme_modified",
+                    "messages": [AIMessage(content=f"Themes updated: {result.get('message')}")]
+                }
+            else:
+                logger.error(f"❌ Theme modification failed: {result.get('error')}")
+                
+                # Return to verification with error message
+                return {
+                    "theme_hitl_step": 1,
+                    "errors": [result.get("error", "Theme modification failed")],
+                    "messages": [AIMessage(content=f"Theme modification failed: {result.get('error')}. Please try again.")]
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Theme modifier error: {e}")
+            return {
+                "theme_hitl_step": 1,
+                "errors": [f"Theme modifier error: {str(e)}"],
+                "messages": [AIMessage(content=f"Error modifying themes: {str(e)}")]
+            }
+        finally:
+            logger.info(" ==================== THEME MODIFIER COMPLETED ====================")
+    
+    def _format_themes_for_review(self, themes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Format themes for user review in HITL verification.
+        
+        Args:
+            themes: List of theme dictionaries
+            
+        Returns:
+            Formatted themes for display
+        """
+        formatted_themes = []
+        
+        for i, theme in enumerate(themes, 1):
+            formatted_theme = {
+                "number": i,
+                "name": theme.get("theme_name", f"Theme {i}"),
+                "description": theme.get("description", "No description available"),
+                "keywords": theme.get("keywords", [])[:5],  # Show first 5 keywords
+                "confidence": theme.get("confidence_score", 0.0),
+                "document_count": theme.get("document_count", 0),
+                "boolean_query": theme.get("boolean_query", "")[:100] + "..." if len(theme.get("boolean_query", "")) > 100 else theme.get("boolean_query", "")
+            }
+            formatted_themes.append(formatted_theme)
+        
+        return formatted_themes
+
+
 
 
     async def run_workflow(
@@ -758,38 +1071,10 @@ class SprinklrWorkflow:
                 "error": str(e)
             }
     
-    def get_workflow_info(self) -> Dict[str, Any]:
-        """Get information about the workflow."""
-        return {
-            "workflow_type": "modern_langgraph",
-            "version": "2.0",
-            "features": [
-                "Thread-based conversation memory",
-                "HITL verification with interrupt()",
-                "Modern LangGraph patterns",
-                "Automatic state persistence",
-                "Multi-agent coordination",
-                "Lazy model loading for performance",
-                "Production-ready FastAPI integration"
-            ],
-            "steps": [
-                "Query Refiner Agent",
-                "Data Collector Agent", 
-                "HITL Verification",
-                "Query Generator Agent",
-                "Tool Execution",
-                "Data Analyzer Agent"
-            ],
-            "performance": {
-                "initialization_time": "~11.6s (optimized from 30s+)",
-                "lazy_loading": "Models load on-demand",
-                "memory_efficient": True
-            }
-        }
 
 
 # Global workflow instance for FastAPI integration
-modern_workflow = SprinklrWorkflow()
+workflow = SprinklrWorkflow()
 
 
 
@@ -809,7 +1094,7 @@ async def get_workflow_history(thread_id: str) -> List[Dict[str, Any]]:
     
     try:
         # Use global workflow instance
-        history_result = await modern_workflow.get_workflow_history(thread_id)
+        history_result = await workflow.get_workflow_history(thread_id)
         
         # Extract messages for simple response
         messages = history_result.get("messages", [])
@@ -832,29 +1117,3 @@ async def get_workflow_history(thread_id: str) -> List[Dict[str, Any]]:
         logger.error(f"Error in standalone history retrieval: {e}")
         return []
 
-
-def get_modern_workflow_status() -> Dict[str, Any]:
-    """
-    Get status of the workflow system.
-    
-    Returns:
-        Dictionary with system status
-    """
-    try:
-        workflow_info = modern_workflow.get_workflow_info()
-        
-        return {
-            "status": "healthy",
-            "workflow_initialized": True,
-            "workflow_info": workflow_info,
-            "memory_enabled": True,
-            "lazy_loading_enabled": True
-        }
-        
-    except Exception as e:
-        logger.error(f"Error getting workflow status: {e}")
-        return {
-            "status": "error",
-            "workflow_initialized": False,
-            "error": str(e)
-        }

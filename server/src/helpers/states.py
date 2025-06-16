@@ -63,8 +63,21 @@ class DashboardState(TypedDict):
     # HITL verification
     human_feedback: Optional[str]
     
+    # Theme HITL specific fields ### IMPORTANT
+    theme_hitl_step: Optional[int]  # Track theme HITL step progression
+    theme_modification_intent: Optional[str]  # add, remove, modify, create_sub_theme
+    target_theme: Optional[str]  # Theme being modified
+    theme_modification_details: Optional[str]  # User's modification details
+    original_themes: Optional[List[Dict[str, Any]]]  # Backup of original themes before modification
+    theme_modification_context: Optional[Dict[str, Any]]  # Additional context for modifications
+    theme_action: Optional[str]  # Action to be taken
+    theme_modification_query: Optional[str]  # The user's theme modification query
+    theme_hitl_history: Optional[List[Dict[str, Any]]]  # History of theme HITL interactions
+    pending_theme_changes: Optional[List[Dict[str, Any]]]  # Changes waiting to be applied
+    
     # Workflow tracking
     errors: Optional[List[str]]
+    completed_at: Optional[str]  # Completion timestamp
     
 
 
@@ -111,4 +124,16 @@ def create_initial_state(user_query: str, thread_id: str = None) -> DashboardSta
         
         # Additional required fields
         human_feedback=None,
+        
+        # Theme HITL specific fields
+        theme_hitl_step=0,
+        theme_modification_intent=None,
+        target_theme=None,
+        theme_modification_details=None,
+        original_themes=None,
+        theme_modification_context=None,
+        theme_action=None,
+        theme_modification_query=None,
+        theme_hitl_history=[],
+        pending_theme_changes=[],
     )
